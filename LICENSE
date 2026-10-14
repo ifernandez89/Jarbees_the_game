@@ -1,0 +1,49 @@
+MIT License
+
+Copyright (c) 2026 [Tu Nombre Completo]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## ATRIBUCIONES DE ASSETS
+
+### Modelo de Abeja
+- **Fuente:** bee_source.glb (retocado y optimizado para web)
+- **Licencia:** Creative Commons BY 4.0
+- **Modificaciones:** Geometría optimizada, texturas PBR, animaciones
+
+### Árboles 3D
+- **Fuente:** ArcheoScope Project
+- **Licencia:** Creative Commons BY 4.0
+
+### Música
+- **"Harmonia Mundi"** - ArcheoScope
+- **Licencia:** Ver ArcheoScope/LICENSE_ASSETS
+
+### Código Base
+- **Inspiración arquitectónica:** ArcheoScope/viewer3d
+- **Three.js & React Three Fiber:** MIT License
+- **Next.js:** MIT License
+
+---
+
+Para más información sobre licencias de assets específicos, ver:
+- `public/models/ATTRIBUTIONS.md`
+- `public/audio/CREDITS.md`

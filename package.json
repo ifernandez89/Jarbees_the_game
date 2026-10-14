@@ -1,0 +1,63 @@
+{
+  "name": "jarbees-the-game",
+  "version": "0.1.0",
+  "description": "REZ-inspired contemplative flight experience with a bee exploring infinite procedural landscapes",
+  "author": "Tu Nombre <tu_email@ejemplo.com>",
+  "license": "MIT",
+  "keywords": [
+    "three.js",
+    "react-three-fiber",
+    "game",
+    "rez",
+    "procedural",
+    "flight-simulator",
+    "contemplative",
+    "bee",
+    "infinite-runner"
+  ],
+  "homepage": "https://github.com/tu_usuario/jarbees-the-game",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tu_usuario/jarbees-the-game"
+  },
+  "bugs": {
+    "url": "https://github.com/tu_usuario/jarbees-the-game/issues"
+  },
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "export": "next build && next export",
+    "analyze": "cross-env ANALYZE=true next build"
+  },
+  "dependencies": {
+    "next": "14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@react-three/fiber": "^8.17.10",
+    "@react-three/drei": "^9.114.3",
+    "@react-three/postprocessing": "^2.16.3",
+    "three": "^0.170.0",
+    "postprocessing": "^6.38.2",
+    "zustand": "^4.5.0",
+    "simplex-noise": "^4.0.3",
+    "stats.js": "^0.17.0",
+    "leva": "^0.9.35"
+  },
+  "devDependencies": {
+    "@next/bundle-analyzer": "14.2.35",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/three": "^0.161.0",
+    "cross-env": "^10.1.0",
+    "typescript": "^5",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.35"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
