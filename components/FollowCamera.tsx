@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '@/store/gameStore'
@@ -8,7 +8,7 @@ import { useGameStore } from '@/store/gameStore'
 export function FollowCamera() {
   const { camera } = useThree()
   const targetPosition = useRef(new THREE.Vector3())
-  const currentPosition = useRef(new THREE.Vector3(0, 2.95, 2.4))
+  const currentPosition = useRef(new THREE.Vector3(0, 2.7, 1.8))
   const isFirstFrame = useRef(true)
   
   const beePosition = useGameStore((state) => state.position)
@@ -18,11 +18,12 @@ export function FollowCamera() {
   useFrame((_, delta) => {
     if (isPaused) return
 
-    // Offset de la cámara: POR ENCIMA (+0.95m en Y) y DETRÁS (+2.4m en Z) de la abeja
-    // Ángulo superior en tercera persona para ver a la abeja en pantalla completa con el horizonte al fondo
-    const cameraOffset = new THREE.Vector3(0, 0.95, 2.4)
+    // Offset de la cámara:
+    // +0.70m por encima en Y (ángulo cenital elevado)
+    // +1.80m por detrás en Z (viendo la espalda, alas y cuerpo de la abeja hacia el horizonte)
+    const cameraOffset = new THREE.Vector3(0, 0.70, 1.8)
     
-    // Matriz de rotación de la abeja
+    // Matriz de rotación de la orientación de la abeja
     const rotationMatrix = new THREE.Matrix4()
     rotationMatrix.makeRotationFromEuler(
       new THREE.Euler(beeRotation[0], beeRotation[1], beeRotation[2])
@@ -38,19 +39,18 @@ export function FollowCamera() {
       beePosition[2] + cameraOffset.z
     )
 
-    // En el primer fotograma posicionar sin retraso para evitar tirones
+    // En el primer frame posicionar sin interpolación para encuadrar de inmediato
     if (isFirstFrame.current) {
       currentPosition.current.copy(targetPosition.current)
       isFirstFrame.current = false
     } else {
-      // Suavizado fluido
       currentPosition.current.lerp(targetPosition.current, Math.min(1, delta * 9))
     }
     
     camera.position.copy(currentPosition.current)
     
-    // El punto de mira enfoca a la abeja con un suave adelanto hacia el frente (-0.6m) y levemente elevado
-    const forwardLookOffset = new THREE.Vector3(0, 0.15, -0.6)
+    // Punto de mira enfocado hacia adelante (-Z), pasando por encima de la abeja hacia el horizonte
+    const forwardLookOffset = new THREE.Vector3(0, 0.05, -1.2)
     forwardLookOffset.applyMatrix4(rotationMatrix)
     const lookAtTarget = new THREE.Vector3(
       beePosition[0] + forwardLookOffset.x,

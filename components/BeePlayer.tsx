@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useMemo, Component, ReactNode, Suspense } from 'react'
+import React, { useRef, useEffect, Component, ReactNode, Suspense } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -33,7 +33,7 @@ class ModelErrorBoundary extends Component<
   }
 
   componentDidCatch(error: unknown) {
-    console.warn('⚠️ No se pudo cargar el modelo GLB, utilizando abeja procedural estilizada:', error)
+    console.warn('⚠️ Fallback a abeja procedural:', error)
   }
 
   render() {
@@ -45,38 +45,20 @@ class ModelErrorBoundary extends Component<
 }
 
 /**
- * Modelo GLB de la abeja con auto-escalado visible (~0.75m), centrado y animación de aleteo
+ * Modelo GLB de la abeja:
+ * - Escalado inmutable en grupo contenedor a 0.22 (3 a 4 veces más pequeña que en la captura)
+ * - Rotación 180° (Math.PI en Y) para que la cabeza apunte HACIA ADELANTE (-Z) en la dirección del vuelo
+ * - Centrado del modelo para rotaciones perfectas
  */
 function BeeGLBModel({ modelPath }: { modelPath: string }) {
   const resolvedModelPath = getAssetPath(modelPath)
   const { scene, animations } = useGLTF(resolvedModelPath) as GLTFResult
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
-  const clonedScene = useMemo(() => scene.clone(true), [scene])
 
-  // Normalizar escala a 0.75m para que sea perfectamente visible en tercera persona
+  // Configurar materiales
   useEffect(() => {
-    if (!clonedScene) return
-
-    const box = new THREE.Box3().setFromObject(clonedScene)
-    const size = new THREE.Vector3()
-    box.getSize(size)
-    const maxDim = Math.max(size.x, size.y, size.z)
-
-    if (maxDim > 0) {
-      const targetSize = 0.75 // Tamaño óptimo de visibilidad en tercera persona
-      const scale = targetSize / maxDim
-      clonedScene.scale.setScalar(scale)
-
-      const center = new THREE.Vector3()
-      box.getCenter(center)
-      clonedScene.position.set(
-        -center.x * scale,
-        -center.y * scale,
-        -center.z * scale
-      )
-    }
-
-    clonedScene.traverse((child) => {
+    if (!scene) return
+    scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh
         mesh.castShadow = true
@@ -89,13 +71,12 @@ function BeeGLBModel({ modelPath }: { modelPath: string }) {
         }
       }
     })
-  }, [clonedScene])
+  }, [scene])
 
-  // Reproducir animaciones del modelo (hover / aleteo continuo)
+  // Reproducir animaciones del modelo (hover continuo)
   useEffect(() => {
     if (animations && animations.length > 0) {
-      mixerRef.current = new THREE.AnimationMixer(clonedScene)
-      // Buscar clip de hover o idle o usar el primero disponible
+      mixerRef.current = new THREE.AnimationMixer(scene)
       const clip =
         animations.find((a) => a.name.toLowerCase().includes('hover')) ||
         animations.find((a) => a.name.toLowerCase().includes('idle')) ||
@@ -113,43 +94,45 @@ function BeeGLBModel({ modelPath }: { modelPath: string }) {
         mixerRef.current.stopAllAction()
       }
     }
-  }, [animations, clonedScene])
+  }, [animations, scene])
 
   const velocity = useGameStore((state) => state.velocity)
 
   useFrame((_, delta) => {
     if (mixerRef.current) {
-      // Aletea siempre; acelera al avanzar
       const animSpeed = 1.0 + (Math.abs(velocity) / 8) * 0.8
       mixerRef.current.update(delta * animSpeed)
     }
   })
 
+  // CONTENEDOR INMUTABLE:
+  // - scale: 0.22 (garantiza tamaño compacto de ~18 cm, 3x a 4x menor al actual)
+  // - rotation: [0, Math.PI, 0] (gira la cabeza hacia adelante -Z para que la cámara vea la espalda)
+  // - position: compensa el centro de masa del modelo
   return (
-    <primitive
-      object={clonedScene}
-      rotation={[0, Math.PI, 0]} // Rotada 180° para mirar hacia el horizonte (-Z)
-    />
+    <group scale={0.22} rotation={[0, Math.PI, 0]} position={[-0.007, -0.04, -0.004]}>
+      <primitive object={scene} />
+    </group>
   )
 }
 
 /**
- * Abeja procedural estilizada y visible (fallback instantáneo si aún se descarga el GLB)
+ * Abeja procedural estilizada de respaldo (mismo tamaño y orientación que el GLB)
  */
 function ProceduralBee() {
   const leftWingRef = useRef<THREE.Mesh>(null!)
   const rightWingRef = useRef<THREE.Mesh>(null!)
 
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime() * 45 // Aleteo continuo en todo momento
+    const t = clock.getElapsedTime() * 45
     const flap = Math.sin(t) * 0.45
     if (leftWingRef.current) leftWingRef.current.rotation.z = 0.2 + flap
     if (rightWingRef.current) rightWingRef.current.rotation.z = -0.2 - flap
   })
 
   return (
-    <group scale={0.75} rotation={[0, Math.PI, 0]}>
-      {/* Cuerpo a rayas doradas y oscuras */}
+    <group scale={0.22} rotation={[0, Math.PI, 0]}>
+      {/* Cuerpo */}
       <mesh position={[0, 0, 0]} castShadow receiveShadow>
         <sphereGeometry args={[0.3, 16, 16]} />
         <meshStandardMaterial color="#f59e0b" roughness={0.3} metalness={0.2} />
@@ -163,7 +146,7 @@ function ProceduralBee() {
         <sphereGeometry args={[0.3, 16, 16]} />
         <meshStandardMaterial color="#1e1e24" roughness={0.5} />
       </mesh>
-      {/* Cabeza y ojos brillantes */}
+      {/* Cabeza y ojos hacia adelante */}
       <mesh position={[0, 0, 0.28]} castShadow>
         <sphereGeometry args={[0.18, 16, 16]} />
         <meshStandardMaterial color="#18181b" roughness={0.4} />
@@ -176,7 +159,7 @@ function ProceduralBee() {
         <sphereGeometry args={[0.06, 12, 12]} />
         <meshStandardMaterial color="#000000" roughness={0.1} />
       </mesh>
-      {/* Alas translúcidas luminosas */}
+      {/* Alas */}
       <mesh ref={leftWingRef} position={[-0.18, 0.18, 0.02]} rotation={[0.1, 0, 0.2]} castShadow>
         <boxGeometry args={[0.42, 0.015, 0.25]} />
         <meshStandardMaterial color="#e0f2fe" transparent opacity={0.8} roughness={0.1} />
@@ -246,7 +229,7 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
 
     // Balanceo suave y natural en suspensión (hover bobbing)
     if (modelAnchorRef.current) {
-      const hoverBobbing = Math.sin(state.clock.getElapsedTime() * 3.2) * 0.04
+      const hoverBobbing = Math.sin(state.clock.getElapsedTime() * 3.2) * 0.03
       modelAnchorRef.current.position.y = hoverBobbing
     }
 
@@ -293,7 +276,7 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
       bee.rotation.z = THREE.MathUtils.lerp(bee.rotation.z, 0, delta * 5)
     }
 
-    // Modulación acústica: zumbido suave en reposo, mayor al avanzar
+    // Modulación acústica
     const audio = getAudioManager()
     if (audio) {
       const isMoving = Math.abs(currentVelocity) > 0.5
@@ -319,7 +302,6 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
   )
 }
 
-// Precarga opcional segura
 try {
   useGLTF.preload(getAssetPath('/models/bee.glb'))
 } catch {
