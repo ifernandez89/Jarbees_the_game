@@ -11,7 +11,6 @@ import { DynamicSky } from './DynamicSky'
 import { WeatherSystem } from './WeatherSystem'
 import { WaterSurface } from './WaterSurface'
 import { MobileTouchControls } from './MobileTouchControls'
-import { DonationButton } from './DonationButton'
 import { useGameControls } from '@/hooks/useGameControls'
 import { useGameStore } from '@/store/gameStore'
 import { useAudio } from '@/hooks/useAudio'
@@ -40,16 +39,16 @@ function Scene() {
       <ambientLight intensity={0.85} />
       <hemisphereLight color="#ffffff" groundColor="#446835" intensity={0.75} />
 
-      {/* Terreno infinito procedural reactivo al bioma actual */}
+      {/* Terreno infinito procedural reactivo */}
       <InfiniteTerrain biome={currentBiome} seed={12345} />
 
       {/* Superficie de agua cristalina para lagos y valles */}
       <WaterSurface waterHeight={1.4} />
 
-      {/* Abeja jugadora */}
+      {/* Abeja jugadora con fallback instantáneo y modelo 3D */}
       <BeePlayer />
 
-      {/* Cámara que sigue a la abeja */}
+      {/* Cámara en tercera persona */}
       <FollowCamera />
     </>
   )
@@ -70,7 +69,7 @@ export default function GameScene() {
     <>
       <Canvas
         camera={{
-          position: [0, 3, 8],
+          position: [0, 2.5, 3],
           fov: 75,
           near: 0.1,
           far: 1000,
@@ -84,6 +83,9 @@ export default function GameScene() {
           left: 0,
         }}
       >
+        {/* Fondo inicial celeste para que nunca exista pantalla negra */}
+        <color attach="background" args={['#5aa2f0']} />
+
         <Suspense fallback={null}>
           <Scene />
         </Suspense>
@@ -93,9 +95,6 @@ export default function GameScene() {
 
       {/* HUD del juego */}
       <GameHUD />
-
-      {/* Botón flotante de donaciones */}
-      <DonationButton />
 
       {/* Controles táctiles para móvil */}
       <MobileTouchControls />

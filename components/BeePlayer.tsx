@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useMemo, Component, ReactNode, Suspense } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -18,14 +18,181 @@ interface BeePlayerProps {
   modelPath?: string
 }
 
-export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
-  const groupRef = useRef<THREE.Group>(null!)
-  const mixerRef = useRef<THREE.AnimationMixer | null>(null)
-  
-  // Cargar modelo GLB con resolución dinámica para GitHub Pages
+// Error Boundary para capturar fallos de carga del modelo 3D y usar el fallback
+class ModelErrorBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { fallback: ReactNode; children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: unknown) {
+    console.warn('⚠️ No se pudo cargar el modelo GLB, utilizando abeja procedural estilizada:', error)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback
+    }
+    return this.props.children
+  }
+}
+
+/**
+ * Modelo GLB de la abeja con auto-escalado, centrado y animación
+ */
+function BeeGLBModel({ modelPath }: { modelPath: string }) {
   const resolvedModelPath = getAssetPath(modelPath)
   const { scene, animations } = useGLTF(resolvedModelPath) as GLTFResult
-  
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null)
+  const clonedScene = useMemo(() => scene.clone(true), [scene])
+
+  // Normalizar escala y centrado para que cualquier modelo mida exactamente ~0.4 unidades
+  useEffect(() => {
+    if (!clonedScene) return
+
+    const box = new THREE.Box3().setFromObject(clonedScene)
+    const size = new THREE.Vector3()
+    box.getSize(size)
+    const maxDim = Math.max(size.x, size.y, size.z)
+
+    if (maxDim > 0) {
+      const targetSize = 0.45
+      const scale = targetSize / maxDim
+      clonedScene.scale.setScalar(scale)
+
+      const center = new THREE.Vector3()
+      box.getCenter(center)
+      clonedScene.position.set(
+        -center.x * scale,
+        -center.y * scale,
+        -center.z * scale
+      )
+    }
+
+    clonedScene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh
+        mesh.castShadow = true
+        mesh.receiveShadow = true
+        if (mesh.material) {
+          const mat = mesh.material as THREE.MeshStandardMaterial
+          mat.roughness = 0.4
+          mat.metalness = 0.1
+          mat.needsUpdate = true
+        }
+      }
+    })
+  }, [clonedScene])
+
+  // Reproducir animaciones del modelo si existen
+  useEffect(() => {
+    if (animations && animations.length > 0) {
+      mixerRef.current = new THREE.AnimationMixer(clonedScene)
+      animations.forEach((clip) => {
+        const action = mixerRef.current!.clipAction(clip)
+        action.setLoop(THREE.LoopRepeat, Infinity)
+        action.play()
+      })
+    }
+
+    return () => {
+      if (mixerRef.current) {
+        mixerRef.current.stopAllAction()
+      }
+    }
+  }, [animations, clonedScene])
+
+  const velocity = useGameStore((state) => state.velocity)
+
+  useFrame((_, delta) => {
+    if (mixerRef.current) {
+      const animSpeed = 1.0 + (velocity / 10) * 0.8
+      mixerRef.current.update(delta * animSpeed)
+    }
+  })
+
+  return (
+    <primitive
+      object={clonedScene}
+      rotation={[0, Math.PI, 0]} // Rotada 180° para mirar hacia el frente (-Z)
+    />
+  )
+}
+
+/**
+ * Abeja procedural estilizada de alto impacto visual (fallback instantáneo sin esperas de red)
+ */
+function ProceduralBee() {
+  const leftWingRef = useRef<THREE.Mesh>(null!)
+  const rightWingRef = useRef<THREE.Mesh>(null!)
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime() * 45 // Aleteo rápido
+    const flap = Math.sin(t) * 0.45
+    if (leftWingRef.current) leftWingRef.current.rotation.z = 0.2 + flap
+    if (rightWingRef.current) rightWingRef.current.rotation.z = -0.2 - flap
+  })
+
+  return (
+    <group scale={0.45} rotation={[0, Math.PI, 0]}>
+      {/* Cuerpo a rayas doradas y oscuras */}
+      <mesh position={[0, 0, 0]} castShadow receiveShadow>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color="#f59e0b" roughness={0.3} metalness={0.2} />
+      </mesh>
+      {/* Rayas negras */}
+      <mesh position={[0, 0, 0.08]} scale={[1.02, 1.02, 0.35]}>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color="#1e1e24" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, 0, -0.08]} scale={[1.02, 1.02, 0.35]}>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color="#1e1e24" roughness={0.5} />
+      </mesh>
+      {/* Cabeza y ojos */}
+      <mesh position={[0, 0, 0.28]} castShadow>
+        <sphereGeometry args={[0.18, 16, 16]} />
+        <meshStandardMaterial color="#18181b" roughness={0.4} />
+      </mesh>
+      <mesh position={[-0.09, 0.06, 0.38]}>
+        <sphereGeometry args={[0.06, 12, 12]} />
+        <meshStandardMaterial color="#000000" roughness={0.1} />
+      </mesh>
+      <mesh position={[0.09, 0.06, 0.38]}>
+        <sphereGeometry args={[0.06, 12, 12]} />
+        <meshStandardMaterial color="#000000" roughness={0.1} />
+      </mesh>
+      {/* Alas translúcidas luminosas */}
+      <mesh ref={leftWingRef} position={[-0.15, 0.16, 0.02]} rotation={[0.1, 0, 0.2]} castShadow>
+        <boxGeometry args={[0.38, 0.015, 0.22]} />
+        <meshStandardMaterial color="#e0f2fe" transparent opacity={0.75} roughness={0.1} />
+      </mesh>
+      <mesh ref={rightWingRef} position={[0.15, 0.16, 0.02]} rotation={[0.1, 0, -0.2]} castShadow>
+        <boxGeometry args={[0.38, 0.015, 0.22]} />
+        <meshStandardMaterial color="#e0f2fe" transparent opacity={0.75} roughness={0.1} />
+      </mesh>
+      {/* Aguijón */}
+      <mesh position={[0, 0, -0.32]} rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.04, 0.12, 8]} />
+        <meshStandardMaterial color="#09090b" />
+      </mesh>
+    </group>
+  )
+}
+
+/**
+ * Controlador principal de la abeja (física, controles, cámara, audio)
+ */
+export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
+  const groupRef = useRef<THREE.Group>(null!)
+
   // Estado del juego
   const controls = useGameStore((state) => state.controls)
   const isPaused = useGameStore((state) => state.isPaused)
@@ -37,48 +204,8 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
   const setVelocity = useGameStore((state) => state.setVelocity)
   const terrainManager = useGameStore((state) => state.terrainManager)
 
-  // Configurar materiales para asegurar colores vivos y recepción de luz
-  useEffect(() => {
-    scene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh
-        mesh.castShadow = true
-        mesh.receiveShadow = true
-        if (mesh.material) {
-          const mat = mesh.material as THREE.MeshStandardMaterial
-          mat.roughness = 0.5
-          mat.metalness = 0.1
-          mat.needsUpdate = true
-        }
-      }
-    })
-  }, [scene])
-
-  // Configurar animaciones de aleteo
-  useEffect(() => {
-    if (animations && animations.length > 0) {
-      mixerRef.current = new THREE.AnimationMixer(scene)
-      
-      animations.forEach((clip) => {
-        const action = mixerRef.current!.clipAction(clip)
-        action.setLoop(THREE.LoopRepeat, Infinity)
-        action.play()
-      })
-      
-      console.log(`✅ Abeja cargada con ${animations.length} animación(es)`)
-    } else {
-      console.warn('⚠️ El modelo de abeja no tiene animaciones')
-    }
-
-    return () => {
-      if (mixerRef.current) {
-        mixerRef.current.stopAllAction()
-      }
-    }
-  }, [animations, scene])
-
   // Loop de actualización de vuelo
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (!groupRef.current || isPaused) return
 
     const bee = groupRef.current
@@ -97,12 +224,6 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
 
     const moveSpeed = currentVelocity * delta
     const rotationSpeed = 2.4 * delta
-
-    // Actualizar animación del aleteo (más rápida al acelerar)
-    if (mixerRef.current) {
-      const animationSpeed = 0.9 + (currentVelocity / 10) * 0.8
-      mixerRef.current.update(delta * animationSpeed)
-    }
 
     // Movimiento hacia adelante en la dirección donde mira la abeja (-Z local)
     const forwardVector = new THREE.Vector3(0, 0, -1)
@@ -125,14 +246,14 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
       bee.position.y -= 8.5 * delta
     }
 
-    // Colisión suave con terreno (la abeja se mantiene mínimo 0.18m sobre el suelo)
-    let minHeight = 0.3
+    // Colisión suave con terreno (la abeja se mantiene mínimo 0.35m sobre el suelo)
+    let minHeight = 0.5
     if (terrainManager) {
       const terrainHeight = terrainManager.getHeightAt(bee.position.x, bee.position.z)
-      minHeight = terrainHeight + 0.18
+      minHeight = terrainHeight + 0.35
     }
 
-    // Límites de altitud (no puede ir bajo el terreno ni perderse en la estratósfera)
+    // Límites de altitud
     bee.position.y = Math.max(minHeight, Math.min(bee.position.y, 45))
 
     // Actualizar estado global para cámara y HUD
@@ -142,11 +263,9 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
     updateDistanceTraveled(moveSpeed)
 
     // Inclinación dinámica de vuelo:
-    // Cabeceo (Pitch) al acelerar o frenar
     const targetPitch = controls.forward ? -0.16 : (controls.backward ? 0.12 : 0)
     bee.rotation.x = THREE.MathUtils.lerp(bee.rotation.x, targetPitch, delta * 5)
 
-    // Alabeo (Roll) al virar
     if (controls.left) {
       bee.rotation.z = THREE.MathUtils.lerp(bee.rotation.z, 0.35, delta * 5)
     } else if (controls.right) {
@@ -162,7 +281,7 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
       const maneuverBoost = isManeuvering ? 0.08 : 0.0
       const pitch = 0.95 + (currentVelocity / 14) * 0.35 + maneuverBoost
       const buzzVolume = 0.30 + (currentVelocity / 18) * 0.15 + (isManeuvering ? 0.05 : 0.0)
-      
+
       audio.setSoundPitch('bee_buzz', pitch)
       audio.setSoundVolume('bee_buzz', buzzVolume)
     }
@@ -170,11 +289,18 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
 
   return (
     <group ref={groupRef} position={[0, 2, 0]}>
-      {/* Achicada a la mitad (scale 0.0625) y rotada 180° (Math.PI) para mirar hacia el horizonte */}
-      <primitive object={scene} scale={0.0625} rotation={[0, Math.PI, 0]} />
+      <ModelErrorBoundary fallback={<ProceduralBee />}>
+        <Suspense fallback={<ProceduralBee />}>
+          <BeeGLBModel modelPath={modelPath} />
+        </Suspense>
+      </ModelErrorBoundary>
     </group>
   )
 }
 
-// Precargar el modelo con ruta adaptada a GitHub Pages
-useGLTF.preload(getAssetPath('/models/bee.glb'))
+// Precarga opcional segura
+try {
+  useGLTF.preload(getAssetPath('/models/bee.glb'))
+} catch {
+  // Ignorar errores en precarga estática
+}

@@ -8,17 +8,17 @@ import { useGameStore } from '@/store/gameStore'
 export function FollowCamera() {
   const { camera } = useThree()
   const targetPosition = useRef(new THREE.Vector3())
-  const currentPosition = useRef(new THREE.Vector3(0, 3, 8))
+  const currentPosition = useRef(new THREE.Vector3(0, 2.5, 3))
   
   const beePosition = useGameStore((state) => state.position)
   const beeRotation = useGameStore((state) => state.rotation)
   const isPaused = useGameStore((state) => state.isPaused)
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (isPaused) return
 
-    // Offset de la cámara casi por encima de la abeja (ángulo cenital elevado mirando al horizonte)
-    const cameraOffset = new THREE.Vector3(0, 0.42, 0.38)
+    // Offset de la cámara en tercera persona detrás y encima de la abeja
+    const cameraOffset = new THREE.Vector3(0, 0.45, 0.95)
     
     // Crear una matriz de rotación desde la rotación de la abeja
     const rotationMatrix = new THREE.Matrix4()
@@ -37,13 +37,13 @@ export function FollowCamera() {
     )
 
     // Interpolación suave (lerp) para movimiento fluido
-    currentPosition.current.lerp(targetPosition.current, delta * 7)
+    currentPosition.current.lerp(targetPosition.current, Math.min(1, delta * 8))
     
     // Actualizar posición de la cámara
     camera.position.copy(currentPosition.current)
     
     // La cámara apunta hacia el frente de la abeja (hacia el horizonte en la dirección de vuelo)
-    const forwardLookOffset = new THREE.Vector3(0, -0.04, -0.8)
+    const forwardLookOffset = new THREE.Vector3(0, 0.05, -2.0)
     forwardLookOffset.applyMatrix4(rotationMatrix)
     const lookAtTarget = new THREE.Vector3(
       beePosition[0] + forwardLookOffset.x,
