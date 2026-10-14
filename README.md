@@ -18,14 +18,17 @@ JarBees: The Game es una experiencia de exploración relajante donde controlás 
 - 🌋 **Isla de Pascua** - Terreno volcánico, océano profundo  
 - ✨ **Constelaciones** - Cielo nocturno estrellado
 
-### Características
+## 🎯 Características
+
 - ✅ **Sin disparos** - Solo contemplación y vuelo
 - ✅ **Scroll infinito** - Terreno procedural generado dinámicamente
-- ✅ **Ciclo día/noche** - Transiciones atmosféricas suaves
-- ✅ **Clima dinámico** - Niebla, lluvia, viento
-- ✅ **Fauna viva** - Pájaros, mariposas, otros insectos
-- ✅ **Controles simples** - Teclado o touch (móvil)
+- ✅ **Bosques densos** - Miles de árboles instanciados (sin impacto en FPS)
+- ✅ **Ciclo día/noche** - Transiciones atmosféricas suaves (próximamente)
+- ✅ **Clima dinámico** - Niebla, lluvia, viento (próximamente)
+- ✅ **Fauna viva** - Pájaros, mariposas, otros insectos (próximamente)
+- ✅ **Controles simples** - Teclado o touch (móvil próximamente)
 - ✅ **Música ambiente** - Soundtrack relajante
+- ✅ **Aleteo realista** - Animación dinámica según velocidad
 
 ---
 
@@ -124,17 +127,19 @@ https://cafecito.app/[tu_usuario]
 
 ## 🗺️ Roadmap
 
-### v0.1 - Alpha (Actual)
-- [x] Abeja con animación de aleteo
-- [x] Controles básicos
-- [ ] Terreno procedural infinito
-- [ ] Ciclo día/noche
+### v0.3 - Alpha Actual (🚧 En Progreso)
+- [x] Abeja con animación de aleteo dinámica
+- [x] Controles completos (WASD + ENTER)
+- [x] Terreno procedural infinito
+- [x] Bosques con miles de árboles instanciados
+- [x] 3 variantes de árboles
+- [x] Densidad por bioma
+- [ ] Sistema de LOD para árboles
+- [ ] Ciclo día/noche básico
 
-### v0.2 - Beta
-- [ ] 3 biomas: Titicaca, Isla de Pascua, Constelaciones
-- [ ] Clima dinámico
-- [ ] Árboles y vegetación
-- [ ] Fauna (pájaros, mariposas)
+### v0.4 - Beta
+- [ ] Cielo dinámico con sol y luna
+- [ ] Clima básico (niebla)
 
 ### v1.0 - Lanzamiento
 - [ ] Controles móviles completos

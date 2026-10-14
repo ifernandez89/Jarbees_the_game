@@ -1,0 +1,53 @@
+{
+  "source": "C:\\Projects\\productos_crud_bkd\\storage\\assets\\models\\bee_source.glb",
+  "outputs": {
+    "glb": "C:\\Projects\\productos_crud_bkd\\storage\\assets\\models\\jarbee\\jarbee_robot.glb",
+    "glb_bytes": 4377568,
+    "draco_glb": "C:\\Projects\\productos_crud_bkd\\storage\\assets\\models\\jarbee\\jarbee_robot.draco.glb",
+    "draco_bytes": 2769320
+  },
+  "vertices": {
+    "before": 29614,
+    "after": 29614
+  },
+  "vertex_groups": {
+    "before": 107,
+    "after": 107
+  },
+  "bones": 107,
+  "clips": {
+    "hover": [
+      0.0,
+      45.6
+    ],
+    "idle": [
+      0.0,
+      236.0
+    ],
+    "take_off_and_land": [
+      0.0,
+      219.2
+    ]
+  },
+  "fps": 24,
+  "texture_size": 2048,
+  "transform": {
+    "rotation_deg": -0.0,
+    "scale": 0.04498316031479838,
+    "size_normalized": [
+      0.7775,
+      1.0,
+      0.3425
+    ]
+  },
+  "class_coverage": {
+    "dark": 0.5504186153411865,
+    "yellow": 0.3358292579650879,
+    "copper": 0.02558422088623047,
+    "wing": 0.0824885368347168,
+    "veins": 0.004784584045410156,
+    "eye": 0.0018372535705566406,
+    "ring": 0.0038421154022216797
+  },
+  "seconds": 18.2
+}

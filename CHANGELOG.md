@@ -1,190 +1,342 @@
-# 📋 CHANGELOG - JarBees: The Game
+# 📝 CHANGELOG - JarBees: The Game
 
-Todos los cambios notables en este proyecto serán documentados en este archivo.
+## [0.7.0] - 2026-10-14
 
-El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
-y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
+### 🌅 Transición Continua Día/Noche, Manto Estelar Cristalino y Ajustes Visuales
 
----
+#### Mejorado
+- **useDayNightCycle.ts**:
+  - Reemplazo de bloques discontinuos por una línea temporal continua de 24 horas basada en curvas coseno (*spline interpolation*).
+  - Eliminado por completo el corte abrupto entre atardecer, noche y amanecer; cada minuto se funde con el siguiente con suavidad cromática.
+- **DynamicSky.tsx**:
+  - Manto estelar de 1200 estrellas de alta visibilidad (`fog: false` para que la niebla nunca las oculte).
+  - Variación de colores estelares (blanco puro, oro cálido, azul celeste).
+  - Transición suave de opacidad (*fade-in* y *fade-out* gradual) al atardecer y amanecer.
+  - Órbitas reales y continuas para el sol y la luna con atenuación lumínica natural.
+- **WeatherSystem.tsx**:
+  - Fusión del color de la niebla volumétrica con el horizonte del cielo para evitar cortes o bandas de color.
 
-## [Unreleased]
+## [0.6.0] - 2026-10-14
 
-### Próximas Implementaciones
-- BeePlayer.tsx con modelo 3D y controles
-- Sistema de terreno infinito procedural
-- Ciclo día/noche con skybox dinámico
-- Sistema de clima (niebla, lluvia)
-- Vegetación instanciada (árboles, rocas)
-- Animales de fondo (pájaros, mariposas)
-- Controles móviles con joystick virtual
-- Sistema de donaciones funcional
+### 📱 FASE 6 y 7 - Controles Móviles, Superficie de Agua, Selector de Biomas y Donaciones
 
----
+#### Añadido
+- **MobileTouchControls.tsx**: Controles táctiles en pantalla para smartphones y tablets
+  - Botones táctiles de giro lateral (◀ / ▶) y altitud (▲ / ▼).
+  - Botones táctiles superiores para pausa y alternar audio.
+  - Auto-detección de pantallas táctiles mediante `utils/mobileDetect.ts`.
+- **WaterSurface.tsx**: Superficie acuática dinámica
+  - Plano de agua cristalina translúcida que cubre las cuencas y valles bajos del terreno.
+  - Ondulación sutil en tiempo real, adaptada al bioma Lago Titicaca e Isla de Pascua.
+- **DonationButton.tsx**: Botón flotante estilizado
+  - Acceso directo y no intrusivo a `/donate` desde la esquina del juego.
+- **.github/FUNDING.yml**: Configuración oficial para GitHub Sponsors conectada a la cuenta de `ifernandez89`.
+- **Selector de Biomas en tiempo real**:
+  - Posibilidad de alternar entre Lago Titicaca, Isla de Pascua y Constelaciones haciendo clic en el HUD o presionando la tecla **B**.
 
-## [0.1.0-alpha] - 2026-10-14
+## [0.5.0] - 2026-10-14
 
-### 🎉 Lanzamiento Inicial del Proyecto
+### 🔊 FASE 5 COMPLETADA - Sistema de Audio Integral y Efectos Dinámicos
 
-#### Added (Agregado)
+#### Añadido
+- **AudioManager.ts**: Motor de audio Web Audio + Three.js
+  - Soporte de bucles (looping), un-pausing y crossfades musicales.
+  - Modulación en tiempo real de tono (pitch shift) y volumen para efectos mecánicos y biológicos.
+  - Auto-desbloqueo de AudioContext tras la primera interacción del usuario.
+- **useAudio.ts**: Hook de control sonoro para la escena 3D
+  - Carga automática de música de fondo, zumbido de abeja, viento y grillos nocturnos.
+  - Sincronización en cada fotograma con el ciclo día/noche (atenuación de viento, activación nocturna de grillos).
+  - Efectos sonoros de pausa y reanudación del juego.
+- **Generador de Audio Procedural DSP** (`scripts/generate_game_audio.py`):
+  - `bee_buzz.wav`: Zumbido y aleteo de Apis mellifera a 225Hz con armónicos ricos, vibrato y microturbulencia aerodinámica en bucle sin fisuras.
+  - `wind_loop.wav`: Viento ambiental cálido con modulación de ráfagas naturales.
+  - `night_crickets.wav`: Grillos de campo estivales a 4.8kHz con ciclos de estridulación.
+  - `pause.wav`: Campana acústica armónica para interacción de menú/pausa.
+  - `ambient_music.wav`: Pista orquestal ambiental.
+- **Integración con backend de IA** (`scripts/generate_audio_from_backend.js` y `generate_audio_with_ai.md`):
+  - Puente y especificación para interactuar con el backend `productos_crud_bkd`.
 
-**Infraestructura:**
-- Proyecto Next.js 14 con TypeScript inicializado
-- React Three Fiber + Drei configurados para gráficos 3D
-- Zustand para manejo de estado global
-- simplex-noise para generación procedural
-- Estructura de carpetas profesional:
-  - `/app` - Páginas Next.js (home, game, donate)
-  - `/components` - Componentes React 3D
-  - `/hooks` - Custom hooks (controles, performance)
-  - `/store` - Estado global con Zustand
-  - `/systems` - Sistemas del juego (terreno, cielo, clima)
-  - `/utils` - Utilidades (generadores procedurales, helpers)
-  - `/types` - Definiciones TypeScript
-  - `/public` - Assets estáticos (models, textures, audio, icons)
+#### Mejorado
+- **BeePlayer.tsx**: Modulación acústica del aleteo
+  - El zumbido varía dinámicamente de tono y volumen según la velocidad de vuelo.
+  - Respuesta sonora inmediata al realizar maniobras de ascenso, descenso o giros.
+- **GameHUD.tsx**: Control de audio en pantalla
+  - Botón interactivo para silenciar/activar sonido.
+  - Indicador visual `[M]` de atajo de teclado.
+- **useGameControls.ts**: Tecla `M` configurada para silenciar/activar todo el audio del juego.
+- **DynamicSky.tsx**: Corrección de tipos TypeScript para materiales emisivos de sol y luna.
 
-**Configuración:**
-- `next.config.js` con loaders para GLB y audio
-- `tsconfig.json` con path aliases (@/components, etc.)
-- `.env.example` con plantilla para URLs de donación
-- `.gitignore` configurado para Next.js y Node.js
+## [0.4.0] - 2026-10-14
 
-**Documentación:**
-- `README.md` - Documentación principal del proyecto
-- `MASTER_PLAN.md` - Plan detallado de desarrollo de 8 semanas/fases
-- `DONATION_GUIDE.md` - Guía completa de donaciones (GitHub Sponsors, Cafecito, CBU)
-- `SETUP_INSTRUCTIONS.md` - Instrucciones paso a paso de instalación
-- `PROJECT_STATUS.md` - Estado actual del proyecto y próximos hitos
-- `QUICK_START.md` - Guía rápida para empezar
-- `START_HERE.md` - Punto de entrada para nuevos desarrolladores
-- `LICENSE` - Licencia MIT con atribuciones
+### ✨ FASE 4 COMPLETADA - Cielo y Clima Dinámicos
 
-**Páginas Web:**
-- `/` - Landing page con introducción y botones (Jugar, Donar, Documentación)
-- `/game` - Página del juego con canvas Three.js y escena placeholder (cubo dorado giratorio)
-- `/donate` - Página completa de donaciones con múltiples opciones:
-  - GitHub Sponsors (opción principal)
-  - Cafecito.app (Argentina)
-  - PayPal (internacional)
-  - CBU directo (transferencia bancaria Argentina)
+#### Añadido
+- **useDayNightCycle.ts**: Sistema de ciclo día/noche
+  - 20 minutos reales = 24 horas del juego
+  - 4 períodos: amanecer, día, atardecer, noche
+  - Intensidad solar variable
+  - Colores de cielo interpolados
+  - Densidad de niebla dinámica
+  - Cálculo de posiciones sol/luna
 
-**Componentes Base:**
-- `GameScene.tsx` - Canvas de React Three Fiber con:
-  - Escena 3D básica
-  - Iluminación (ambiente + direccional)
-  - Cubo dorado giratorio (placeholder para la abeja)
-  - Grilla de referencia
-  - Configuración de rendimiento (shadows, tone mapping)
-- HUD placeholder con información de debug
+- **DynamicSky.tsx**: Cielo procedural animado
+  - Esfera celeste con shader de gradiente
+  - Sol animado con emisión de luz
+  - Luna con fases (opacidad variable)
+  - 1000 estrellas procedurales (solo de noche)
+  - Parpadeo sutil de estrellas
+  - Luz direccional siguiendo al sol
+  - Luz hemisférica del cielo
+  - Transiciones suaves entre períodos
 
-**Dependencias Instaladas:**
-- `next` ^14.0.0
-- `react` ^18.0.0
-- `three` ^0.158.0
-- `@react-three/fiber` ^8.15.0
-- `@react-three/drei` ^9.92.0
-- `zustand` ^4.4.0
-- `simplex-noise` ^4.0.0
-- `typescript` ^5.0.0
+- **WeatherSystem.tsx**: Sistema de clima
+  - Niebla volumétrica dinámica
+  - Densidad variable según hora del día
+  - Color de niebla según cielo
+  - Interpolación suave de cambios
 
-**Sistema de Donaciones Diseñado:**
-- GitHub Sponsors como opción principal (0% comisión, Argentina habilitada)
-- Cafecito.app para usuarios argentinos
-- PayPal para donaciones internacionales
-- CBU directo para transferencias bancarias locales
-- Página `/donate` con instrucciones detalladas en español
+#### Mejorado
+- **gameStore.ts**: Configuración de día/noche
+  - `dayNightEnabled`: activar/desactivar ciclo
+  - `dayNightSpeed`: velocidad del ciclo (1x, 2x, etc.)
+  - Acciones para configurar sistema
 
-#### Technical Decisions (Decisiones Técnicas)
+- **GameHUD.tsx**: Reloj del juego
+  - Muestra hora actual (HH:MM formato 24h)
+  - Íconos según período del día (🌅☀️🌇🌙)
+  - Integrado con sistema de día/noche
 
-- ✅ **Next.js 14** sobre Vite - SSR support, mejor SEO para landing pages
-- ✅ **React Three Fiber** sobre Three.js vanilla - Integración React, arquitectura basada en componentes
-- ✅ **Zustand** sobre Redux - State management más simple y menos boilerplate
-- ✅ **Dynamic imports** con `ssr: false` para componentes 3D - Evitar errores de SSR
-- ✅ **GitHub Sponsors** como plataforma principal de donaciones - Sin comisiones, Argentina habilitada
-- ✅ **8 fases de desarrollo** - Plan incremental y realista
-- ✅ **3 biomas iniciales** - Lago Titicaca (verde), Isla de Pascua (volcánico), Constelaciones (noche)
+- **GameScene.tsx**: Iluminación integrada
+  - Cielo dinámico reemplaza fondo estático
+  - Sistema de clima gestiona niebla
+  - Iluminación reducida (el cielo ya aporta luz)
+  - Sin gradiente de fondo (cielo procedural)
 
-#### Inspiración
+### 🎮 Características Nuevas
+- **Ciclo día/noche completo**: Amanecer → Día → Atardecer → Noche
+- **Cielo procedural**: Colores cambian según hora
+- **Sol y luna animados**: Siguen trayectoria realista
+- **Estrellas nocturnas**: 1000 estrellas con parpadeo
+- **Niebla atmosférica**: Más densa de noche, ligera de día
+- **Reloj en HUD**: Muestra hora del juego en tiempo real
 
-- 🎮 **Rez (Dreamcast)** - Estética de vuelo contemplativo, cámara en riel
-- 🏎️ **Road Rash 3** - Sensación de velocidad constante
-- 🐝 **Concepto original** - Abeja volando sin combate, apreciando el paisaje
-
----
-
-## Convenciones de Versionado
-
-- **MAJOR (X.0.0)** - Cambios incompatibles con versiones anteriores
-- **MINOR (0.X.0)** - Nueva funcionalidad compatible hacia atrás
-- **PATCH (0.0.X)** - Corrección de bugs compatible hacia atrás
-
-### Etiquetas de Desarrollo
-
-- **alpha** - Versión muy temprana, funcionalidad básica
-- **beta** - Funcionalidad completa, en pruebas
-- **rc** - Release candidate, casi listo para producción
-
----
-
-## Roadmap de Versiones Futuras
-
-### [0.2.0-alpha] - Próxima
-- BeePlayer.tsx funcional con modelo GLB
-- Controles de vuelo básicos (teclado)
-- Cámara tercera persona siguiendo la abeja
-- HUD con datos reales (velocidad, altura, posición)
-
-### [0.3.0-alpha] - FASE 2
-- Sistema de terreno infinito con chunks
-- 3 biomas implementados
-- Sistema de LOD básico
-
-### [0.4.0-beta] - FASE 3-4
-- Vegetación procedural (árboles, rocas, pasto)
-- Ciclo día/noche funcional
-- Sistema de clima (niebla, lluvia)
-
-### [0.5.0-beta] - FASE 5-6
-- Animales de fondo (pájaros, mariposas)
-- Controles móviles con touch
-- Optimizaciones de rendimiento
-
-### [1.0.0] - Lanzamiento
-- Sistema de donaciones integrado en juego
-- Deploy en Vercel + Itch.io
-- Documentación completa para usuarios
-- Polish final (efectos de partículas, audio reactivo)
+### 🎯 Próximos Pasos (FASE 5)
+- [ ] Animales voladores (pájaros con boids)
+- [ ] Mariposas errática
+- [ ] Audio ambiente (cantos, viento)
+- [ ] Partículas ambientales
 
 ---
 
-## Assets Pendientes de Importar
+## [0.3.0] - 2026-10-14
 
-### Desde productos_crud_bkd
-- `storage/assets/models/bee_source.glb` → `public/models/bee.glb`
+### ✨ FASE 3 EN PROGRESO - Vegetación y Mejoras
 
-### Desde ArcheoScope
-- `models_3d/Trees/new.glb` → `public/models/tree1.glb`
-- `harmonia_mundi.wav` → `public/audio/main_theme.wav`
-- Texturas de Lago Titicaca (pasto, agua)
-- Texturas de Isla de Pascua (volcán, piedras)
-- Skybox de constelaciones
+#### Añadido
+- **TreePopulation.tsx**: Sistema de árboles instanciados
+  - Instanciado masivo (miles de árboles sin impacto en FPS)
+  - 3 modelos de árboles variados
+  - Distribución procedural por chunk
+  - Densidad configurable por bioma
+  - Variación de escala y rotación
+  - Posicionamiento según altura del terreno
+
+- **Scripts de Blender**: Herramientas de optimización 3D
+  - `inspect_bee_model.py`: Inspeccionar modelo de abeja
+  - `add_bee_wing_animation.py`: Añadir/mejorar animación de aleteo
+
+#### Mejorado
+- **BeePlayer.tsx**: Animaciones mejoradas
+  - Velocidad de aleteo dinámica (según velocidad de vuelo)
+  - Reproducción de todas las animaciones disponibles
+  - Logging de animaciones cargadas
+  - Prop `modelPath` para modelos customizados
+
+- **useGameControls.ts**: Control con ENTER
+  - ENTER ahora también pausa/resume el juego
+  - Soporte para ESC, ESPACIO y ENTER
+
+- **GameHUD.tsx**: Instrucciones actualizadas
+  - Muestra ENTER como opción de pausa
+  - Interfaz más clara
+
+- **InfiniteTerrain.tsx**: Integración con vegetación
+  - Estado de chunks activos compartido
+  - Renderiza TreePopulation por chunk
+  - Coordinación entre terreno y árboles
+
+#### Assets
+- ✅ Árboles copiados desde ArcheoScope:
+  - `tree1.glb` (new.glb - 19.3 MB)
+  - `tree2.glb` (new2.glb - 14.5 MB)
+  - `tree3.glb` (new3.glb - 15.9 MB)
+
+### 🎮 Características Nuevas
+- **Bosques procedurales**: Miles de árboles generados dinámicamente
+- **3 variantes de árboles**: Diversidad visual
+- **Densidad por bioma**: Titicaca (denso), Isla de Pascua (escaso)
+- **ENTER para pausa**: Control adicional más intuitivo
+- **Aleteo dinámico**: La abeja aletea más rápido al ir más rápido
+
+### 🎯 Próximos Pasos (FASE 3 continuación)
+- [ ] LOD para árboles distantes
+- [ ] Optimización de geometría (menos polígonos)
+- [ ] Rocas procedurales
+- [ ] Flores y arbustos pequeños
 
 ---
 
-## Contribuidores
+## [0.2.0] - 2026-10-14
 
-- **xiphos-pc1** - Desarrollo inicial, diseño, documentación
+### ✨ FASE 2 COMPLETADA - Terreno Infinito Procedural
+
+#### Añadido
+- **perlinNoise.ts**: Sistema de generación de ruido procedural
+  - Generador basado en simplex-noise
+  - Múltiples octavas para detalle
+  - Presets por bioma (Titicaca, Isla de Pascua, Constelaciones)
+  - Funciones para altura, vegetación y densidad
+  - Generación de heightmaps para chunks
+
+- **ChunkManager.ts**: Sistema de gestión de chunks
+  - Chunks de 100x100 unidades
+  - Generación procedural bajo demanda
+  - Pool de chunks para reutilización
+  - Distancia de renderizado configurable (200 unidades)
+  - Sistema de coordenadas mundial → chunk
+  - Cálculo de altura en cualquier posición
+
+- **InfiniteTerrain.tsx**: Componente React de terreno
+  - Integración con ChunkManager
+  - Actualización automática según posición del jugador
+  - Soporte para 3 biomas configurables
+  - Optimización con useMemo
+  - Limpieza automática de chunks inactivos
+
+#### Mejorado
+- **BeePlayer.tsx**: Colisión con terreno
+  - Detección de altura del terreno en tiempo real
+  - Mantiene 1 metro de distancia del suelo
+  - Previene atravesar montañas
+
+- **gameStore.ts**: Estado extendido
+  - Referencia al ChunkManager
+  - Bioma actual ('titicaca' por defecto)
+  - Acciones para cambiar bioma
+
+- **GameHUD.tsx**: Indicador de bioma
+  - Muestra el nombre del bioma actual
+  - Iconos por ubicación
+
+- **GameScene.tsx**: Terreno integrado
+  - Reemplaza plano estático por terreno procedural
+  - Niebla extendida (100-300 unidades)
+  - Sin grid helper (ya no necesario)
+
+#### Técnico
+- Generación de geometría con PlaneGeometry
+- Modificación de vértices según Perlin Noise
+- Recálculo de normales para iluminación correcta
+- Sistema de chunks con keys únicas
+- Pool de reutilización para performance
+
+### 🎮 Características Nuevas
+- **Terreno infinito**: Se genera mientras vuelas
+- **Colinas procedurales**: Variación natural del terreno
+- **3 biomas disponibles**: Titicaca (verde), Isla de Pascua (volcánico), Constelaciones (espacial)
+- **Colisión realista**: La abeja sigue el contorno del terreno
+
+### 🎯 Próximos Pasos (FASE 3)
+- [ ] Árboles instanciados
+- [ ] Sistema de vegetación con densidad variable
+- [ ] Rocas procedurales
+- [ ] Agua con reflejos (Lago Titicaca)
 
 ---
 
-## Licencia
+## [0.1.0] - 2026-10-14
 
-Este proyecto está licenciado bajo MIT License - ver el archivo [LICENSE](LICENSE) para más detalles.
+### ✨ FASE 1 COMPLETADA - Abeja Volando
 
-**Atribuciones:**
-- Modelo de abeja: productos_crud_bkd
-- Escenarios base: ArcheoScope
-- Audio: harmonia_mundi (ArcheoScope)
+#### Añadido
+- **BeePlayer.tsx**: Componente principal de la abeja jugadora
+  - Carga del modelo GLB desde `/models/bee.glb`
+  - Animación de aleteo automática
+  - Movimiento constante hacia adelante
+  - Controles de dirección (⬆️⬇️⬅️➡️)
+  - Inclinación dinámica según dirección
+  - Límites de altitud (0.5m - 50m)
+
+- **FollowCamera.tsx**: Sistema de cámara tercera persona
+  - Sigue a la abeja suavemente con lerp
+  - Offset dinámico según rotación
+  - Siempre apunta al centro de la abeja
+
+- **useGameControls.ts**: Hook de controles
+  - Soporte para WASD y teclas de flecha
+  - Pausa con ESC o ESPACIO
+  - Prevención de controles durante pausa
+
+- **gameStore.ts**: Estado global con Zustand
+  - Posición y rotación de la abeja
+  - Velocidad y distancia recorrida
+  - Controles activos
+  - Estado de pausa
+  - Altitud y tiempo de juego
+
+- **GameHUD.tsx**: Interfaz de usuario
+  - Velocidad en km/h
+  - Distancia recorrida en metros
+  - Altitud en metros
+  - Indicador de FPS
+  - Pantalla de pausa
+  - Coordenadas de debug (solo desarrollo)
+
+- **types/game.ts**: Definiciones TypeScript
+  - Interfaces para estado del juego
+  - Configuración de biomas (Titicaca, Isla de Pascua, Constelaciones)
+  - Constantes de configuración
+
+#### Mejorado
+- **GameScene.tsx**: Integración completa
+  - Iluminación mejorada (ambient, directional, hemisphere)
+  - Plano de suelo verde temporal
+  - Niebla atmosférica
+  - Sombras habilitadas
+  - Fondo con gradiente de cielo
+
+#### Técnico
+- Modelo de abeja movido a `/public/models/bee.glb`
+- Estructura de carpetas completada:
+  - `/store` - Estado global
+  - `/hooks` - Custom hooks
+  - `/types` - TypeScript definitions
+  - `/components` - Componentes React/Three.js
+
+### 🎮 Controles Implementados
+```
+⬆️ W / ↑    → Subir
+⬇️ S / ↓    → Bajar
+⬅️ A / ←    → Girar izquierda
+➡️ D / →    → Girar derecha
+ESPACIO     → Pausa
+ESC         → Pausa
+```
+
+### 🎯 Próximos Pasos (FASE 2)
+- [ ] Sistema de chunks para terreno infinito
+- [ ] Generación procedural con Perlin Noise
+- [ ] Biomas intercambiables (Titicaca, Isla de Pascua, Constelaciones)
+- [ ] LOD system para optimización
 
 ---
 
-**¡El viaje contemplativo de JarBees está por comenzar! 🐝✨**
+## [0.0.1] - 2026-10-14
+
+### Inicial
+- Proyecto Next.js 14 + TypeScript inicializado
+- React Three Fiber + Drei instalado
+- Estructura de carpetas creada
+- Documentación completa (README, MASTER_PLAN, DONATION_GUIDE)
+- Páginas web: Home, Game, Donate
+- Cubo de prueba en escena 3D

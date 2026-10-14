@@ -1,26 +1,56 @@
 'use client'
 
 import { Canvas } from '@react-three/fiber'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Stats } from '@react-three/drei'
+import { BeePlayer } from './BeePlayer'
+import { FollowCamera } from './FollowCamera'
+import { GameHUD } from './GameHUD'
+import { InfiniteTerrain } from './InfiniteTerrain'
+import { DynamicSky } from './DynamicSky'
+import { WeatherSystem } from './WeatherSystem'
+import { WaterSurface } from './WaterSurface'
+import { MobileTouchControls } from './MobileTouchControls'
+import { DonationButton } from './DonationButton'
+import { useGameControls } from '@/hooks/useGameControls'
+import { useGameStore } from '@/store/gameStore'
+import { useAudio } from '@/hooks/useAudio'
 
-// Componente placeholder para la escena
-// FASE 1: Aquí irá BeePlayer, terrain, sky, etc.
+// Componente de la escena 3D
 function Scene() {
+  // Activar controles de teclado
+  useGameControls()
+  
+  // Inicializar sistema de audio
+  useAudio()
+  
+  const dayNightEnabled = useGameStore((state) => state.dayNightEnabled)
+  const dayNightSpeed = useGameStore((state) => state.dayNightSpeed)
+  const currentBiome = useGameStore((state) => state.currentBiome)
+
   return (
     <>
-      {/* Luz básica */}
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={1} />
+      {/* Sistema de cielo dinámico */}
+      <DynamicSky enabled={dayNightEnabled} speed={dayNightSpeed} />
       
-      {/* Cubo de prueba temporal */}
-      <mesh position={[0, 0, -5]}>
-        <boxGeometry args={[2, 2, 2]} />
-        <meshStandardMaterial color="#FFD700" />
-      </mesh>
+      {/* Sistema de clima (niebla) */}
+      <WeatherSystem enabled={dayNightEnabled} />
 
-      {/* Grid de referencia */}
-      <gridHelper args={[100, 100, 0x444444, 0x222222]} />
+      {/* Iluminación rica para resaltar colores originales de la abeja y el terreno */}
+      <ambientLight intensity={0.85} />
+      <hemisphereLight color="#ffffff" groundColor="#446835" intensity={0.75} />
+
+      {/* Terreno infinito procedural reactivo al bioma actual */}
+      <InfiniteTerrain biome={currentBiome} seed={12345} />
+
+      {/* Superficie de agua cristalina para lagos y valles */}
+      <WaterSurface waterHeight={1.4} />
+
+      {/* Abeja jugadora */}
+      <BeePlayer />
+
+      {/* Cámara que sigue a la abeja */}
+      <FollowCamera />
     </>
   )
 }
@@ -28,15 +58,24 @@ function Scene() {
 export default function GameScene() {
   const enableStats = process.env.NEXT_PUBLIC_ENABLE_STATS === 'true'
 
+  // Prevenir scroll en la página del juego
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = 'auto'
+    }
+  }, [])
+
   return (
     <>
       <Canvas
         camera={{
-          position: [0, 2, 5],
+          position: [0, 3, 8],
           fov: 75,
           near: 0.1,
           far: 1000,
         }}
+        shadows
         style={{
           width: '100vw',
           height: '100vh',
@@ -52,44 +91,14 @@ export default function GameScene() {
         {enableStats && <Stats />}
       </Canvas>
 
-      {/* HUD Placeholder */}
-      <div className="ui-overlay" style={{ pointerEvents: 'none' }}>
-        <div style={{
-          position: 'absolute',
-          top: '20px',
-          left: '20px',
-          background: 'rgba(0, 0, 0, 0.7)',
-          padding: '15px',
-          borderRadius: '8px',
-          fontFamily: 'monospace',
-          color: '#FFD700',
-          fontSize: '0.9rem',
-        }}>
-          <div>🐝 JarBees: The Game</div>
-          <div style={{ marginTop: '10px', color: '#aaa' }}>
-            FASE 1 - Estructura Base<br />
-            Controles: WASD / Flechas<br />
-            ESC: Pausa
-          </div>
-        </div>
+      {/* HUD del juego */}
+      <GameHUD />
 
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          right: '20px',
-          background: 'rgba(0, 0, 0, 0.7)',
-          padding: '15px',
-          borderRadius: '8px',
-          fontFamily: 'monospace',
-          color: '#FFD700',
-          fontSize: '0.9rem',
-          textAlign: 'right',
-        }}>
-          <div>Velocidad: 0 km/h</div>
-          <div>Distancia: 0 m</div>
-          <div>Altitud: 2 m</div>
-        </div>
-      </div>
+      {/* Botón flotante de donaciones */}
+      <DonationButton />
+
+      {/* Controles táctiles para móvil */}
+      <MobileTouchControls />
     </>
   )
 }

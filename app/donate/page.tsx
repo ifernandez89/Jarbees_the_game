@@ -21,26 +21,29 @@ export default function DonatePage() {
       primary: true,
     },
     {
-      title: '🇦🇷 Transferencia Bancaria',
-      subtitle: 'Para donantes argentinos',
-      description: 'Transferencia directa desde tu banco o Mercado Pago.',
+      title: '🇦🇷 Transferencia / Mercado Pago',
+      subtitle: 'Donación directa en pesos',
+      description: 'Transferencia directa a través de Alias de Mercado Pago.',
       details: [
-        `Alias: ${process.env.NEXT_PUBLIC_ALIAS || 'TU.ALIAS.MP'}`,
-        `CBU: ${process.env.NEXT_PUBLIC_CBU || '0000003100012345678901'}`,
-        `Banco: ${process.env.NEXT_PUBLIC_BANK_NAME || 'Tu Banco'}`,
+        process.env.NEXT_PUBLIC_ALIAS ? `Alias: ${process.env.NEXT_PUBLIC_ALIAS}` : 'Alias disponible mediante variables protegidas',
       ],
-      buttonText: 'Copiar CBU',
+      buttonText: 'Copiar Alias',
       action: () => {
-        navigator.clipboard.writeText(process.env.NEXT_PUBLIC_CBU || '0000003100012345678901')
-        alert('CBU copiado al portapapeles!')
+        const alias = process.env.NEXT_PUBLIC_ALIAS
+        if (alias) {
+          navigator.clipboard.writeText(alias)
+          alert('¡Alias copiado al portapapeles!')
+        } else {
+          alert('Por favor utiliza el enlace directo de Cafecito.')
+        }
       },
     },
     {
       title: '☕ Cafecito.app',
-      subtitle: 'Plataforma argentina',
-      description: 'Tarjetas argentinas aceptadas. $200 ARS por cafecito.',
-      buttonText: 'Invitar Cafecito',
-      link: process.env.NEXT_PUBLIC_CAFECITO_URL || '#',
+      subtitle: 'Recomendada para Argentina',
+      description: 'Dona mediante Mercado Pago o tarjeta de forma 100% segura y privada.',
+      buttonText: 'Invitar un Cafecito',
+      link: process.env.NEXT_PUBLIC_CAFECITO_URL || 'https://cafecito.app/ifernandez89',
     },
     {
       title: '🌎 PayPal',

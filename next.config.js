@@ -1,7 +1,18 @@
+const isGithubPages = process.env.GITHUB_PAGES === 'true' || process.env.NEXT_PUBLIC_GITHUB_PAGES === 'true'
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || (isGithubPages ? '/Jarbees_the_game' : '')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   
+  // Soporte de subdirectorio para GitHub Pages
+  ...(basePath ? { basePath, assetPrefix: `${basePath}/` } : {}),
+
+  // Configuración de imágenes (compatible con export estático para GitHub Pages)
+  images: {
+    unoptimized: true,
+  },
+
   // Configuración para Three.js y React Three Fiber
   transpilePackages: ['three'],
   
@@ -13,7 +24,7 @@ const nextConfig = {
       use: {
         loader: 'file-loader',
         options: {
-          publicPath: '/_next/static/audio/',
+          publicPath: `${basePath}/_next/static/audio/`,
           outputPath: 'static/audio/',
           name: '[name].[hash].[ext]',
           esModule: false,
@@ -27,7 +38,7 @@ const nextConfig = {
       use: {
         loader: 'file-loader',
         options: {
-          publicPath: '/_next/static/models/',
+          publicPath: `${basePath}/_next/static/models/`,
           outputPath: 'static/models/',
           name: '[name].[hash].[ext]',
           esModule: false,
@@ -38,7 +49,7 @@ const nextConfig = {
     return config;
   },
 
-  // Headers para CORS (necesario para algunos assets)
+  // Headers para CORS (necesario para algunos assets en servidor)
   async headers() {
     return [
       {
@@ -61,8 +72,8 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
-  // Output standalone para despliegue
-  output: 'standalone',
+  // Para GitHub Pages se utiliza 'export', de lo contrario standalone o por defecto
+  output: isGithubPages ? 'export' : (process.env.OUTPUT_STANDALONE === 'true' ? 'standalone' : undefined),
 }
 
 // Configuración opcional de análisis de bundle
