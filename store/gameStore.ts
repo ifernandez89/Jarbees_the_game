@@ -62,8 +62,8 @@ export interface GameState {
 const initialState = {
   position: [0, 2, 0] as [number, number, number],
   rotation: [0, 0, 0] as [number, number, number],
-  velocity: 5,
-  baseSpeed: 5,
+  velocity: 0,
+  baseSpeed: 0,
   maxSpeed: 15,
   controls: {
     forward: false,

@@ -68,7 +68,7 @@ export function GameHUD() {
           🐝 JarBees: The Game
         </div>
         <div style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '5px' }}>
-          {isPaused ? '⏸ PAUSADO' : '▶ Volando'}
+          {isPaused ? '⏸ PAUSADO' : Math.abs(velocity) > 0.5 ? '▶ Volando' : '🌸 Suspendida en el aire'}
         </div>
         {dayNightEnabled && (
           <div style={{ color: '#aaa', fontSize: '0.8rem', marginBottom: '8px' }}>

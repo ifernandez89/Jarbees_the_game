@@ -69,8 +69,8 @@ export default function GameScene() {
     <>
       <Canvas
         camera={{
-          position: [0, 2.5, 3],
-          fov: 75,
+          position: [0, 2.95, 2.4],
+          fov: 65,
           near: 0.1,
           far: 1000,
         }}
