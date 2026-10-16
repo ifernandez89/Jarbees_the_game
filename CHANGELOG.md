@@ -1,5 +1,25 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.4] - 2026-10-16
+
+### 🐝 Vuelo a Altura Constante, Optimización Mobile de Inicio y HUD Compacto
+
+#### Corregido
+- **BeePlayer.tsx**:
+  - Corregido el vector de movimiento de avance `forwardVector` para operar estrictamente sobre el plano horizontal XZ mediante el ángulo de orientación Yaw (`bee.rotation.y`), eliminando el descenso progresivo en picada que ocurría al acelerar. Ahora la abeja mantiene constante su altitud al avanzar o frenar.
+  - Desacoplada la inclinación aerodinámica de vuelo (Pitch y Roll) de la física de traslación Y, aplicándola visualmente sobre el ancla del modelo 3D (`modelAnchorRef.current`).
+- **FollowCamera.tsx**:
+  - Estabilizada la matriz de orientación de la cámara con rotación exclusiva sobre el eje Y (`makeRotationY`), manteniendo el horizonte nivelado y cinematográfico sin cabeceos hacia el suelo al acelerar.
+
+#### Mejorado
+- **app/page.tsx**:
+  - Habilitado scroll vertical táctil suave y continuo con `min-height: 100dvh`, `overflow-y: auto` y padding inferior seguro (`55px`), evitando que la barra de navegación del navegador móvil tape los elementos interactivos.
+  - Dimensiones del logo (95px), título y márgenes verticalmente optimizados para pantallas móviles (`@media (max-width: 600px), (max-height: 750px)`), garantizando que el botón **"▶ Jugar Ahora"** sea visible y accesible de inmediato al ingresar.
+- **app/globals.css & GameHUD.tsx**:
+  - Paneles del HUD estilizados con clases CSS responsivas, reduciendo la tipografía y espaciados de 1 a 2 puntos en PC.
+  - En móviles: reubicada la telemetría de vuelo a la esquina superior derecha bajo los botones rápidos táctiles, liberando la esquina inferior derecha para que los controles de `SUBIR` y `BAJAR` no se superpongan.
+  - Ocultada automáticamente la barra de instrucciones de teclado en pantallas móviles para no ensuciar el centro de la pantalla.
+
 ## [0.8.3] - 2026-10-16
 
 ### 🌊 Alineación Directa de Reflejo Solar/Lunar en Agua y Oleaje PBR

@@ -23,13 +23,11 @@ export function FollowCamera() {
     // +1.80m por detrás en Z (viendo la espalda, alas y cuerpo de la abeja hacia el horizonte)
     const cameraOffset = new THREE.Vector3(0, 0.70, 1.8)
     
-    // Matriz de rotación de la orientación de la abeja
+    // Matriz de rotación horizontal de la orientación de la abeja (Yaw)
     const rotationMatrix = new THREE.Matrix4()
-    rotationMatrix.makeRotationFromEuler(
-      new THREE.Euler(beeRotation[0], beeRotation[1], beeRotation[2])
-    )
+    rotationMatrix.makeRotationY(beeRotation[1])
     
-    // Aplicar la rotación del jugador al offset de la cámara
+    // Aplicar la rotación horizontal al offset de la cámara
     cameraOffset.applyMatrix4(rotationMatrix)
     
     // Posición objetivo de la cámara

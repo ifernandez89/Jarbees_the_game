@@ -219,10 +219,10 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
     const moveSpeed = currentVelocity * delta
     const rotationSpeed = 2.4 * delta
 
-    // Movimiento hacia adelante en la dirección donde mira la abeja (-Z local)
+    // Movimiento hacia adelante a ALTURA CONSTANTE en el plano horizontal XZ:
+    // La abeja no debe descender al avanzar.
     if (Math.abs(currentVelocity) > 0.01) {
-      const forwardVector = new THREE.Vector3(0, 0, -1)
-      forwardVector.applyQuaternion(bee.quaternion)
+      const forwardVector = new THREE.Vector3(-Math.sin(bee.rotation.y), 0, -Math.cos(bee.rotation.y))
       bee.position.addScaledVector(forwardVector, moveSpeed)
       updateDistanceTraveled(Math.abs(moveSpeed))
     }
@@ -238,13 +238,28 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
       bee.position.z += windDriftZ
     }
 
-    // Balanceo suave y natural en suspensión con brisa permanente
+    // Balanceo suave en suspensión, brisa e inclinación aerodinámica de vuelo
     if (modelAnchorRef.current) {
       const t = state.clock.getElapsedTime()
       const hoverBobbing = Math.sin(t * 3.2) * 0.03
       const windSway = Math.cos(t * 1.6) * 0.02
       modelAnchorRef.current.position.y = hoverBobbing
-      modelAnchorRef.current.rotation.z = windSway
+
+      // Inclinación dinámica visual del modelo (Pitch al acelerar/frenar y Roll al virar)
+      // Se aplica solo visualmente al modelo para que la abeja luzca aerodinámica sin alterar la altura de vuelo
+      const targetPitch = controls.forward ? -0.16 : (controls.backward ? 0.12 : 0)
+      const targetRoll = controls.left ? 0.35 : (controls.right ? -0.35 : 0)
+
+      modelAnchorRef.current.rotation.x = THREE.MathUtils.lerp(
+        modelAnchorRef.current.rotation.x,
+        targetPitch,
+        delta * 5
+      )
+      modelAnchorRef.current.rotation.z = THREE.MathUtils.lerp(
+        modelAnchorRef.current.rotation.z,
+        targetRoll + windSway,
+        delta * 5
+      )
     }
 
     // Controles de rotación (Yaw - izquierda/derecha)
@@ -254,6 +269,10 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
     if (controls.right) {
       bee.rotation.y -= rotationSpeed
     }
+
+    // Mantener la orientación base del grupo nivelada horizontalmente
+    bee.rotation.x = 0
+    bee.rotation.z = 0
 
     // Controles de altitud (ESPACIO/E para subir rápido, SHIFT/Q para bajar)
     if (controls.up) {
@@ -277,18 +296,6 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
     setPosition([bee.position.x, bee.position.y, bee.position.z])
     setRotation([bee.rotation.x, bee.rotation.y, bee.rotation.z])
     updateAltitude(bee.position.y)
-
-    // Inclinación dinámica de vuelo:
-    const targetPitch = controls.forward ? -0.16 : (controls.backward ? 0.12 : 0)
-    bee.rotation.x = THREE.MathUtils.lerp(bee.rotation.x, targetPitch, delta * 5)
-
-    if (controls.left) {
-      bee.rotation.z = THREE.MathUtils.lerp(bee.rotation.z, 0.35, delta * 5)
-    } else if (controls.right) {
-      bee.rotation.z = THREE.MathUtils.lerp(bee.rotation.z, -0.35, delta * 5)
-    } else {
-      bee.rotation.z = THREE.MathUtils.lerp(bee.rotation.z, 0, delta * 5)
-    }
 
     // Modulación acústica refinada (volumen reducido y más agradable)
     const audio = getAudioManager()
