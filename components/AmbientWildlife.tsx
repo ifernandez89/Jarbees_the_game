@@ -50,7 +50,6 @@ function HummingbirdEntity({
 }) {
   const groupRef = useRef<THREE.Group>(null!)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
-  const playerPos = useGameStore((state) => state.position)
   const isPaused = useGameStore((state) => state.isPaused)
 
   const gltf = useGLTF(getAssetPath('/models/colibri.glb')) as GLTFResult
@@ -91,7 +90,11 @@ function HummingbirdEntity({
 
   // Estado de vuelo
   const stateRef = useRef({
-    pos: new THREE.Vector3(playerPos[0] + Math.sin(relativeAngle) * 12, playerPos[1] + 2, playerPos[2] - 18),
+    pos: new THREE.Vector3(
+      useGameStore.getState().position[0] + Math.sin(relativeAngle) * 12,
+      useGameStore.getState().position[1] + 2,
+      useGameStore.getState().position[2] - 18
+    ),
     targetPos: new THREE.Vector3(),
     burstTimer: 0,
     burstTarget: new THREE.Vector3(),
@@ -107,6 +110,7 @@ function HummingbirdEntity({
     const t = state.clock.getElapsedTime() * 1.2 + flightSeed
     const st = stateRef.current
 
+    const playerPos = useGameStore.getState().position
     const px = playerPos[0]
     const py = playerPos[1]
     const pz = playerPos[2]
@@ -149,7 +153,7 @@ function HummingbirdEntity({
 
   // Escala visible y nítida desde la cámara: ~1.0m (18.5x de 0.055m)
   return (
-    <group ref={groupRef} position={[playerPos[0], playerPos[1] + 2, playerPos[2] - 18]}>
+    <group ref={groupRef} position={[0, 2, -18]}>
       <group scale={18.5}>
         <primitive object={sceneClone} />
       </group>
@@ -171,7 +175,6 @@ function ButterflyEntity({
 }) {
   const groupRef = useRef<THREE.Group>(null!)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
-  const playerPos = useGameStore((state) => state.position)
   const isPaused = useGameStore((state) => state.isPaused)
 
   const gltf = useGLTF(getAssetPath('/models/butterfly.glb')) as GLTFResult
@@ -210,7 +213,11 @@ function ButterflyEntity({
   }, [gltf.animations, sceneClone])
 
   const stateRef = useRef({
-    pos: new THREE.Vector3(playerPos[0] + Math.sin(relativeAngle) * 8, playerPos[1] + 1.2, playerPos[2] - 14),
+    pos: new THREE.Vector3(
+      useGameStore.getState().position[0] + Math.sin(relativeAngle) * 8,
+      useGameStore.getState().position[1] + 1.2,
+      useGameStore.getState().position[2] - 14
+    ),
   })
 
   useFrame((state, delta) => {
@@ -223,6 +230,7 @@ function ButterflyEntity({
     const t = state.clock.getElapsedTime() * 0.9 * speedFactor + flightSeed
     const st = stateRef.current
 
+    const playerPos = useGameStore.getState().position
     const px = playerPos[0]
     const py = playerPos[1]
     const pz = playerPos[2]
@@ -260,7 +268,7 @@ function ButterflyEntity({
 
   // Escala visible y nítida desde la cámara: ~1.15m (12.0x de 0.096m)
   return (
-    <group ref={groupRef} position={[playerPos[0], playerPos[1] + 1.2, playerPos[2] - 14]}>
+    <group ref={groupRef} position={[0, 1.2, -14]}>
       <group scale={12.0}>
         <primitive object={sceneClone} />
       </group>

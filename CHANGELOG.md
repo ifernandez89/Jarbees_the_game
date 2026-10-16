@@ -1,5 +1,26 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.5] - 2026-10-16
+
+### 📱 Estabilización Cinemática de Cámara y Eliminación de Temblor en Móviles
+
+#### Corregido
+- **FollowCamera.tsx**:
+  - Eliminado por completo el temblor / sacudida (*camera jitter*) que se percibía al avanzar con la abeja, especialmente visible en pantallas móviles.
+  - **Sincronización directa en grafo 3D**: La cámara ahora sigue directamente el nodo 3D en tiempo real (`beePlayer`) en vez de suscribirse al estado asíncrono de React/Zustand, eliminando la latencia de 1 a 2 frames que causaba desincronización con el render loop de WebGL.
+  - **Suavizado síncrono de LookAt y Posición**: Se unificó la interpolación de la posición de la cámara y del objetivo de mira (*lookAt target*) bajo amortiguación exponencial pura (`1 - Math.exp(-14 * delta)`), garantizando una orientación matemática estable e independiente de fluctuaciones en el framerate.
+  - **Cero recolección de basura (GC)**: Vectores y matrices de transformación preasignados en `useRef`, eliminando allocations de memoria por frame.
+
+#### Mejorado
+- **BeePlayer.tsx**:
+  - Nombrado el grupo de la abeja como `beePlayer` para acceso directo desde el grafo de la escena.
+  - Física de velocidad mantenida en `velocityRef` y vectores cacheados en `useRef`, evitando re-renderizados innecesarios del componente en React en cada frame.
+  - Sincronización del estado global de telemetría (HUD: velocidad, distancia, altitud) optimizada a ~10 Hz (cada 100ms) en lugar de disparar 240+ emisiones por segundo en el hilo principal de React.
+- **InfiniteTerrain.tsx, WaterSurface.tsx & AmbientWildlife.tsx**:
+  - Desacoplados de las suscripciones reactivas per-frame de posición de Zustand, consultando la posición directamente en `useFrame`. Esto reduce el consumo de CPU en dispositivos móviles y evita la reconciliación virtual del DOM en cientos de elementos naturales.
+- **GameScene.tsx**:
+  - Añadido `touchAction: 'none'` al contenedor y al `Canvas` en móviles para prevenir que los gestos táctiles del navegador generen micro-desplazamientos de viewport.
+
 ## [0.8.4] - 2026-10-16
 
 ### 🐝 Vuelo a Altura Constante, Optimización Mobile de Inicio y HUD Compacto

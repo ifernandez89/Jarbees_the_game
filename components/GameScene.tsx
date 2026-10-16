@@ -77,11 +77,13 @@ function Scene() {
 export default function GameScene() {
   const enableStats = process.env.NEXT_PUBLIC_ENABLE_STATS === 'true'
 
-  // Prevenir scroll en la página del juego
+  // Prevenir scroll y gestos del navegador móvil en la página del juego
   useEffect(() => {
     document.body.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
     return () => {
       document.body.style.overflow = 'auto'
+      document.body.style.touchAction = 'auto'
     }
   }, [])
 
@@ -101,6 +103,7 @@ export default function GameScene() {
           position: 'fixed',
           top: 0,
           left: 0,
+          touchAction: 'none',
         }}
       >
         {/* Fondo inicial celeste para que nunca exista pantalla negra */}

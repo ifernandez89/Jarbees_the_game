@@ -96,11 +96,10 @@ function BeeGLBModel({ modelPath }: { modelPath: string }) {
     }
   }, [animations, scene])
 
-  const velocity = useGameStore((state) => state.velocity)
-
   useFrame((_, delta) => {
     if (mixerRef.current) {
-      const animSpeed = 1.0 + (Math.abs(velocity) / 8) * 0.8
+      const vel = useGameStore.getState().velocity
+      const animSpeed = 1.0 + (Math.abs(vel) / 8) * 0.8
       mixerRef.current.update(delta * animSpeed)
     }
   })
@@ -184,6 +183,10 @@ function ProceduralBee() {
 export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
   const groupRef = useRef<THREE.Group>(null!)
   const modelAnchorRef = useRef<THREE.Group>(null!)
+  const velocityRef = useRef(0)
+  const forwardVectorRef = useRef(new THREE.Vector3())
+  const hudUpdateTimer = useRef(0)
+  const accumulatedDistanceRef = useRef(0)
 
   // Estado del juego
   const controls = useGameStore((state) => state.controls)
@@ -192,7 +195,6 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
   const setRotation = useGameStore((state) => state.setRotation)
   const updateDistanceTraveled = useGameStore((state) => state.updateDistanceTraveled)
   const updateAltitude = useGameStore((state) => state.updateAltitude)
-  const velocity = useGameStore((state) => state.velocity)
   const setVelocity = useGameStore((state) => state.setVelocity)
   const terrainManager = useGameStore((state) => state.terrainManager)
 
@@ -212,9 +214,9 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
       targetSpeed = -4.0 // Retroceso suave (~14 km/h) con S / Flecha Abajo
     }
 
-    // Suavizar velocidad con inercia de vuelo
-    const currentVelocity = THREE.MathUtils.lerp(velocity, targetSpeed, delta * 4)
-    setVelocity(currentVelocity)
+    // Suavizar velocidad con inercia de vuelo localmente en ref (evita re-renders en React)
+    velocityRef.current = THREE.MathUtils.lerp(velocityRef.current, targetSpeed, delta * 4)
+    const currentVelocity = velocityRef.current
 
     const moveSpeed = currentVelocity * delta
     const rotationSpeed = 2.4 * delta
@@ -222,9 +224,9 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
     // Movimiento hacia adelante a ALTURA CONSTANTE en el plano horizontal XZ:
     // La abeja no debe descender al avanzar.
     if (Math.abs(currentVelocity) > 0.01) {
-      const forwardVector = new THREE.Vector3(-Math.sin(bee.rotation.y), 0, -Math.cos(bee.rotation.y))
-      bee.position.addScaledVector(forwardVector, moveSpeed)
-      updateDistanceTraveled(Math.abs(moveSpeed))
+      forwardVectorRef.current.set(-Math.sin(bee.rotation.y), 0, -Math.cos(bee.rotation.y))
+      bee.position.addScaledVector(forwardVectorRef.current, moveSpeed)
+      accumulatedDistanceRef.current += Math.abs(moveSpeed)
     }
 
     // Leve efecto de viento permanente y flotabilidad natural
@@ -292,10 +294,20 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
     // Límites de altitud: Permite ascender bien alto (hasta 82m, justo por debajo de las nubes en 85m)
     bee.position.y = Math.max(minHeight, Math.min(bee.position.y, 82))
 
-    // Actualizar estado global para cámara y HUD
-    setPosition([bee.position.x, bee.position.y, bee.position.z])
-    setRotation([bee.rotation.x, bee.rotation.y, bee.rotation.z])
-    updateAltitude(bee.position.y)
+    // Sincronizar estado global para HUD de forma optimizada (~10Hz)
+    // Esto evita cientos de re-renders por segundo en la UI de React, liberando la CPU en móviles
+    hudUpdateTimer.current += delta
+    if (hudUpdateTimer.current >= 0.1) {
+      hudUpdateTimer.current = 0
+      setPosition([bee.position.x, bee.position.y, bee.position.z])
+      setRotation([bee.rotation.x, bee.rotation.y, bee.rotation.z])
+      updateAltitude(bee.position.y)
+      setVelocity(currentVelocity)
+      if (accumulatedDistanceRef.current > 0) {
+        updateDistanceTraveled(accumulatedDistanceRef.current)
+        accumulatedDistanceRef.current = 0
+      }
+    }
 
     // Modulación acústica refinada (volumen reducido y más agradable)
     const audio = getAudioManager()
@@ -312,7 +324,7 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
   })
 
   return (
-    <group ref={groupRef} position={[0, 2, 0]}>
+    <group ref={groupRef} name="beePlayer" position={[0, 2, 0]}>
       <group ref={modelAnchorRef}>
         <ModelErrorBoundary fallback={<ProceduralBee />}>
           <Suspense fallback={<ProceduralBee />}>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '@/store/gameStore'
 
@@ -11,8 +11,9 @@ interface WaterSurfaceProps {
 }
 
 export function WaterSurface({ waterHeight = 1.2, size = 650 }: WaterSurfaceProps) {
+  const { scene } = useThree()
   const meshRef = useRef<THREE.Mesh>(null!)
-  const position = useGameStore((state) => state.position)
+  const beeRef = useRef<THREE.Object3D | null>(null)
   const currentBiome = useGameStore((state) => state.currentBiome)
   const wind = useGameStore((state) => state.wind)
 
@@ -72,9 +73,14 @@ export function WaterSurface({ waterHeight = 1.2, size = 650 }: WaterSurfaceProp
   useFrame(({ clock }, delta) => {
     if (!meshRef.current || !isVisible) return
 
-    // Mantener la superficie del agua centrada alrededor de la posición de la abeja
-    meshRef.current.position.x = position[0]
-    meshRef.current.position.z = position[2]
+    if (!beeRef.current) {
+      beeRef.current = scene.getObjectByName('beePlayer') || null
+    }
+    const bee = beeRef.current
+    if (bee) {
+      meshRef.current.position.x = bee.position.x
+      meshRef.current.position.z = bee.position.z
+    }
 
     // Ondulación sutil de marea vertical
     const time = clock.getElapsedTime()
@@ -95,7 +101,7 @@ export function WaterSurface({ waterHeight = 1.2, size = 650 }: WaterSurfaceProp
     <mesh
       ref={meshRef}
       rotation={[-Math.PI / 2, 0, 0]}
-      position={[position[0], waterHeight, position[2]]}
+      position={[0, waterHeight, 0]}
       receiveShadow
       material={waterMaterial}
     >

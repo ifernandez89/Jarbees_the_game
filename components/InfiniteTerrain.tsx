@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useMemo, useState } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { ChunkManager, ChunkConfig } from '@/systems/ChunkManager'
 import { useGameStore } from '@/store/gameStore'
@@ -30,11 +30,11 @@ const BIOME_CONFIGS: Record<string, Partial<ChunkConfig>> = {
 }
 
 export function InfiniteTerrain({ biome = 'titicaca', seed }: InfiniteTerrainProps) {
+  const { scene } = useThree()
   const groupRef = useRef<THREE.Group>(null!)
+  const beeRef = useRef<THREE.Object3D | null>(null)
   const chunksRef = useRef<Map<string, THREE.Mesh>>(new Map())
   const [activeChunkKeys, setActiveChunkKeys] = useState<Set<string>>(new Set())
-  
-  const position = useGameStore((state) => state.position)
   
   // Crear ChunkManager con memo para evitar recreación
   const chunkManager = useMemo(() => {
@@ -77,7 +77,12 @@ export function InfiniteTerrain({ biome = 'titicaca', seed }: InfiniteTerrainPro
   useFrame(() => {
     if (!groupRef.current) return
 
-    const [playerX, , playerZ] = position
+    if (!beeRef.current) {
+      beeRef.current = scene.getObjectByName('beePlayer') || null
+    }
+    const bee = beeRef.current
+    const playerX = bee ? bee.position.x : useGameStore.getState().position[0]
+    const playerZ = bee ? bee.position.z : useGameStore.getState().position[2]
     
     // Obtener chunks que deben añadirse
     const newChunks = chunkManager.updateChunks(playerX, playerZ)
