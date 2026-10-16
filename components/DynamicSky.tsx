@@ -13,7 +13,7 @@ interface DynamicSkyProps {
 
 export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
   const skyGroupRef = useRef<THREE.Group>(null!)
-  const sunMeshRef = useRef<THREE.Mesh>(null!)
+  const sunGroupRef = useRef<THREE.Group>(null!)
   const sunLightRef = useRef<THREE.DirectionalLight>(null!)
   const moonMeshRef = useRef<THREE.Mesh>(null!)
   const moonLightRef = useRef<THREE.DirectionalLight>(null!)
@@ -76,11 +76,11 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
       skyMaterial.uniforms.bottomColor.value.set(timeOfDay.horizonColor)
     }
 
-    // Posición del sol
+    // Posición del grupo completo del sol (núcleo y aureola concéntricos al 100%)
     const [sx, sy, sz] = getSunPosition(timeOfDay)
-    if (sunMeshRef.current) {
-      sunMeshRef.current.position.set(sx, sy, sz)
-      sunMeshRef.current.visible = sy > -35
+    if (sunGroupRef.current) {
+      sunGroupRef.current.position.set(sx, sy, sz)
+      sunGroupRef.current.visible = sy > -35
     }
 
     if (sunLightRef.current) {
@@ -114,9 +114,10 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
       {/* Bóveda celeste con gradiente interpolado */}
       <mesh ref={skyMeshRef} geometry={skyGeometry} material={skyMaterial} />
 
-      {/* Astro Sol Radiante con aureola esférica suave */}
-      <group position={[sunX, sunY, sunZ]}>
-        <mesh ref={sunMeshRef}>
+      {/* Astro Sol Radiante: Grupo unificado y concéntrico */}
+      <group ref={sunGroupRef} position={[sunX, sunY, sunZ]}>
+        {/* Núcleo del sol */}
+        <mesh position={[0, 0, 0]}>
           <sphereGeometry args={[18, 32, 32]} />
           <meshStandardMaterial
             color={timeOfDay.timeOfDay === 'dawn' || timeOfDay.timeOfDay === 'dusk' ? '#ff7733' : '#ffee77'}
@@ -125,13 +126,13 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
             roughness={0.1}
           />
         </mesh>
-        {/* Aura esférica difuminada sin bordes cuadrados */}
-        <mesh>
-          <sphereGeometry args={[26, 16, 16]} />
+        {/* Aureola concéntrica suave en la misma coordenada central exacta */}
+        <mesh position={[0, 0, 0]}>
+          <sphereGeometry args={[26, 24, 24]} />
           <meshBasicMaterial
             color={timeOfDay.timeOfDay === 'dawn' || timeOfDay.timeOfDay === 'dusk' ? '#ff8833' : '#ffea77'}
             transparent
-            opacity={Math.max(0.0, Math.min(0.35, timeOfDay.sunIntensity * 0.4))}
+            opacity={Math.max(0.0, Math.min(0.28, timeOfDay.sunIntensity * 0.35))}
             blending={THREE.AdditiveBlending}
             depthWrite={false}
           />

@@ -1,5 +1,21 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.1] - 2026-10-15
+
+### ☀️ Corrección de Sol Unificado, Purga de Quads y Ascenso Aéreo Ampliado
+
+#### Corregido
+- **DynamicSky.tsx**:
+  - Corregido el efecto de "doble sol / doble círculo" mediante la unificación de coordenadas concéntricas en `sunGroupRef`, eliminando el doble offset de posición entre núcleo y aureola.
+  - Eliminados los billboards planos rectangulares que generaban cajas blancas en el cielo.
+- **WeatherSystem.tsx**:
+  - Eliminados los puntos/partículas que generaban artefactos cuadrados en pantalla, manteniendo la niebla volumétrica limpia.
+
+#### Mejorado
+- **BeePlayer.tsx**:
+  - Límite de altitud máxima incrementado de **45 m a 82 m** para permitir planear en altura justo por debajo del manto de nubes.
+  - Velocidad de ascenso vertical con tecla `ESPACIO` incrementada a **14.0 m/s** para una respuesta ágil e inmediata en vuelo.
+
 ## [0.8.0] - 2026-10-15
 
 ### 🌤️ Ciclo Día/Noche Dinámico, Viento Permanente, Fauna Aérea y Rocas Archeoscope
