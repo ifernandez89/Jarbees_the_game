@@ -1,5 +1,19 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.3] - 2026-10-16
+
+### 🌊 Alineación Directa de Reflejo Solar/Lunar en Agua y Oleaje PBR
+
+#### Corregido
+- **DynamicSky.tsx**:
+  - Corregida la dirección de los rayos solares y lunares en `directionalLight`: su propiedad `target` estaba anclada en el origen mundial `(0, 0, 0)` en lugar de seguir a la cámara. Al volar kilómetros por el mundo infinito, la luz incidía en un ángulo oblicuo incorrecto desviando el reflejo en el agua.
+  - Se vinculó `sunLight.target` y `moonLight.target` directamente al centro local del observador, asegurando que el vector de incidencia solar/lunar provenga exactamente del disco visual del sol o la luna en cualquier posición o distancia recorrida.
+
+#### Mejorado
+- **WaterSurface.tsx**:
+  - Incorporada textura procedural de normales de oleaje (`normalMap`) con animación de desplazamiento continuo en la dirección del viento.
+  - Parámetros PBR de agua natural (dieléctrico real con `metalness: 0.08`, `roughness: 0.18`), generando una estela de luz reflectiva (*sun glade / moon glade*) que apunta directa y perfectamente hacia el astro en el horizonte.
+
 ## [0.8.2] - 2026-10-15
 
 ### 🌕 Textura Lunar Realista de Archeoscope, Autoría Legal y Optimización de Fauna

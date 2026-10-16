@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
@@ -64,6 +64,20 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
     })
   }, [])
 
+  // Sincronizar objetivos de luz direccional en el centro local del grupo celeste
+  useEffect(() => {
+    if (skyGroupRef.current) {
+      if (sunLightRef.current) {
+        skyGroupRef.current.add(sunLightRef.current.target)
+        sunLightRef.current.target.position.set(0, 0, 0)
+      }
+      if (moonLightRef.current) {
+        skyGroupRef.current.add(moonLightRef.current.target)
+        moonLightRef.current.target.position.set(0, 0, 0)
+      }
+    }
+  }, [])
+
   // Actualizar posiciones relativas y colores en cada frame
   useFrame(() => {
     if (!skyGroupRef.current) return
@@ -88,8 +102,11 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
       sunGroupRef.current.visible = sy > -35
     }
 
+    // Luz solar: posición y vector alineado exactamente hacia el centro del jugador
     if (sunLightRef.current) {
       sunLightRef.current.position.set(sx, Math.max(10, sy), sz)
+      sunLightRef.current.target.position.set(0, 0, 0)
+      sunLightRef.current.target.updateMatrixWorld()
       sunLightRef.current.intensity = Math.max(0.0, timeOfDay.sunIntensity * 1.35)
       if (timeOfDay.timeOfDay === 'dawn' || timeOfDay.timeOfDay === 'dusk') {
         sunLightRef.current.color.set('#ffa658')
@@ -105,8 +122,11 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
       moonMeshRef.current.visible = my > -30
     }
 
+    // Luz lunar: alineada exactamente hacia el centro del jugador
     if (moonLightRef.current) {
       moonLightRef.current.position.set(mx, Math.max(10, my), mz)
+      moonLightRef.current.target.position.set(0, 0, 0)
+      moonLightRef.current.target.updateMatrixWorld()
       moonLightRef.current.intensity = Math.max(0.0, timeOfDay.moonIntensity * 0.35)
     }
   })
