@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { ChunkManager, ChunkConfig } from '@/systems/ChunkManager'
 import { useGameStore } from '@/store/gameStore'
 import { TreePopulation } from './TreePopulation'
+import { RockPopulation } from './RockPopulation'
 
 interface InfiniteTerrainProps {
   biome?: 'titicaca' | 'easter_island' | 'constellations'
@@ -118,17 +119,24 @@ export function InfiniteTerrain({ biome = 'titicaca', seed }: InfiniteTerrainPro
     <>
       <group ref={groupRef} />
       
-      {/* Árboles para cada chunk activo */}
+      {/* Elementos naturales para cada chunk activo (árboles y rocas/megalitos estilo Archeoscope) */}
       {Array.from(activeChunkKeys).map((key) => {
         const [chunkX, chunkZ] = key.split('_').map(Number)
         return (
-          <TreePopulation
-            key={key}
-            chunkX={chunkX}
-            chunkZ={chunkZ}
-            chunkSize={100}
-            biome={biome}
-          />
+          <group key={key}>
+            <TreePopulation
+              chunkX={chunkX}
+              chunkZ={chunkZ}
+              chunkSize={100}
+              biome={biome}
+            />
+            <RockPopulation
+              chunkX={chunkX}
+              chunkZ={chunkZ}
+              chunkSize={100}
+              biome={biome}
+            />
+          </group>
         )
       })}
     </>

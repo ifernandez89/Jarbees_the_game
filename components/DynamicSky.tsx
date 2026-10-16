@@ -1,9 +1,10 @@
 'use client'
 
 import { useRef, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useDayNightCycle, getSunPosition, getMoonPosition } from '@/hooks/useDayNightCycle'
+import { Clouds } from './Clouds'
 
 interface DynamicSkyProps {
   enabled?: boolean
@@ -11,25 +12,30 @@ interface DynamicSkyProps {
 }
 
 export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
-  const sunRef = useRef<THREE.Mesh>(null!)
-  const moonRef = useRef<THREE.Mesh>(null!)
-  const skyRef = useRef<THREE.Mesh>(null!)
+  const skyGroupRef = useRef<THREE.Group>(null!)
+  const sunMeshRef = useRef<THREE.Mesh>(null!)
+  const sunLightRef = useRef<THREE.DirectionalLight>(null!)
+  const moonMeshRef = useRef<THREE.Mesh>(null!)
+  const moonLightRef = useRef<THREE.DirectionalLight>(null!)
+  const skyMeshRef = useRef<THREE.Mesh>(null!)
   
+  const { camera } = useThree()
   const timeOfDay = useDayNightCycle(enabled, speed)
 
-  // Crear gradiente esférico del cielo
+  // Bóveda celeste esférica amplia
   const skyGeometry = useMemo(() => {
-    return new THREE.SphereGeometry(480, 32, 32)
+    return new THREE.SphereGeometry(490, 32, 32)
   }, [])
 
   const skyMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       side: THREE.BackSide,
+      depthWrite: false,
       uniforms: {
-        topColor: { value: new THREE.Color('#5aa2f0') },
-        bottomColor: { value: new THREE.Color('#bee2fd') },
-        offset: { value: 33 },
-        exponent: { value: 0.6 },
+        topColor: { value: new THREE.Color('#4892e6') },
+        bottomColor: { value: new THREE.Color('#bde0ff') },
+        offset: { value: 30 },
+        exponent: { value: 0.65 },
       },
       vertexShader: `
         varying vec3 vWorldPosition;
@@ -53,28 +59,50 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
     })
   }, [])
 
-  // Actualizar colores del cielo y posiciones celestes
+  // Actualizar posiciones relativas y colores en cada frame
   useFrame(() => {
-    if (!enabled) return
+    if (!skyGroupRef.current) return
 
-    // Actualizar colores del gradiente celeste
+    // CRÍTICO: El cielo sigue al jugador para mantener el horizonte infinito
+    skyGroupRef.current.position.set(
+      camera.position.x,
+      camera.position.y * 0.3,
+      camera.position.z
+    )
+
+    // Actualizar shader del cielo
     if (skyMaterial.uniforms) {
       skyMaterial.uniforms.topColor.value.set(timeOfDay.skyColor)
       skyMaterial.uniforms.bottomColor.value.set(timeOfDay.horizonColor)
     }
 
-    // Actualizar posición y brillo del sol
-    if (sunRef.current) {
-      const [x, y, z] = getSunPosition(timeOfDay)
-      sunRef.current.position.set(x, y, z)
-      sunRef.current.visible = y > -30 // Ocultar solo si está bajo el suelo profundo
+    // Posición del sol
+    const [sx, sy, sz] = getSunPosition(timeOfDay)
+    if (sunMeshRef.current) {
+      sunMeshRef.current.position.set(sx, sy, sz)
+      sunMeshRef.current.visible = sy > -35
     }
 
-    // Actualizar posición de la luna
-    if (moonRef.current) {
-      const [mx, my, mz] = getMoonPosition(timeOfDay)
-      moonRef.current.position.set(mx, my, mz)
-      moonRef.current.visible = my > -20
+    if (sunLightRef.current) {
+      sunLightRef.current.position.set(sx, Math.max(10, sy), sz)
+      sunLightRef.current.intensity = Math.max(0.0, timeOfDay.sunIntensity * 1.35)
+      if (timeOfDay.timeOfDay === 'dawn' || timeOfDay.timeOfDay === 'dusk') {
+        sunLightRef.current.color.set('#ffa658')
+      } else {
+        sunLightRef.current.color.set('#fff6e6')
+      }
+    }
+
+    // Posición de la luna
+    const [mx, my, mz] = getMoonPosition(timeOfDay)
+    if (moonMeshRef.current) {
+      moonMeshRef.current.position.set(mx, my, mz)
+      moonMeshRef.current.visible = my > -30
+    }
+
+    if (moonLightRef.current) {
+      moonLightRef.current.position.set(mx, Math.max(10, my), mz)
+      moonLightRef.current.intensity = Math.max(0.0, timeOfDay.moonIntensity * 0.35)
     }
   })
 
@@ -82,102 +110,122 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
   const [moonX, moonY, moonZ] = getMoonPosition(timeOfDay)
 
   return (
-    <group>
+    <group ref={skyGroupRef}>
       {/* Bóveda celeste con gradiente interpolado */}
-      <mesh ref={skyRef} geometry={skyGeometry} material={skyMaterial} />
+      <mesh ref={skyMeshRef} geometry={skyGeometry} material={skyMaterial} />
 
-      {/* Astro Sol */}
-      <mesh ref={sunRef} position={[sunX, sunY, sunZ]}>
-        <sphereGeometry args={[14, 32, 32]} />
-        <meshStandardMaterial
-          color="#ffdd55"
-          emissive="#ffbb22"
-          emissiveIntensity={Math.max(0.2, timeOfDay.sunIntensity * 2.5)}
-          roughness={0.2}
-        />
-      </mesh>
+      {/* Astro Sol Radiante con aureola esférica suave */}
+      <group position={[sunX, sunY, sunZ]}>
+        <mesh ref={sunMeshRef}>
+          <sphereGeometry args={[18, 32, 32]} />
+          <meshStandardMaterial
+            color={timeOfDay.timeOfDay === 'dawn' || timeOfDay.timeOfDay === 'dusk' ? '#ff7733' : '#ffee77'}
+            emissive={timeOfDay.timeOfDay === 'dawn' || timeOfDay.timeOfDay === 'dusk' ? '#ff5511' : '#ffcc33'}
+            emissiveIntensity={Math.max(0.4, timeOfDay.sunIntensity * 2.8)}
+            roughness={0.1}
+          />
+        </mesh>
+        {/* Aura esférica difuminada sin bordes cuadrados */}
+        <mesh>
+          <sphereGeometry args={[26, 16, 16]} />
+          <meshBasicMaterial
+            color={timeOfDay.timeOfDay === 'dawn' || timeOfDay.timeOfDay === 'dusk' ? '#ff8833' : '#ffea77'}
+            transparent
+            opacity={Math.max(0.0, Math.min(0.35, timeOfDay.sunIntensity * 0.4))}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
+      </group>
 
-      {/* Luz solar direccional */}
+      {/* Luz solar direccional principal */}
       <directionalLight
+        ref={sunLightRef}
         position={[sunX, sunY, sunZ]}
-        intensity={Math.max(0.05, timeOfDay.sunIntensity * 1.5)}
-        color="#fff9ea"
+        intensity={Math.max(0.0, timeOfDay.sunIntensity * 1.35)}
+        color="#fff6e6"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-        shadow-camera-far={600}
+        shadow-camera-far={650}
         shadow-camera-left={-120}
         shadow-camera-right={120}
         shadow-camera-top={120}
         shadow-camera-bottom={-120}
       />
 
-      {/* Astro Luna */}
-      <mesh ref={moonRef} position={[moonX, moonY, moonZ]}>
-        <sphereGeometry args={[9, 32, 32]} />
+      {/* Astro Luna Brillante */}
+      <mesh ref={moonMeshRef} position={[moonX, moonY, moonZ]}>
+        <sphereGeometry args={[12, 32, 32]} />
         <meshStandardMaterial
-          color="#e8ecf8"
-          emissive="#c4d5f2"
-          emissiveIntensity={Math.max(0.1, timeOfDay.moonIntensity * 1.8)}
-          roughness={0.3}
+          color="#e8f0fe"
+          emissive="#bfd6ff"
+          emissiveIntensity={Math.max(0.2, timeOfDay.moonIntensity * 1.9)}
+          roughness={0.4}
         />
       </mesh>
 
-      {/* Luz tenue de luna nocturna */}
-      {timeOfDay.moonIntensity > 0.1 && (
-        <pointLight
-          position={[moonX, moonY, moonZ]}
-          intensity={timeOfDay.moonIntensity * 0.45}
-          color="#c0d4ff"
-          distance={450}
-        />
-      )}
-
-      {/* Luz hemisférica reactiva al color ambiental */}
-      <hemisphereLight
-        args={[timeOfDay.skyColor, timeOfDay.horizonColor, 0.65]}
+      {/* Luz lunar nocturna con sombras suaves */}
+      <directionalLight
+        ref={moonLightRef}
+        position={[moonX, moonY, moonZ]}
+        intensity={Math.max(0.0, timeOfDay.moonIntensity * 0.35)}
+        color="#b0c8ff"
       />
 
-      {/* Manto de Estrellas con fade-in continuo y alta visibilidad */}
-      <Stars opacity={timeOfDay.starsOpacity} />
+      {/* Luz hemisférica reactiva al color ambiental del ciclo */}
+      <hemisphereLight
+        args={[timeOfDay.skyColor, timeOfDay.horizonColor, Math.max(0.15, timeOfDay.ambientIntensity * 0.65)]}
+      />
+
+      {/* Luz ambiental adaptativa día/noche */}
+      <ambientLight
+        color={timeOfDay.ambientColor}
+        intensity={Math.max(0.10, timeOfDay.ambientIntensity * 0.55)}
+      />
+
+      {/* Nubes dinámicas reactivas al viento y al ciclo */}
+      <Clouds timeOfDay={timeOfDay} />
+
+      {/* Manto de Estrellas y Constelaciones Andinas */}
+      <ConstellationsAndStars opacity={timeOfDay.starsOpacity} />
     </group>
   )
 }
 
 /**
- * Componente de Estrellas Brillantes de Alta Visibilidad
+ * Firmamento con Estrellas Brillantes y Constelaciones Andinas (Cruz del Sur / Chakana, Orión)
  */
-function Stars({ opacity }: { opacity: number }) {
+function ConstellationsAndStars({ opacity }: { opacity: number }) {
   const starsRef = useRef<THREE.Points>(null!)
+  const constellationLinesRef = useRef<THREE.LineSegments>(null!)
 
-  // Generar constelaciones y estrellas con tamaños y colores variados
-  const { geometry, material } = useMemo(() => {
-    const starCount = 1200
+  // Generar constelaciones identificables y miles de estrellas brillantes
+  const { starGeometry, starMaterial, lineGeometry, lineMaterial } = useMemo(() => {
+    const starCount = 1400
     const geo = new THREE.BufferGeometry()
     const positions = new Float32Array(starCount * 3)
     const colors = new Float32Array(starCount * 3)
 
     const colorWhite = new THREE.Color('#ffffff')
-    const colorGold = new THREE.Color('#ffe2a8')
-    const colorCyan = new THREE.Color('#b8e2ff')
+    const colorGold = new THREE.Color('#ffe19e')
+    const colorCyan = new THREE.Color('#b8e6ff')
     const tempCol = new THREE.Color()
 
     for (let i = 0; i < starCount; i++) {
       const idx = i * 3
-      // Distribuir en la media esfera superior (radio 340 a 390, dentro del domo)
       const theta = Math.random() * Math.PI * 2
-      const phi = Math.acos(Math.random() * 0.95) // Solo hemisferio superior visible
-      const radius = 340 + Math.random() * 50
+      const phi = Math.acos(Math.random() * 0.96)
+      const radius = 340 + Math.random() * 60
 
       positions[idx] = radius * Math.sin(phi) * Math.cos(theta)
-      positions[idx + 1] = radius * Math.cos(phi) + 15 // Por encima del horizonte
+      positions[idx + 1] = radius * Math.cos(phi) + 12
       positions[idx + 2] = radius * Math.sin(phi) * Math.sin(theta)
 
-      // Variación de color estelar
       const randCol = Math.random()
-      if (randCol < 0.65) {
+      if (randCol < 0.6) {
         tempCol.copy(colorWhite)
-      } else if (randCol < 0.85) {
+      } else if (randCol < 0.82) {
         tempCol.copy(colorCyan)
       } else {
         tempCol.copy(colorGold)
@@ -191,38 +239,90 @@ function Stars({ opacity }: { opacity: number }) {
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
 
-    // Material de puntos sin niebla (fog: false) para visibilidad estelar cristalina
     const mat = new THREE.PointsMaterial({
-      size: 3.2,
-      sizeAttenuation: false, // Garantiza que siempre midan 3.2 píxeles brillantes en pantalla
+      size: 3.4,
+      sizeAttenuation: false,
       vertexColors: true,
       transparent: true,
       opacity: 0,
-      fog: false, // CRÍTICO: La niebla no debe apagar las estrellas
+      fog: false,
       depthWrite: false,
     })
 
-    return { geometry: geo, material: mat }
+    // Definición geométrica de la Constelación Cruz del Sur (Chakana) y cinturón estelar
+    // Conectadas por líneas suaves y tenues
+    const linesPositions: number[] = []
+    const addLine = (p1: [number, number, number], p2: [number, number, number]) => {
+      linesPositions.push(...p1, ...p2)
+    }
+
+    // Cruz del Sur (visible hacia el sur-este elevado en la bóveda)
+    const s1: [number, number, number] = [80, 240, -220]  // Alfa Crucis
+    const s2: [number, number, number] = [95, 275, -220]  // Gamma Crucis
+    const s3: [number, number, number] = [68, 258, -220]  // Beta Crucis
+    const s4: [number, number, number] = [105, 255, -220] // Delta Crucis
+    addLine(s1, s2)
+    addLine(s3, s4)
+
+    // Cinturón y paralelogramo de Orión
+    const o1: [number, number, number] = [-110, 260, -210]
+    const o2: [number, number, number] = [-120, 264, -205]
+    const o3: [number, number, number] = [-130, 268, -200]
+    addLine(o1, o2)
+    addLine(o2, o3)
+    const b1: [number, number, number] = [-100, 285, -210] // Betelgeuse
+    const r1: [number, number, number] = [-140, 245, -200] // Rigel
+    addLine(o2, b1)
+    addLine(o2, r1)
+
+    const lineGeo = new THREE.BufferGeometry()
+    lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linesPositions, 3))
+
+    const lineMat = new THREE.LineBasicMaterial({
+      color: '#8ec5fc',
+      transparent: true,
+      opacity: 0,
+      fog: false,
+      depthWrite: false,
+    })
+
+    return {
+      starGeometry: geo,
+      starMaterial: mat,
+      lineGeometry: lineGeo,
+      lineMaterial: lineMat,
+    }
   }, [])
 
-  // Parpadeo sutil y rotación de la bóveda celeste
+  // Parpadeo suave y rotación sutil
   useFrame((state) => {
-    if (starsRef.current && material) {
-      const time = state.clock.getElapsedTime()
-      // Rotación lenta del firmamento
+    const time = state.clock.getElapsedTime()
+    if (starsRef.current) {
       starsRef.current.rotation.y = time * 0.003
+    }
+    if (constellationLinesRef.current) {
+      constellationLinesRef.current.rotation.y = time * 0.003
+    }
 
-      // Opacidad gobernada por el ciclo día/noche con microparpadeo
-      if (opacity > 0.01) {
-        const twinkle = Math.sin(time * 3.5) * 0.08
-        material.opacity = Math.max(0, Math.min(1, opacity + twinkle))
-        starsRef.current.visible = true
-      } else {
-        material.opacity = 0
-        starsRef.current.visible = false
-      }
+    if (opacity > 0.01) {
+      const twinkle = Math.sin(time * 3.5) * 0.06
+      const currentOp = Math.max(0, Math.min(1, opacity + twinkle))
+      starMaterial.opacity = currentOp
+      lineMaterial.opacity = currentOp * 0.35 // Líneas suaves de constelación
+      if (starsRef.current) starsRef.current.visible = true
+      if (constellationLinesRef.current) constellationLinesRef.current.visible = true
+    } else {
+      starMaterial.opacity = 0
+      lineMaterial.opacity = 0
+      if (starsRef.current) starsRef.current.visible = false
+      if (constellationLinesRef.current) constellationLinesRef.current.visible = false
     }
   })
 
-  return <points ref={starsRef} geometry={geometry} material={material} />
+  return (
+    <group>
+      <points ref={starsRef} geometry={starGeometry} material={starMaterial} />
+      <lineSegments ref={constellationLinesRef} geometry={lineGeometry} material={lineMaterial} />
+    </group>
+  )
 }

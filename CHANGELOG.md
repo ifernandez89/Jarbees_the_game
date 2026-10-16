@@ -1,6 +1,40 @@
 # 📝 CHANGELOG - JarBees: The Game
 
-## [0.7.0] - 2026-10-14
+## [0.8.0] - 2026-10-15
+
+### 🌤️ Ciclo Día/Noche Dinámico, Viento Permanente, Fauna Aérea y Rocas Archeoscope
+
+#### Añadido
+- **AmbientWildlife.tsx**: Fauna voladora ambiental en el mundo infinito
+  - Colibríes y mariposas con modelos 3D y animaciones reales (`flight`, `hover`, `idle`).
+  - Dinámicas de vuelo autónomas: aleteo y ráfagas rápidas para colibríes; vuelo cadencioso y ondulante para mariposas.
+  - Reposicionamiento inteligente en el terreno infinito para mantener 60 FPS sin saturación de memoria.
+  - Arquitectura preparada para intercambio de foco de cámara / insecto.
+- **Clouds.tsx**: Sistema de nubes volumétricas dinámicas
+  - Cúmulos algodonosos estilizados que se desplazan con el vector de viento.
+  - Tinte cromático reactivo al ciclo solar: melocotón/ámbar al amanecer, blanco puro al mediodía, naranja rojizo al atardecer y azul índigo a la luz lunar.
+- **RockPopulation.tsx**: Rocas, cantos de camino y megalitos estilo *Archeoscope*
+  - Instanciación procedural por cuadrantes sin penalización de rendimiento.
+  - Distribución orgánica en laderas, crestas y orillas con colores de granito y musgo andino.
+- **Viento permanente por defecto**:
+  - Brisa continua de 1.8 m/s en `gameStore.ts` con sustentación y leve balanceo natural en la abeja.
+  - Bucle sonoro ambiental de viento siempre suavemente audible.
+
+#### Mejorado
+- **useDayNightCycle.ts & DynamicSky.tsx**:
+  - Activado el avance continuo del tiempo de juego (`updateGameTime` por fotograma).
+  - Trayectoria solar y lunar reorientada hacia el frente (`-Z`) con corona dorada esférica para total visibilidad del amanecer, mediodía y atardecer.
+  - Manto de estrellas de alta visibilidad y constelaciones identificables (**Cruz del Sur / Chakana** y **Orión**) conectadas por líneas estelares.
+  - La bóveda celeste sigue a la cámara para conservar el horizonte infinito.
+  - Ciclo calibrado a 12 minutos para transiciones fluidas y perceptibles.
+- **BeePlayer.tsx**:
+  - Reducción sustancial del volumen del zumbido (base `0.06`, máximo moderado `0.17`).
+  - Límite de altitud ampliado a **82 m** permitiendo ascender libremente justo bajo el manto de nubes.
+  - Velocidad de ascenso vertical con tecla `ESPACIO` incrementada a 14.0 m/s para máxima respuesta y agilidad.
+- **WeatherSystem.tsx**:
+  - Eliminación de quads/artefactos cuadrados, conservando niebla volumétrica limpia y cinemática.
+- **GameScene.tsx**:
+  - Eliminación de luces estáticas que sobreexponían la noche, permitiendo una auténtica atmósfera nocturna con luz lunar.
 
 ### 🌅 Transición Continua Día/Noche, Manto Estelar Cristalino y Ajustes Visuales
 

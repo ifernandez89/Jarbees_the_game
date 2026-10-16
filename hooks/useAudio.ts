@@ -95,18 +95,18 @@ async function loadGameAudio(manager: AudioManager) {
     // 1. Música ambiental orquestal de fondo
     await manager.loadMusic('ambient', getAssetPath('/audio/ambient_music.wav'))
 
-    // 2. Efectos de sonido del juego
-    await manager.loadSound('bee_buzz', getAssetPath('/audio/bee_buzz.wav'), { loop: true, volume: 0.35 })
-    await manager.loadSound('wind', getAssetPath('/audio/wind_loop.wav'), { loop: true, volume: 0.3 })
+    // 2. Efectos de sonido del juego (zumbido suavizado a 0.08 por defecto)
+    await manager.loadSound('bee_buzz', getAssetPath('/audio/bee_buzz.wav'), { loop: true, volume: 0.08 })
+    await manager.loadSound('wind', getAssetPath('/audio/wind_loop.wav'), { loop: true, volume: 0.25 })
     await manager.loadSound('crickets', getAssetPath('/audio/night_crickets.wav'), { loop: true, volume: 0.0 })
-    await manager.loadSound('pause', getAssetPath('/audio/pause.wav'), { loop: false, volume: 0.5 })
+    await manager.loadSound('pause', getAssetPath('/audio/pause.wav'), { loop: false, volume: 0.4 })
 
     console.log('✅ Todos los audios de JarBees cargados con éxito')
 
-    // Iniciar bucles de ambiente y zumbido de abeja
+    // Iniciar bucles de ambiente y zumbido suave de abeja
     manager.playMusic('ambient', 2.5)
-    manager.playLoop('bee_buzz', 0.35)
-    manager.playLoop('wind', 0.3)
+    manager.playLoop('bee_buzz', 0.08)
+    manager.playLoop('wind', 0.25)
     manager.playLoop('crickets', 0.0)
   } catch (error) {
     console.warn('⚠️ Nota sobre carga de audios:', error)

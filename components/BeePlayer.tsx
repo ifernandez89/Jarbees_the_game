@@ -227,10 +227,24 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
       updateDistanceTraveled(Math.abs(moveSpeed))
     }
 
-    // Balanceo suave y natural en suspensión (hover bobbing)
+    // Leve efecto de viento permanente y flotabilidad natural
+    const wind = useGameStore.getState().wind
+    if (wind && wind.speed > 0) {
+      const windTime = state.clock.getElapsedTime()
+      const breezeOsc = Math.sin(windTime * 1.5) * 0.3 + 0.7
+      const windDriftX = wind.direction[0] * wind.speed * 0.09 * breezeOsc * delta
+      const windDriftZ = wind.direction[2] * wind.speed * 0.09 * breezeOsc * delta
+      bee.position.x += windDriftX
+      bee.position.z += windDriftZ
+    }
+
+    // Balanceo suave y natural en suspensión con brisa permanente
     if (modelAnchorRef.current) {
-      const hoverBobbing = Math.sin(state.clock.getElapsedTime() * 3.2) * 0.03
+      const t = state.clock.getElapsedTime()
+      const hoverBobbing = Math.sin(t * 3.2) * 0.03
+      const windSway = Math.cos(t * 1.6) * 0.02
       modelAnchorRef.current.position.y = hoverBobbing
+      modelAnchorRef.current.rotation.z = windSway
     }
 
     // Controles de rotación (Yaw - izquierda/derecha)
@@ -241,12 +255,12 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
       bee.rotation.y -= rotationSpeed
     }
 
-    // Controles de altitud (ESPACIO/E para subir, SHIFT/Q para bajar)
+    // Controles de altitud (ESPACIO/E para subir rápido, SHIFT/Q para bajar)
     if (controls.up) {
-      bee.position.y += 8.5 * delta
+      bee.position.y += 14.0 * delta
     }
     if (controls.down) {
-      bee.position.y -= 8.5 * delta
+      bee.position.y -= 12.0 * delta
     }
 
     // Colisión suave con terreno (mínimo 0.6m sobre el suelo)
@@ -256,8 +270,8 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
       minHeight = terrainHeight + 0.6
     }
 
-    // Límites de altitud
-    bee.position.y = Math.max(minHeight, Math.min(bee.position.y, 45))
+    // Límites de altitud: Permite ascender bien alto (hasta 82m, justo por debajo de las nubes en 85m)
+    bee.position.y = Math.max(minHeight, Math.min(bee.position.y, 82))
 
     // Actualizar estado global para cámara y HUD
     setPosition([bee.position.x, bee.position.y, bee.position.z])
@@ -276,13 +290,14 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
       bee.rotation.z = THREE.MathUtils.lerp(bee.rotation.z, 0, delta * 5)
     }
 
-    // Modulación acústica
+    // Modulación acústica refinada (volumen reducido y más agradable)
     const audio = getAudioManager()
     if (audio) {
       const isMoving = Math.abs(currentVelocity) > 0.5
       const isManeuvering = controls.forward || controls.up || controls.down || controls.left || controls.right
-      const pitch = 0.90 + (Math.abs(currentVelocity) / 14) * 0.40 + (isManeuvering ? 0.05 : 0.0)
-      const buzzVolume = isMoving ? 0.32 + (Math.abs(currentVelocity) / 16) * 0.15 : 0.16
+      const pitch = 0.88 + (Math.abs(currentVelocity) / 14) * 0.35 + (isManeuvering ? 0.04 : 0.0)
+      // Volumen base sutil: 0.06 en reposo, hasta máx ~0.17 a máxima velocidad
+      const buzzVolume = isMoving ? 0.10 + (Math.abs(currentVelocity) / 16) * 0.07 : 0.06
 
       audio.setSoundPitch('bee_buzz', pitch)
       audio.setSoundVolume('bee_buzz', buzzVolume)

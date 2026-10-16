@@ -15,8 +15,16 @@ import { useGameControls } from '@/hooks/useGameControls'
 import { useGameStore } from '@/store/gameStore'
 import { useAudio } from '@/hooks/useAudio'
 
+import { useFrame, useThree } from '@react-three/fiber'
+import * as THREE from 'three'
+import { useDayNightCycle } from '@/hooks/useDayNightCycle'
+
+import { AmbientWildlife } from './AmbientWildlife'
+
 // Componente de la escena 3D
 function Scene() {
+  const { scene } = useThree()
+
   // Activar controles de teclado
   useGameControls()
   
@@ -26,21 +34,33 @@ function Scene() {
   const dayNightEnabled = useGameStore((state) => state.dayNightEnabled)
   const dayNightSpeed = useGameStore((state) => state.dayNightSpeed)
   const currentBiome = useGameStore((state) => state.currentBiome)
+  const isPaused = useGameStore((state) => state.isPaused)
+  const updateGameTime = useGameStore((state) => state.updateGameTime)
+
+  const timeOfDay = useDayNightCycle(dayNightEnabled, dayNightSpeed)
+
+  // Ciclo continuo de avance temporal del juego y color de fondo
+  useFrame((_, delta) => {
+    if (!isPaused && dayNightEnabled) {
+      updateGameTime(delta)
+    }
+    // Sincronizar fondo del viewport con el horizonte del ciclo
+    scene.background = new THREE.Color(timeOfDay.horizonColor)
+  })
 
   return (
     <>
-      {/* Sistema de cielo dinámico */}
+      {/* Sistema de cielo dinámico (Sol, Luna, Bóveda, Estrellas, Constelaciones y Nubes) */}
       <DynamicSky enabled={dayNightEnabled} speed={dayNightSpeed} />
       
-      {/* Sistema de clima (niebla) */}
+      {/* Sistema de clima dinámico (niebla atmosférica y partículas de viento) */}
       <WeatherSystem enabled={dayNightEnabled} />
 
-      {/* Iluminación rica para resaltar colores originales de la abeja y el terreno */}
-      <ambientLight intensity={0.85} />
-      <hemisphereLight color="#ffffff" groundColor="#446835" intensity={0.75} />
-
-      {/* Terreno infinito procedural reactivo */}
+      {/* Terreno infinito procedural reactivo con árboles y rocas */}
       <InfiniteTerrain biome={currentBiome} seed={12345} />
+
+      {/* Fauna voladora ambiental (Colibríes y Mariposas con animaciones reales) */}
+      <AmbientWildlife />
 
       {/* Superficie de agua cristalina para lagos y valles */}
       <WaterSurface waterHeight={1.4} />

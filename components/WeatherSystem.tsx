@@ -14,12 +14,12 @@ export function WeatherSystem({ enabled = true }: WeatherSystemProps) {
   const fogRef = useRef<THREE.Fog | null>(null)
   const timeOfDay = useDayNightCycle(enabled)
 
-  // Configurar niebla inicial
+  // Configurar niebla atmosférica limpia y continua
   useEffect(() => {
     if (!enabled) return
 
     const initialColor = new THREE.Color(timeOfDay.horizonColor)
-    const fog = new THREE.Fog(initialColor, 120, 480)
+    const fog = new THREE.Fog(initialColor, 120, 520)
     scene.fog = fog
     fogRef.current = fog
 
@@ -28,20 +28,17 @@ export function WeatherSystem({ enabled = true }: WeatherSystemProps) {
     }
   }, [enabled, scene, timeOfDay.horizonColor])
 
-  // Actualizar niebla según hora del día
+  // Sincronizar niebla volumétrica con el ciclo día/noche
   useFrame((_, delta) => {
     if (!enabled || !fogRef.current) return
 
     const fog = fogRef.current
-
-    // El color de la niebla se funde suavemente con el color del horizonte
     const targetColor = new THREE.Color(timeOfDay.horizonColor)
     fog.color.lerp(targetColor, Math.min(1, delta * 3))
 
-    // Densidad y distancias de niebla sin cortes abruptos
     const baseDensity = timeOfDay.fogDensity
-    const targetNear = 120 - baseDensity * 40
-    const targetFar = 480 - baseDensity * 100
+    const targetNear = 140 - baseDensity * 40
+    const targetFar = 540 - baseDensity * 120
 
     fog.near = THREE.MathUtils.lerp(fog.near, targetNear, delta * 3)
     fog.far = THREE.MathUtils.lerp(fog.far, targetFar, delta * 3)

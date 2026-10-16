@@ -6,19 +6,24 @@ export interface TimeOfDay {
   timeOfDay: 'dawn' | 'day' | 'dusk' | 'night'
   sunIntensity: number // 0-1.5
   moonIntensity: number // 0-1
-  starsOpacity: number // 0-1 (suavemente visible al atardecer y de noche)
+  starsOpacity: number // 0-1
   skyColor: string
   horizonColor: string
+  ambientColor: string
+  ambientIntensity: number
   fogDensity: number   // 0-1
 }
 
-const CYCLE_DURATION = 20 * 60 // 20 minutos reales = 24 horas del juego
-const START_HOUR_OFFSET = 10   // Comienza a las 10:00 AM (día soleado brillante)
+// 12 minutos reales = 24 horas del juego (ciclo dinámico y visible sin esperas excesivas)
+const CYCLE_DURATION = 12 * 60 
+const START_HOUR_OFFSET = 10.0 // Comienza a las 10:00 AM (mañana luminosa)
 
 interface SkyKeyframe {
   hour: number
   skyColor: string
   horizonColor: string
+  ambientColor: string
+  ambientIntensity: number
   sunIntensity: number
   moonIntensity: number
   starsOpacity: number
@@ -26,27 +31,42 @@ interface SkyKeyframe {
   period: TimeOfDay['timeOfDay']
 }
 
-// Keyframes continuos de 24 horas con transiciones cinematográficas
+// Keyframes continuos de 24 horas con balance de color cinematográfico
 const SKY_TIMELINE: SkyKeyframe[] = [
-  { hour: 0.0,  skyColor: '#050716', horizonColor: '#0b0f26', sunIntensity: 0.0,  moonIntensity: 0.8,  starsOpacity: 1.0,  fogDensity: 0.45, period: 'night' },
-  { hour: 4.5,  skyColor: '#090c24', horizonColor: '#161434', sunIntensity: 0.0,  moonIntensity: 0.7,  starsOpacity: 0.95, fogDensity: 0.50, period: 'night' },
-  { hour: 5.5,  skyColor: '#171c48', horizonColor: '#4f254b', sunIntensity: 0.15, moonIntensity: 0.4,  starsOpacity: 0.65, fogDensity: 0.52, period: 'dawn' },
-  { hour: 6.3,  skyColor: '#305c96', horizonColor: '#e0763c', sunIntensity: 0.55, moonIntensity: 0.1,  starsOpacity: 0.20, fogDensity: 0.46, period: 'dawn' },
-  { hour: 7.2,  skyColor: '#4e8dce', horizonColor: '#ffd478', sunIntensity: 0.85, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.38, period: 'day' },
-  { hour: 9.0,  skyColor: '#5aa2f0', horizonColor: '#bee2fd', sunIntensity: 1.10, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.30, period: 'day' },
-  { hour: 13.0, skyColor: '#549be6', horizonColor: '#b4ddfb', sunIntensity: 1.25, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.25, period: 'day' },
-  { hour: 17.0, skyColor: '#4e8ed6', horizonColor: '#cee2f7', sunIntensity: 1.00, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.28, period: 'day' },
-  { hour: 18.2, skyColor: '#3d5c9c', horizonColor: '#f1883c', sunIntensity: 0.70, moonIntensity: 0.05, starsOpacity: 0.10, fogDensity: 0.35, period: 'dusk' },
-  { hour: 19.3, skyColor: '#242354', horizonColor: '#bb4740', sunIntensity: 0.28, moonIntensity: 0.25, starsOpacity: 0.40, fogDensity: 0.42, period: 'dusk' },
-  { hour: 20.5, skyColor: '#101236', horizonColor: '#2b1b46', sunIntensity: 0.05, moonIntensity: 0.55, starsOpacity: 0.75, fogDensity: 0.46, period: 'night' },
-  { hour: 22.0, skyColor: '#050716', horizonColor: '#0b0f26', sunIntensity: 0.0,  moonIntensity: 0.8,  starsOpacity: 1.0,  fogDensity: 0.45, period: 'night' },
-  { hour: 24.0, skyColor: '#050716', horizonColor: '#0b0f26', sunIntensity: 0.0,  moonIntensity: 0.8,  starsOpacity: 1.0,  fogDensity: 0.45, period: 'night' },
+  // Medianoche profunda (00:00)
+  { hour: 0.0,  skyColor: '#050716', horizonColor: '#0b0f26', ambientColor: '#121838', ambientIntensity: 0.12, sunIntensity: 0.0,  moonIntensity: 0.85, starsOpacity: 1.0,  fogDensity: 0.42, period: 'night' },
+  // Madrugada estrellada (04:30)
+  { hour: 4.5,  skyColor: '#080a22', horizonColor: '#141432', ambientColor: '#141a3a', ambientIntensity: 0.13, sunIntensity: 0.0,  moonIntensity: 0.75, starsOpacity: 0.95, fogDensity: 0.45, period: 'night' },
+  // Primer resplandor del alba (05:30)
+  { hour: 5.5,  skyColor: '#161945', horizonColor: '#4f244b', ambientColor: '#2b2342', ambientIntensity: 0.22, sunIntensity: 0.15, moonIntensity: 0.35, starsOpacity: 0.55, fogDensity: 0.48, period: 'dawn' },
+  // Amanecer dorado sobre las cumbres (06:30)
+  { hour: 6.5,  skyColor: '#2b558f', horizonColor: '#f3823f', ambientColor: '#6e4530', ambientIntensity: 0.48, sunIntensity: 0.65, moonIntensity: 0.05, starsOpacity: 0.15, fogDensity: 0.38, period: 'dawn' },
+  // Mañana soleada (08:00)
+  { hour: 8.0,  skyColor: '#4a8ece', horizonColor: '#f7d382', ambientColor: '#8a7d60', ambientIntensity: 0.75, sunIntensity: 0.95, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.30, period: 'day' },
+  // Mediodía radiante (12:00)
+  { hour: 12.0, skyColor: '#4892e6', horizonColor: '#bde0ff', ambientColor: '#96a7b8', ambientIntensity: 0.90, sunIntensity: 1.25, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.22, period: 'day' },
+  // Tarde despejada (16:00)
+  { hour: 16.0, skyColor: '#468ad4', horizonColor: '#c5e2fc', ambientColor: '#929fae', ambientIntensity: 0.85, sunIntensity: 1.10, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.24, period: 'day' },
+  // Atardecer dorado / hora dorada (18:00)
+  { hour: 18.0, skyColor: '#395394', horizonColor: '#f78d38', ambientColor: '#7a4e32', ambientIntensity: 0.60, sunIntensity: 0.75, moonIntensity: 0.05, starsOpacity: 0.10, fogDensity: 0.32, period: 'dusk' },
+  // Puesta de sol rojiza y crepúsculo (19:15)
+  { hour: 19.25, skyColor: '#222350', horizonColor: '#c84439', ambientColor: '#4d2d38', ambientIntensity: 0.35, sunIntensity: 0.25, moonIntensity: 0.30, starsOpacity: 0.45, fogDensity: 0.38, period: 'dusk' },
+  // Anochecer azul índigo (20:30)
+  { hour: 20.5, skyColor: '#0e1132', horizonColor: '#271a42', ambientColor: '#1d1a36', ambientIntensity: 0.18, sunIntensity: 0.02, moonIntensity: 0.65, starsOpacity: 0.80, fogDensity: 0.42, period: 'night' },
+  // Noche plena (22:00)
+  { hour: 22.0, skyColor: '#050716', horizonColor: '#0b0f26', ambientColor: '#121838', ambientIntensity: 0.12, sunIntensity: 0.0,  moonIntensity: 0.85, starsOpacity: 1.0,  fogDensity: 0.42, period: 'night' },
+  // Cierre de ciclo 24:00 (mismo que 00:00)
+  { hour: 24.0, skyColor: '#050716', horizonColor: '#0b0f26', ambientColor: '#121838', ambientIntensity: 0.12, sunIntensity: 0.0,  moonIntensity: 0.85, starsOpacity: 1.0,  fogDensity: 0.42, period: 'night' },
 ]
 
 export function useDayNightCycle(
-  enabled = true,
-  speed = 1
+  enabledProp?: boolean,
+  speedProp?: number
 ) {
+  const storeEnabled = useGameStore((state) => state.dayNightEnabled)
+  const storeSpeed = useGameStore((state) => state.dayNightSpeed)
+  const enabled = enabledProp !== undefined ? enabledProp : storeEnabled
+  const speed = speedProp !== undefined ? speedProp : storeSpeed
   const gameTime = useGameStore((state) => state.gameTime)
 
   const getTimeOfDay = (time: number): TimeOfDay => {
@@ -55,16 +75,18 @@ export function useDayNightCycle(
         hours: 12,
         minutes: 0,
         timeOfDay: 'day',
-        sunIntensity: 1.1,
+        sunIntensity: 1.15,
         moonIntensity: 0,
         starsOpacity: 0,
-        skyColor: '#5aa2f0',
-        horizonColor: '#bee2fd',
-        fogDensity: 0.28,
+        skyColor: '#4892e6',
+        horizonColor: '#bde0ff',
+        ambientColor: '#96a7b8',
+        ambientIntensity: 0.85,
+        fogDensity: 0.25,
       }
     }
 
-    // Progreso continuo del ciclo con offset de inicio a las 10:00 AM
+    // Progreso continuo del ciclo con offset inicial
     const offsetSeconds = CYCLE_DURATION * (START_HOUR_OFFSET / 24)
     const cycleProgress = (((time * speed) + offsetSeconds) % CYCLE_DURATION) / CYCLE_DURATION
 
@@ -72,7 +94,7 @@ export function useDayNightCycle(
     const hours = Math.floor(totalHours)
     const minutes = Math.floor((totalHours % 1) * 60)
 
-    // Interpolar continuamente entre keyframes de la línea temporal
+    // Encontrar el intervalo en la línea temporal
     let kfPrev = SKY_TIMELINE[0]
     let kfNext = SKY_TIMELINE[1]
 
@@ -84,31 +106,33 @@ export function useDayNightCycle(
       }
     }
 
-    // Progreso suave entre ambos keyframes (curva coseno para máxima fluidez)
+    // Progreso suave entre keyframes (cosine easing)
     const span = kfNext.hour - kfPrev.hour
     const linearT = span > 0 ? (totalHours - kfPrev.hour) / span : 0
-    // Smoothstep / cosine easing:
     const t = (1 - Math.cos(linearT * Math.PI)) / 2
 
     const skyColor = interpolateColor(kfPrev.skyColor, kfNext.skyColor, t)
     const horizonColor = interpolateColor(kfPrev.horizonColor, kfNext.horizonColor, t)
+    const ambientColor = interpolateColor(kfPrev.ambientColor, kfNext.ambientColor, t)
+    const ambientIntensity = kfPrev.ambientIntensity + (kfNext.ambientIntensity - kfPrev.ambientIntensity) * t
     const sunIntensity = kfPrev.sunIntensity + (kfNext.sunIntensity - kfPrev.sunIntensity) * t
     const moonIntensity = kfPrev.moonIntensity + (kfNext.moonIntensity - kfPrev.moonIntensity) * t
     const starsOpacity = kfPrev.starsOpacity + (kfNext.starsOpacity - kfPrev.starsOpacity) * t
     const fogDensity = kfPrev.fogDensity + (kfNext.fogDensity - kfPrev.fogDensity) * t
 
-    // Período dominante
-    const timeOfDay = t < 0.5 ? kfPrev.period : kfNext.period
+    const period = t < 0.5 ? kfPrev.period : kfNext.period
 
     return {
       hours,
       minutes,
-      timeOfDay,
+      timeOfDay: period,
       sunIntensity,
       moonIntensity,
       starsOpacity,
       skyColor,
       horizonColor,
+      ambientColor,
+      ambientIntensity,
       fogDensity,
     }
   }
@@ -117,30 +141,43 @@ export function useDayNightCycle(
 }
 
 /**
- * Posición realista del sol en la bóveda celeste
+ * Trayectoria solar cinematográfica visible desde la cámara (orientada hacia el frente -Z)
+ * Permite ver el amanecer al frente-izquierda, el mediodía alto al frente, y la puesta al frente-derecha.
  */
 export function getSunPosition(timeOfDay: TimeOfDay): [number, number, number] {
   const { hours, minutes } = timeOfDay
   const totalHours = hours + minutes / 60
 
-  // 12:00 = Cenit (+Y), 06:00 = Este (+X), 18:00 = Oeste (-X)
+  // 06:00 = Amanecer (frente-izquierda), 12:00 = Mediodía (frente-arriba), 18:00 = Atardecer (frente-derecha)
   const angle = ((totalHours - 6) / 24) * Math.PI * 2
-  const distance = 380
+  const arcAzimuth = -Math.cos(angle)
+  const arcElevation = Math.sin(angle)
 
-  const x = -Math.cos(angle) * distance
-  const y = Math.sin(angle) * distance
-  const z = -Math.sin(angle * 0.5) * 80
+  const x = arcAzimuth * 280
+  const y = arcElevation * 220
+  // Inclinado hacia el frente (-Z) para que la cámara en 3ra persona siempre encuadre el astro
+  const z = -280 + Math.sin(angle) * 50
 
   return [x, y, z]
 }
 
 /**
- * Posición de la luna (opuesta al sol en la bóveda)
+ * Trayectoria lunar opuesta al sol
  */
 export function getMoonPosition(timeOfDay: TimeOfDay): [number, number, number] {
-  const [sunX, sunY, sunZ] = getSunPosition(timeOfDay)
-  // Exactamente en el polo opuesto
-  return [-sunX, -sunY, -sunZ]
+  const { hours, minutes } = timeOfDay
+  const totalHours = hours + minutes / 60
+
+  // Opuesta al sol (fase de 12 horas)
+  const angle = ((totalHours - 18) / 24) * Math.PI * 2
+  const arcAzimuth = -Math.cos(angle)
+  const arcElevation = Math.sin(angle)
+
+  const x = arcAzimuth * 280
+  const y = arcElevation * 210
+  const z = -280 + Math.sin(angle) * 50
+
+  return [x, y, z]
 }
 
 /**

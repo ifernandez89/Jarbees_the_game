@@ -28,6 +28,12 @@ export interface GameState {
   gameTime: number
   currentBiome: 'titicaca' | 'easter_island' | 'constellations'
   
+  // Configuración de clima y viento
+  wind: {
+    speed: number
+    direction: [number, number, number]
+  }
+  
   // Configuración de día/noche
   dayNightEnabled: boolean
   dayNightSpeed: number
@@ -51,6 +57,7 @@ export interface GameState {
   updateGameTime: (delta: number) => void
   setTerrainManager: (manager: ChunkManager | null) => void
   setBiome: (biome: 'titicaca' | 'easter_island' | 'constellations') => void
+  setWind: (wind: { speed: number; direction: [number, number, number] }) => void
   setDayNightEnabled: (enabled: boolean) => void
   setDayNightSpeed: (speed: number) => void
   setAudioEnabled: (enabled: boolean) => void
@@ -79,11 +86,15 @@ const initialState = {
   gameTime: 0,
   currentBiome: 'titicaca' as const,
   terrainManager: null,
+  wind: {
+    speed: 1.8, // Brisa suave constante permanente
+    direction: [0.7, 0, -0.7] as [number, number, number],
+  },
   dayNightEnabled: true,
   dayNightSpeed: 1,
   audioEnabled: true,
-  musicVolume: 0.7,
-  sfxVolume: 0.8,
+  musicVolume: 0.65,
+  sfxVolume: 0.7,
 }
 
 export const useGameStore = create<GameState>((set) => ({
@@ -117,6 +128,8 @@ export const useGameStore = create<GameState>((set) => ({
   setTerrainManager: (terrainManager) => set({ terrainManager }),
   
   setBiome: (currentBiome) => set({ currentBiome }),
+  
+  setWind: (wind) => set({ wind }),
   
   setDayNightEnabled: (dayNightEnabled) => set({ dayNightEnabled }),
   
