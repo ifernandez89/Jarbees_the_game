@@ -48,30 +48,15 @@ export function GameHUD() {
   return (
     <>
       {/* HUD superior izquierdo */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '20px',
-          left: '20px',
-          background: 'rgba(0, 0, 0, 0.7)',
-          padding: '15px',
-          borderRadius: '8px',
-          fontFamily: 'monospace',
-          color: '#FFD700',
-          fontSize: '0.9rem',
-          pointerEvents: 'none',
-          backdropFilter: 'blur(5px)',
-          border: '1px solid rgba(255, 215, 0, 0.3)',
-        }}
-      >
-        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+      <div className="hud-card hud-panel-top-left">
+        <div className="hud-title">
           🐝 JarBees: The Game
         </div>
-        <div style={{ color: '#aaa', fontSize: '0.85rem', marginBottom: '5px' }}>
-          {isPaused ? '⏸ PAUSADO' : Math.abs(velocity) > 0.5 ? '▶ Volando' : '🌸 Suspendida en el aire'}
+        <div className="hud-status">
+          {isPaused ? '⏸ PAUSADO' : Math.abs(velocity) > 0.5 ? '▶ Volando' : '🌸 Suspendida'}
         </div>
         {dayNightEnabled && (
-          <div style={{ color: '#aaa', fontSize: '0.8rem', marginBottom: '8px' }}>
+          <div className="hud-clock">
             {timeIcons[timeOfDay.timeOfDay]} {String(timeOfDay.hours).padStart(2, '0')}:{String(timeOfDay.minutes).padStart(2, '0')}
           </div>
         )}
@@ -80,112 +65,52 @@ export function GameHUD() {
             const current = useGameStore.getState().audioEnabled
             useGameStore.getState().setAudioEnabled(!current)
           }}
+          className="hud-audio-btn"
           style={{
-            pointerEvents: 'auto',
             background: audioEnabled ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255, 60, 60, 0.2)',
             border: `1px solid ${audioEnabled ? 'rgba(255, 215, 0, 0.5)' : 'rgba(255, 60, 60, 0.5)'}`,
-            borderRadius: '4px',
             color: audioEnabled ? '#FFD700' : '#ff8888',
-            padding: '3px 8px',
-            fontSize: '0.75rem',
-            fontFamily: 'monospace',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
           }}
           title="Presiona 'M' para activar/silenciar sonido"
         >
-          <span>{audioEnabled ? '🔊 Sonido: ON' : '🔇 Sonido: OFF'}</span>
+          <span>{audioEnabled ? '🔊 ON' : '🔇 OFF'}</span>
           <span style={{ opacity: 0.6 }}>[M]</span>
         </button>
       </div>
 
-      {/* HUD inferior derecho - Datos de vuelo */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '20px',
-          right: '20px',
-          background: 'rgba(0, 0, 0, 0.7)',
-          padding: '15px',
-          borderRadius: '8px',
-          fontFamily: 'monospace',
-          color: '#FFD700',
-          fontSize: '0.9rem',
-          textAlign: 'right',
-          pointerEvents: 'none',
-          backdropFilter: 'blur(5px)',
-          border: '1px solid rgba(255, 215, 0, 0.3)',
-          minWidth: '200px',
-        }}
-      >
-        <div style={{ marginBottom: '5px' }}>
-          <span style={{ color: '#aaa' }}>Velocidad:</span>{' '}
+      {/* HUD de datos de vuelo (inferior derecho en PC / superior derecho compacto en Mobile) */}
+      <div className="hud-card hud-panel-flight-data">
+        <div className="hud-flight-row">
+          <span style={{ color: '#aaa' }}>Vel:</span>{' '}
           <strong>{(velocity * 3.6).toFixed(0)} km/h</strong>
         </div>
-        <div style={{ marginBottom: '5px' }}>
-          <span style={{ color: '#aaa' }}>Distancia:</span>{' '}
+        <div className="hud-flight-row">
+          <span style={{ color: '#aaa' }}>Dist:</span>{' '}
           <strong>{distanceTraveled.toFixed(0)} m</strong>
         </div>
-        <div style={{ marginBottom: '5px' }}>
-          <span style={{ color: '#aaa' }}>Altitud:</span>{' '}
+        <div className="hud-flight-row">
+          <span style={{ color: '#aaa' }}>Alt:</span>{' '}
           <strong>{altitude.toFixed(1)} m</strong>
         </div>
-        <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '8px' }}>
+        <div className="hud-flight-fps">
           FPS: {fps}
         </div>
       </div>
 
-      {/* HUD inferior centro - Controles */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(0, 0, 0, 0.7)',
-          padding: '12px 20px',
-          borderRadius: '8px',
-          fontFamily: 'monospace',
-          color: '#aaa',
-          fontSize: '0.8rem',
-          textAlign: 'center',
-          pointerEvents: 'none',
-          backdropFilter: 'blur(5px)',
-          border: '1px solid rgba(255, 215, 0, 0.3)',
-        }}
-      >
+      {/* HUD inferior centro - Controles (se oculta automáticamente en mobile) */}
+      <div className="hud-card hud-panel-controls">
         ⬆️/W: Avanzar | ⬇️/S: Frenar | ⬅️➡️/A/D: Girar | ESPACIO: Subir | SHIFT: Bajar | ENTER: Pausa | M: Sonido
       </div>
 
       {/* Pantalla de pausa */}
       {isPaused && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(0, 0, 0, 0.9)',
-            padding: '40px 60px',
-            borderRadius: '15px',
-            fontFamily: 'monospace',
-            color: '#FFD700',
-            fontSize: '2rem',
-            textAlign: 'center',
-            pointerEvents: 'none',
-            backdropFilter: 'blur(10px)',
-            border: '2px solid rgba(255, 215, 0, 0.5)',
-          }}
-        >
-          <div style={{ fontSize: '3rem', marginBottom: '20px' }}>⏸</div>
-          <div style={{ marginBottom: '15px' }}>PAUSADO</div>
-          <div style={{ fontSize: '1rem', color: '#aaa', marginBottom: '10px' }}>
+        <div className="hud-pause-modal">
+          <div className="hud-pause-icon">⏸</div>
+          <div className="hud-pause-text-title">PAUSADO</div>
+          <div className="hud-pause-subtext">
             Presiona ENTER, ESC o P para continuar
           </div>
-          <div style={{ fontSize: '0.85rem', color: '#FFD700' }}>
+          <div className="hud-pause-audio-tip">
             🔊 Presiona 'M' para {audioEnabled ? 'silenciar' : 'activar'} sonido
           </div>
         </div>

@@ -100,7 +100,221 @@ canvas {
   }
   
   .ui-overlay {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* ==========================================================================
+   HUD Styles - Paneles informativos optimizados para PC y Mobile
+   ========================================================================== */
+
+.hud-card {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.72);
+  border-radius: 7px;
+  font-family: monospace;
+  color: #FFD700;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s ease;
+  z-index: 30;
+}
+
+/* Panel superior izquierdo (Título, estado, ciclo, audio) */
+.hud-panel-top-left {
+  top: 14px;
+  left: 14px;
+  padding: 9px 12px;
+  font-size: 0.8rem;
+}
+
+.hud-panel-top-left .hud-title {
+  font-weight: bold;
+  font-size: 0.82rem;
+  margin-bottom: 4px;
+}
+
+.hud-panel-top-left .hud-status {
+  color: #aaa;
+  font-size: 0.75rem;
+  margin-bottom: 3px;
+}
+
+.hud-panel-top-left .hud-clock {
+  color: #aaa;
+  font-size: 0.72rem;
+  margin-bottom: 6px;
+}
+
+.hud-audio-btn {
+  pointer-events: auto;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 0.7rem;
+  font-family: monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Panel inferior derecho (Telemetría de vuelo) */
+.hud-panel-flight-data {
+  bottom: 14px;
+  right: 14px;
+  padding: 9px 13px;
+  font-size: 0.8rem;
+  text-align: right;
+  min-width: 155px;
+}
+
+.hud-flight-row {
+  margin-bottom: 3px;
+}
+
+.hud-flight-fps {
+  font-size: 0.68rem;
+  color: #777;
+  margin-top: 5px;
+}
+
+/* Panel inferior centro (Instrucciones de teclado para PC) */
+.hud-panel-controls {
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  font-size: 0.72rem;
+  color: #aaa;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Pantalla / Modal de pausa */
+.hud-pause-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  padding: 28px 45px;
+  border-radius: 12px;
+  font-family: monospace;
+  color: #FFD700;
+  font-size: 1.6rem;
+  text-align: center;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  z-index: 100;
+}
+
+.hud-pause-icon {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+}
+
+.hud-pause-text-title {
+  margin-bottom: 10px;
+}
+
+.hud-pause-subtext {
+  font-size: 0.82rem;
+  color: #aaa;
+  margin-bottom: 8px;
+}
+
+.hud-pause-audio-tip {
+  font-size: 0.76rem;
+  color: #FFD700;
+}
+
+/* Optimizaciones compactas específicas para móviles */
+@media (max-width: 768px) {
+  .hud-panel-top-left {
+    top: 8px;
+    left: 8px;
+    padding: 6px 9px;
+    font-size: 0.68rem;
+    border-radius: 6px;
+    max-width: 175px;
+  }
+
+  .hud-panel-top-left .hud-title {
+    font-size: 0.72rem;
+    margin-bottom: 2px;
+  }
+
+  .hud-panel-top-left .hud-status {
+    font-size: 0.64rem;
+    margin-bottom: 2px;
+  }
+
+  .hud-panel-top-left .hud-clock {
+    font-size: 0.62rem;
+    margin-bottom: 4px;
+  }
+
+  .hud-audio-btn {
+    font-size: 0.62rem;
+    padding: 2px 5px;
+    gap: 3px;
+  }
+
+  /* En móvil: ubicar los datos de vuelo arriba a la derecha bajo los botones de acción para no tapar los controles táctiles de SUBIR/BAJAR */
+  .hud-panel-flight-data {
+    bottom: auto;
+    top: 54px;
+    right: 8px;
+    padding: 5px 8px;
+    font-size: 0.66rem;
+    min-width: auto;
+    border-radius: 6px;
+  }
+
+  .hud-flight-row {
+    margin-bottom: 2px;
+  }
+
+  .hud-flight-fps {
+    font-size: 0.6rem;
+    margin-top: 2px;
+  }
+
+  /* Ocultar barra de teclado en móviles para liberar pantalla */
+  .hud-panel-controls {
+    display: none !important;
+  }
+
+  .hud-pause-modal {
+    padding: 18px 22px;
+    max-width: 88vw;
+    font-size: 1.25rem;
+    border-radius: 10px;
+  }
+
+  .hud-pause-icon {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+  }
+
+  .hud-pause-text-title {
+    margin-bottom: 6px;
+  }
+
+  .hud-pause-subtext {
+    font-size: 0.72rem;
+    margin-bottom: 6px;
+  }
+
+  .hud-pause-audio-tip {
+    font-size: 0.68rem;
   }
 }
 

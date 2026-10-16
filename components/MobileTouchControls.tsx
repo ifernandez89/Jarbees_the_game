@@ -70,10 +70,10 @@ export function MobileTouchControls() {
       <div
         style={{
           position: 'absolute',
-          top: '20px',
-          right: '20px',
+          top: '8px',
+          right: '8px',
           display: 'flex',
-          gap: '12px',
+          gap: '8px',
           pointerEvents: 'auto',
         }}
       >
@@ -81,9 +81,9 @@ export function MobileTouchControls() {
           onClick={() => setAudioEnabled(!audioEnabled)}
           style={{
             ...btnStyle,
-            width: '44px',
-            height: '44px',
-            fontSize: '1.1rem',
+            width: '38px',
+            height: '38px',
+            fontSize: '0.95rem',
           }}
           aria-label="Silenciar sonido"
         >
@@ -94,9 +94,9 @@ export function MobileTouchControls() {
           onClick={() => setPaused(!isPaused)}
           style={{
             ...btnStyle,
-            width: '44px',
-            height: '44px',
-            fontSize: '1.1rem',
+            width: '38px',
+            height: '38px',
+            fontSize: '0.95rem',
           }}
           aria-label="Pausa"
         >
