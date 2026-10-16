@@ -1,0 +1,53 @@
+ASSET LICENSE — JarBees: The Game
+Copyright (c) 2026 Ignacio Fernandez
+
+=======================================================================
+
+ALL RIGHTS RESERVED
+
+=======================================================================
+
+The following assets contained in this repository and game distribution
+are NOT covered by the open source license (CC BY-NC 4.0) that applies
+to the source code.
+
+Protected assets include, but are not limited to:
+
+  - 3D Models (.glb, .gltf, .obj, .fbx, .blend) including the Bee player,
+    hummingbirds, butterflies, flora, and custom environmental meshes
+  - Textures and materials (.jpg, .png, .webp, PBR maps)
+  - Audio files, effects and soundscapes (.mp3, .ogg, .wav)
+  - Music and orchestral ambient tracks
+  - Visual art, concept designs, and illustrations
+  - UI assets, design tokens, and branding
+  - Logos, emblems, icons and graphic identity
+  - Screenshots, trailers, and promotional materials
+
+=======================================================================
+
+RESTRICTIONS:
+
+  ✕ You may NOT reuse, redistribute, or modify these assets
+  ✕ You may NOT include these assets in derivative works or independent projects
+  ✕ You may NOT use these assets for commercial purposes or monetization
+  ✕ You may NOT upload or republish these assets to any platform, store,
+    or repository
+
+=======================================================================
+
+PERMISSIONS:
+
+  ✓ You may view and experience the assets within the context of the game
+  ✓ You may reference the project in academic, journalistic, or educational
+    contexts with proper attribution
+
+=======================================================================
+
+Asset licenses, partnerships, and commercial permissions are available upon request.
+Contact: nacho.xiphos@gmail.com
+GitHub: https://github.com/ifernandez89
+
+=======================================================================
+
+Third-party assets and open-source base libraries used in this project retain
+their original licenses. See NOTICE for third-party attributions.

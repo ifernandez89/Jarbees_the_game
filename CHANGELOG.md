@@ -1,5 +1,23 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.2] - 2026-10-15
+
+### 🌕 Textura Lunar Realista de Archeoscope, Autoría Legal y Optimización de Fauna
+
+#### Añadido
+- **Textura Lunar de Alta Definición**:
+  - Incorporada textura 2K geológica de la Luna proveniente de *Archeoscope* / NASA (`public/textures/moon.jpg`).
+  - Mapeo difuso y emisivo aplicado a la esfera lunar en `DynamicSky.tsx`, dotándola de relieve, cráteres y resplandor nocturno auténtico.
+- **Marco Legal y de Propiedad Intelectual**:
+  - **LICENSE**: Actualizado con licencia **CC BY-NC 4.0** asignando la autoría y derechos de creador principal a **Ignacio Fernandez** (`@ifernandez89`).
+  - **LICENSE_ASSETS**: Protección estricta **ALL RIGHTS RESERVED** sobre todos los modelos 3D, texturas, música, arte e identidad visual de *JarBees: The Game*.
+  - **NOTICE**: Documento formal de atribuciones a librerías de terceros (Three.js, R3F, Drei, Next.js, Zustand) y créditos de sonido y astronomía.
+
+#### Corregido
+- **AmbientWildlife.tsx**:
+  - Implementada clonación con `SkeletonUtils.clone` para preservar armatures y esqueletos de los modelos con huesos (`colibri.glb` y `butterfly.glb`).
+  - Sistema de seguimiento dinámico frontal en el espacio infinito: los colibríes y mariposas se mantienen activos y visibles delante de la abeja (10m a 25m) con envergaduras aumentadas a ~1.0m – 1.15m.
+
 ## [0.8.1] - 2026-10-15
 
 ### ☀️ Corrección de Sol Unificado, Purga de Quads y Ascenso Aéreo Ampliado

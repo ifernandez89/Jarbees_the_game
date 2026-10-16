@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useMemo, Suspense, Component, ReactNode } fro
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { useGameStore } from '@/store/gameStore'
 import { getAssetPath } from '@/utils/assetPath'
 import type { GLTF } from 'three-stdlib'
@@ -13,17 +14,21 @@ type GLTFResult = GLTF & {
   materials: { [key: string]: THREE.Material }
 }
 
-// Error Boundary para evitar caídas si un asset GLTF no carga
+// Error Boundary para depurar cualquier fallo de carga
 class WildlifeErrorBoundary extends Component<
   { fallback: ReactNode; children: ReactNode },
-  { hasError: boolean }
+  { hasError: boolean; errorInfo?: string }
 > {
   constructor(props: { fallback: ReactNode; children: ReactNode }) {
     super(props)
     this.state = { hasError: false }
   }
-  static getDerivedStateFromError() {
-    return { hasError: true }
+  static getDerivedStateFromError(error: unknown) {
+    console.warn('⚠️ Error en componente de fauna ambiental:', error)
+    return { hasError: true, errorInfo: String(error) }
+  }
+  componentDidCatch(error: unknown) {
+    console.error('Wildlife component catch:', error)
   }
   render() {
     if (this.state.hasError) return this.props.fallback
@@ -32,23 +37,37 @@ class WildlifeErrorBoundary extends Component<
 }
 
 /**
- * Modelo individual de Colibrí volador con animación integrada y vuelo dinámico
+ * Modelo individual de Colibrí volador con SkeletonUtils y órbita activa al frente
  */
 function HummingbirdEntity({
-  initialOffset,
+  relativeAngle,
+  speedFactor = 1.0,
   flightSeed,
 }: {
-  initialOffset: [number, number, number]
+  relativeAngle: number
+  speedFactor?: number
   flightSeed: number
 }) {
   const groupRef = useRef<THREE.Group>(null!)
-  const modelRef = useRef<THREE.Group>(null!)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const playerPos = useGameStore((state) => state.position)
   const isPaused = useGameStore((state) => state.isPaused)
 
   const gltf = useGLTF(getAssetPath('/models/colibri.glb')) as GLTFResult
-  const sceneClone = useMemo(() => gltf.scene.clone(true), [gltf.scene])
+  
+  // Clonación correcta para modelos con Armature/Esqueleto
+  const sceneClone = useMemo(() => {
+    const cloned = clone(gltf.scene)
+    // Asegurar sombras y visibilidad de materiales
+    cloned.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        child.castShadow = true
+        child.frustumCulled = false
+      }
+    })
+    console.log('🐦 Colibrí instanciado con éxito')
+    return cloned
+  }, [gltf.scene])
 
   // Reproducir animación 'flight' o 'hover'
   useEffect(() => {
@@ -70,79 +89,68 @@ function HummingbirdEntity({
     }
   }, [gltf.animations, sceneClone])
 
-  // Estado de vuelo en ráfagas (darting flight característico del colibrí)
-  const flightState = useRef({
-    currentPos: new THREE.Vector3(...initialOffset),
-    targetOffset: new THREE.Vector3(...initialOffset),
-    hoverTimer: 0,
-    burstVelocity: new THREE.Vector3(),
+  // Estado de vuelo
+  const stateRef = useRef({
+    pos: new THREE.Vector3(playerPos[0] + Math.sin(relativeAngle) * 12, playerPos[1] + 2, playerPos[2] - 18),
+    targetPos: new THREE.Vector3(),
+    burstTimer: 0,
+    burstTarget: new THREE.Vector3(),
   })
 
   useFrame((state, delta) => {
     if (!groupRef.current || isPaused) return
 
-    // Actualizar animación de aleteo rápido
     if (mixerRef.current) {
-      mixerRef.current.update(delta * 1.8) // Aleteo vibrante de alta frecuencia
+      mixerRef.current.update(delta * 2.2 * speedFactor)
     }
 
-    const t = state.clock.getElapsedTime() + flightSeed
-    const fs = flightState.current
+    const t = state.clock.getElapsedTime() * 1.2 + flightSeed
+    const st = stateRef.current
 
-    // Movimiento: Se mantiene en el entorno relativo de la abeja (infinito)
     const px = playerPos[0]
     const py = playerPos[1]
     const pz = playerPos[2]
 
-    // Comportamiento de vuelo a saltos rápidos:
-    fs.hoverTimer += delta
-    if (fs.hoverTimer > 3.0 + Math.sin(flightSeed) * 1.5) {
-      // Elegir nuevo destino cercano en el cielo
-      fs.targetOffset.set(
-        (Math.sin(t * 0.7) * 45) + (Math.cos(flightSeed * 3) * 20),
-        Math.max(1.8, Math.min(18, 4.0 + Math.sin(t * 1.2) * 5)),
-        (Math.cos(t * 0.6) * 45) - 30 // Ligeramente adelantado en la ruta
-      )
-      fs.hoverTimer = 0
+    // Comportamiento de ráfagas rápidas y paradas en suspensión:
+    st.burstTimer += delta
+    if (st.burstTimer > 2.5 + Math.sin(flightSeed * 3) * 1.0) {
+      // Elegir nuevo punto de interés SIEMPRE al frente y alrededor de la abeja (-Z)
+      const frontDist = 12 + (Math.sin(t * 0.8) * 0.5 + 0.5) * 18 // Entre 12m y 30m adelante
+      const lateralDist = Math.sin(t * 0.9 + relativeAngle) * 16 // Entre -16m y +16m a los lados
+      const heightOffset = Math.sin(t * 1.5) * 3.5 + 1.5 // Cerca de la altura de vuelo
+
+      st.burstTarget.set(px + lateralDist, Math.max(1.5, py + heightOffset), pz - frontDist)
+      st.burstTimer = 0
     }
 
-    // Suavizado hacia la posición objetivo con ráfagas
-    const worldTarget = new THREE.Vector3(
-      px + fs.targetOffset.x,
-      py + fs.targetOffset.y,
-      pz + fs.targetOffset.z
-    )
+    // Si la abeja se alejó demasiado (>55m), teleportar suavemente al frente en la trayectoria
+    const currentDist = st.pos.distanceTo(new THREE.Vector3(px, py, pz))
+    if (currentDist > 55) {
+      st.pos.set(px + Math.sin(relativeAngle) * 10, py + 1.5, pz - 20)
+    }
 
-    // Micro-vibración de suspensión en el aire
-    const microJitterX = Math.sin(t * 22) * 0.05
-    const microJitterY = Math.cos(t * 25) * 0.06
+    // Suavizado hacia el objetivo
+    const prevPos = st.pos.clone()
+    st.pos.lerp(st.burstTarget, delta * 3.2 * speedFactor)
 
-    fs.currentPos.lerp(worldTarget, delta * 2.2)
+    // Micro-vibración realista de colibrí suspendido
+    const jitterX = Math.sin(t * 26) * 0.04
+    const jitterY = Math.cos(t * 28) * 0.05
+    groupRef.current.position.set(st.pos.x + jitterX, st.pos.y + jitterY, st.pos.z)
 
-    groupRef.current.position.set(
-      fs.currentPos.x + microJitterX,
-      fs.currentPos.y + microJitterY,
-      fs.currentPos.z
-    )
-
-    // Orientación natural hacia la dirección del vuelo
-    const moveDir = new THREE.Vector3().subVectors(worldTarget, fs.currentPos)
-    if (moveDir.lengthSq() > 0.1) {
-      const targetRotationY = Math.atan2(moveDir.x, moveDir.z) + Math.PI
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(
-        groupRef.current.rotation.y,
-        targetRotationY,
-        delta * 4
-      )
-      // Inclinación aerodinámica
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -0.15, delta * 3)
+    // Orientación hacia el sentido de desplazamiento
+    const moveVector = new THREE.Vector3().subVectors(st.pos, prevPos)
+    if (moveVector.lengthSq() > 0.0001) {
+      const heading = Math.atan2(moveVector.x, moveVector.z) + Math.PI
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, heading, delta * 8)
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -0.2, delta * 4)
     }
   })
 
-  // Escala calibrada: ~0.70m de envergadura (3x de la abeja, proporcional y nítido)
+  // Escala visible y nítida desde la cámara: ~1.0m (18.5x de 0.055m)
   return (
-    <group ref={groupRef} position={initialOffset}>
-      <group ref={modelRef} scale={11.5} rotation={[0, 0, 0]}>
+    <group ref={groupRef} position={[playerPos[0], playerPos[1] + 2, playerPos[2] - 18]}>
+      <group scale={18.5}>
         <primitive object={sceneClone} />
       </group>
     </group>
@@ -150,25 +158,38 @@ function HummingbirdEntity({
 }
 
 /**
- * Modelo individual de Mariposa con aleteo suave y vuelo ondulante
+ * Modelo individual de Mariposa con SkeletonUtils y vuelo ondulante visible
  */
 function ButterflyEntity({
-  initialOffset,
+  relativeAngle,
+  speedFactor = 1.0,
   flightSeed,
 }: {
-  initialOffset: [number, number, number]
+  relativeAngle: number
+  speedFactor?: number
   flightSeed: number
 }) {
   const groupRef = useRef<THREE.Group>(null!)
-  const modelRef = useRef<THREE.Group>(null!)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const playerPos = useGameStore((state) => state.position)
   const isPaused = useGameStore((state) => state.isPaused)
 
   const gltf = useGLTF(getAssetPath('/models/butterfly.glb')) as GLTFResult
-  const sceneClone = useMemo(() => gltf.scene.clone(true), [gltf.scene])
 
-  // Reproducir animación 'hover' o 'idle' de la mariposa
+  // Clonación correcta para modelos con Armature
+  const sceneClone = useMemo(() => {
+    const cloned = clone(gltf.scene)
+    cloned.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        child.castShadow = true
+        child.frustumCulled = false
+      }
+    })
+    console.log('🦋 Mariposa instanciada con éxito')
+    return cloned
+  }, [gltf.scene])
+
+  // Reproducir animación 'hover' o 'idle'
   useEffect(() => {
     if (gltf.animations && gltf.animations.length > 0) {
       mixerRef.current = new THREE.AnimationMixer(sceneClone)
@@ -188,49 +209,59 @@ function ButterflyEntity({
     }
   }, [gltf.animations, sceneClone])
 
-  const flightState = useRef({
-    currentPos: new THREE.Vector3(...initialOffset),
+  const stateRef = useRef({
+    pos: new THREE.Vector3(playerPos[0] + Math.sin(relativeAngle) * 8, playerPos[1] + 1.2, playerPos[2] - 14),
   })
 
   useFrame((state, delta) => {
     if (!groupRef.current || isPaused) return
 
-    // Animación suave de aleteo
     if (mixerRef.current) {
-      mixerRef.current.update(delta * 1.1)
+      mixerRef.current.update(delta * 1.3 * speedFactor)
     }
 
-    const t = state.clock.getElapsedTime() * 0.75 + flightSeed
-    const fs = flightState.current
+    const t = state.clock.getElapsedTime() * 0.9 * speedFactor + flightSeed
+    const st = stateRef.current
 
-    // Movimiento ondulante y grácil alrededor de la abeja en el terreno infinito
     const px = playerPos[0]
     const py = playerPos[1]
     const pz = playerPos[2]
 
-    // Órbita sinusoidal elegante y pausada
-    const targetX = px + Math.sin(t * 0.8) * 35 + Math.cos(flightSeed * 2) * 15
-    const targetY = Math.max(1.5, py + Math.sin(t * 2.2) * 1.8 + Math.cos(t * 0.9) * 1.2)
-    const targetZ = pz + Math.cos(t * 0.7) * 35 - 20
+    // Órbita sinusoidal elegante y ondulante SIEMPRE al frente (-Z):
+    const frontDistance = 10 + (Math.sin(t * 0.7) * 0.5 + 0.5) * 16 // 10m a 26m adelante
+    const sideDistance = Math.sin(t * 0.8 + relativeAngle) * 14
+    const verticalBobbing = Math.sin(t * 2.4) * 1.8 + Math.cos(t * 1.1) * 0.8
 
-    fs.currentPos.lerp(new THREE.Vector3(targetX, targetY, targetZ), delta * 1.5)
-    groupRef.current.position.copy(fs.currentPos)
+    const targetPos = new THREE.Vector3(
+      px + sideDistance,
+      Math.max(1.2, py + verticalBobbing + 0.5),
+      pz - frontDistance
+    )
+
+    // Si la abeja acelera y se aleja a más de 50m, mantener en el rango visible
+    if (st.pos.distanceTo(new THREE.Vector3(px, py, pz)) > 50) {
+      st.pos.set(px + sideDistance, py + 1.2, pz - 15)
+    }
+
+    const prevPos = st.pos.clone()
+    st.pos.lerp(targetPos, delta * 2.4)
+
+    groupRef.current.position.copy(st.pos)
 
     // Rotación suave acompañando la trayectoria
-    const heading = Math.sin(t * 0.8 + 0.1) - Math.sin(t * 0.8)
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(
-      groupRef.current.rotation.y,
-      Math.atan2(Math.sin(t * 0.8), Math.cos(t * 0.7)) + Math.PI,
-      delta * 3
-    )
-    // Suave inclinación lateral (roll)
-    groupRef.current.rotation.z = Math.sin(t * 2.2) * 0.25
+    const moveVector = new THREE.Vector3().subVectors(st.pos, prevPos)
+    if (moveVector.lengthSq() > 0.0001) {
+      const heading = Math.atan2(moveVector.x, moveVector.z) + Math.PI
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, heading, delta * 5)
+    }
+    // Balanceo lateral de las alas en giro
+    groupRef.current.rotation.z = Math.sin(t * 2.4) * 0.3
   })
 
-  // Escala calibrada: ~0.48m (alrededor de 1.8x el tamaño de la abeja)
+  // Escala visible y nítida desde la cámara: ~1.15m (12.0x de 0.096m)
   return (
-    <group ref={groupRef} position={initialOffset}>
-      <group ref={modelRef} scale={5.5}>
+    <group ref={groupRef} position={[playerPos[0], playerPos[1] + 1.2, playerPos[2] - 14]}>
+      <group scale={12.0}>
         <primitive object={sceneClone} />
       </group>
     </group>
@@ -238,49 +269,34 @@ function ButterflyEntity({
 }
 
 /**
- * Respaldo procedural en caso de que tarde o falle la carga de un modelo
- */
-function FallbackButterfly() {
-  return (
-    <group scale={0.4}>
-      <mesh>
-        <sphereGeometry args={[0.1, 8, 8]} />
-        <meshStandardMaterial color="#f97316" />
-      </mesh>
-    </group>
-  )
-}
-
-/**
- * Controlador de fauna voladora ambiental (Colibríes y Mariposas)
- * Mantiene un número prudente (2 mariposas y 2 colibríes) con alto rendimiento y cero sobrecarga.
+ * Fauna voladora ambiental activa en el infinito
+ * Los colibríes y mariposas se mantienen dinámicamente en el campo de visión de la abeja.
  */
 export function AmbientWildlife() {
   return (
     <group>
-      {/* Colibríes en vuelo */}
+      {/* Colibríes activos al frente */}
       <WildlifeErrorBoundary fallback={null}>
         <Suspense fallback={null}>
-          <HummingbirdEntity initialOffset={[-18, 4.5, -25]} flightSeed={1.23} />
-          <HummingbirdEntity initialOffset={[22, 6.0, -38]} flightSeed={4.56} />
+          <HummingbirdEntity relativeAngle={0.6} speedFactor={1.1} flightSeed={1.23} />
+          <HummingbirdEntity relativeAngle={-0.8} speedFactor={0.9} flightSeed={4.56} />
         </Suspense>
       </WildlifeErrorBoundary>
 
-      {/* Mariposas en vuelo */}
-      <WildlifeErrorBoundary fallback={<FallbackButterfly />}>
+      {/* Mariposas activas al frente */}
+      <WildlifeErrorBoundary fallback={null}>
         <Suspense fallback={null}>
-          <ButterflyEntity initialOffset={[-12, 2.8, -16]} flightSeed={2.34} />
-          <ButterflyEntity initialOffset={[14, 3.4, -28]} flightSeed={5.67} />
+          <ButterflyEntity relativeAngle={-0.5} speedFactor={1.0} flightSeed={2.34} />
+          <ButterflyEntity relativeAngle={0.7} speedFactor={0.85} flightSeed={5.67} />
         </Suspense>
       </WildlifeErrorBoundary>
     </group>
   )
 }
 
-// Precarga limpia de assets en segundo plano
 try {
   useGLTF.preload(getAssetPath('/models/colibri.glb'))
   useGLTF.preload(getAssetPath('/models/butterfly.glb'))
 } catch {
-  // Ignorar en entorno estático inicial
+  // Ignorar en SSR
 }

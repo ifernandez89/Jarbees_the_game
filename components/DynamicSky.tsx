@@ -2,8 +2,10 @@
 
 import { useRef, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
+import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { useDayNightCycle, getSunPosition, getMoonPosition } from '@/hooks/useDayNightCycle'
+import { getAssetPath } from '@/utils/assetPath'
 import { Clouds } from './Clouds'
 
 interface DynamicSkyProps {
@@ -21,6 +23,9 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
   
   const { camera } = useThree()
   const timeOfDay = useDayNightCycle(enabled, speed)
+
+  // Textura realista lunar (de Archeoscope / NASA)
+  const moonTexture = useTexture(getAssetPath('/textures/moon.jpg'))
 
   // Bóveda celeste esférica amplia
   const skyGeometry = useMemo(() => {
@@ -155,14 +160,16 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
         shadow-camera-bottom={-120}
       />
 
-      {/* Astro Luna Brillante */}
+      {/* Astro Luna Brillante con textura geológica real de Archeoscope / NASA */}
       <mesh ref={moonMeshRef} position={[moonX, moonY, moonZ]}>
-        <sphereGeometry args={[12, 32, 32]} />
+        <sphereGeometry args={[14, 32, 32]} />
         <meshStandardMaterial
-          color="#e8f0fe"
-          emissive="#bfd6ff"
-          emissiveIntensity={Math.max(0.2, timeOfDay.moonIntensity * 1.9)}
-          roughness={0.4}
+          map={moonTexture}
+          emissiveMap={moonTexture}
+          emissive="#c4d5f2"
+          emissiveIntensity={Math.max(0.15, timeOfDay.moonIntensity * 1.5)}
+          roughness={0.65}
+          metalness={0.05}
         />
       </mesh>
 
@@ -326,4 +333,10 @@ function ConstellationsAndStars({ opacity }: { opacity: number }) {
       <lineSegments ref={constellationLinesRef} geometry={lineGeometry} material={lineMaterial} />
     </group>
   )
+}
+
+try {
+  useTexture.preload(getAssetPath('/textures/moon.jpg'))
+} catch {
+  // Ignorar en entorno estático
 }
