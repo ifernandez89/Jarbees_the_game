@@ -1,5 +1,29 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.6] - 2026-10-18
+
+### 🛡️ Bóveda de Protección de Modelos 3D (.jb3d) y Descifrado en Memoria (RAM)
+
+#### Añadido
+- **Bóveda de Cifrado de Assets (.jb3d)**:
+  - Implementado formato de contenedor criptográfico `.jb3d` para reemplazar todos los `.glb` públicos.
+  - Cifrado simétrico AES-256-CTR con vector de inicialización único por archivo y derivación SHA-256 (`scripts/protect-models.js`).
+  - Comando npm `npm run protect-models` para procesar modelos maestros desde `assets_source/models/` y sanear la carpeta pública.
+- **Descifrado en Memoria RAM (`utils/assetSecurity.ts` & `utils/useSecureGLTF.ts`)**:
+  - Módulo de descifrado en cliente acelerado por hardware mediante Web Crypto API (`crypto.subtle`).
+  - Hook `useSecureGLTF` con soporte completo de DRACO, Meshopt, precarga (`useSecureGLTF.preload`) y fallback de compatibilidad.
+  - El modelo 3D descifrado nunca se almacena en disco ni crea URLs públicas de descarga en el navegador.
+- **Protección de Repositorio**:
+  - `assets_source/` añadido a `.gitignore` para garantizar que los `.glb` maestros nunca se suban al repositorio público de GitHub.
+  - Archivos `.glb` sin cifrar removidos de `public/models/`. Solo se distribuyen los binarios protegidos `.jb3d`.
+  - Documentación técnica completa en `MODEL_PROTECTION.md`.
+
+#### Actualizado
+- **BeePlayer.tsx**: Migrado a `useSecureGLTF` cargando `/models/bee.jb3d`.
+- **AmbientWildlife.tsx**: Migrado a `useSecureGLTF` cargando `/models/colibri.jb3d` y `/models/butterfly.jb3d`.
+- **public/sw.js**: Precache y caché offline del Service Worker actualizados para dar soporte a `.jb3d`.
+- **next.config.js**: Reglas de Webpack actualizadas para soportar la extensión `.jb3d`.
+
 ## [0.8.5] - 2026-10-16
 
 ### 📱 Estabilización Cinemática de Cámara y Eliminación de Temblor en Móviles

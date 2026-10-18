@@ -34,7 +34,7 @@ const nextConfig = {
 
     // Soporte para modelos 3D
     config.module.rules.push({
-      test: /\.(glb|gltf)$/,
+      test: /\.(glb|gltf|jb3d)$/,
       use: {
         loader: 'file-loader',
         options: {

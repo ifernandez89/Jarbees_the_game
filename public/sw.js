@@ -10,7 +10,7 @@ const PRECACHE_ASSETS = [
   './icons/icon-512x512.png',
   './icons/apple-touch-icon.png',
   './icons/jarbees_game_logo.png',
-  './models/bee.glb',
+  './models/bee.jb3d',
   './audio/bee_buzz.wav',
   './audio/ambient_music.wav',
   './audio/wind_loop.wav'
@@ -61,6 +61,7 @@ self.addEventListener('fetch', (event) => {
     url.pathname.includes('/audio/') ||
     url.pathname.includes('/icons/') ||
     url.pathname.endsWith('.glb') ||
+    url.pathname.endsWith('.jb3d') ||
     url.pathname.endsWith('.wav') ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.jpg')

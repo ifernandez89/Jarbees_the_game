@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useMemo, Suspense, Component, ReactNode } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
+import { useSecureGLTF } from '@/utils/useSecureGLTF'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { useGameStore } from '@/store/gameStore'
@@ -52,7 +52,7 @@ function HummingbirdEntity({
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const isPaused = useGameStore((state) => state.isPaused)
 
-  const gltf = useGLTF(getAssetPath('/models/colibri.glb')) as GLTFResult
+  const gltf = useSecureGLTF(getAssetPath('/models/colibri.jb3d')) as GLTFResult
   
   // Clonación correcta para modelos con Armature/Esqueleto
   const sceneClone = useMemo(() => {
@@ -177,7 +177,7 @@ function ButterflyEntity({
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const isPaused = useGameStore((state) => state.isPaused)
 
-  const gltf = useGLTF(getAssetPath('/models/butterfly.glb')) as GLTFResult
+  const gltf = useSecureGLTF(getAssetPath('/models/butterfly.jb3d')) as GLTFResult
 
   // Clonación correcta para modelos con Armature
   const sceneClone = useMemo(() => {
@@ -303,8 +303,8 @@ export function AmbientWildlife() {
 }
 
 try {
-  useGLTF.preload(getAssetPath('/models/colibri.glb'))
-  useGLTF.preload(getAssetPath('/models/butterfly.glb'))
+  useSecureGLTF.preload(getAssetPath('/models/colibri.jb3d'))
+  useSecureGLTF.preload(getAssetPath('/models/butterfly.jb3d'))
 } catch {
   // Ignorar en SSR
 }

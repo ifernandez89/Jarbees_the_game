@@ -44,6 +44,9 @@ next-env.d.ts
 # OS
 Thumbs.db
 
+# Master source assets (raw unencrypted 3D models)
+/assets_source/
+
 # Temporary files
 /temp
 /tmp

@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, Component, ReactNode, Suspense } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
+import { useSecureGLTF } from '@/utils/useSecureGLTF'
 import * as THREE from 'three'
 import { useGameStore } from '@/store/gameStore'
 import { getAudioManager } from '@/hooks/useAudio'
@@ -52,7 +52,7 @@ class ModelErrorBoundary extends Component<
  */
 function BeeGLBModel({ modelPath }: { modelPath: string }) {
   const resolvedModelPath = getAssetPath(modelPath)
-  const { scene, animations } = useGLTF(resolvedModelPath) as GLTFResult
+  const { scene, animations } = useSecureGLTF(resolvedModelPath) as GLTFResult
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
 
   // Configurar materiales
@@ -180,7 +180,7 @@ function ProceduralBee() {
  * Controlador principal de la abeja:
  * - NO AVANZA POR DEFECTO: Permanece aleteando y suspendida en el aire hasta que el usuario pulse W / Flecha Arriba.
  */
-export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
+export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
   const groupRef = useRef<THREE.Group>(null!)
   const modelAnchorRef = useRef<THREE.Group>(null!)
   const velocityRef = useRef(0)
@@ -337,7 +337,7 @@ export function BeePlayer({ modelPath = '/models/bee.glb' }: BeePlayerProps) {
 }
 
 try {
-  useGLTF.preload(getAssetPath('/models/bee.glb'))
+  useSecureGLTF.preload(getAssetPath('/models/bee.jb3d'))
 } catch {
   // Ignorar errores en precarga estática
 }

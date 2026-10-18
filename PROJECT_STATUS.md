@@ -95,8 +95,10 @@
 ### Assets Necesarios
 
 ### Modelos 3D
-- [x] `bee.glb` - ✅ Copiado y funcionando
-- [x] `tree1.glb`, `tree2.glb`, `tree3.glb` - ✅ Copiados desde ArcheoScope
+- [x] `bee.jb3d` - ✅ Cifrado y funcionando con descifrado en memoria RAM
+- [x] `colibri.jb3d`, `butterfly.jb3d` - ✅ Cifrados y funcionando con descifrado en memoria RAM
+- [x] `tree1.jb3d`, `tree2.jb3d`, `tree3.jb3d` - ✅ Cifrados en bóveda de assets
+- [x] Bóveda de protección (`scripts/protect-models.js` + `useSecureGLTF.ts`) implementada
 - [ ] `rock.glb` - Opcional desde ArcheoScope
 
 ### Audio

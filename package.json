@@ -29,7 +29,8 @@
     "start": "next start",
     "lint": "next lint",
     "export": "next build && next export",
-    "analyze": "cross-env ANALYZE=true next build"
+    "analyze": "cross-env ANALYZE=true next build",
+    "protect-models": "node scripts/protect-models.js"
   },
   "dependencies": {
     "next": "14.2.35",
