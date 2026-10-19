@@ -72,7 +72,7 @@ export function GameHUD() {
               title={`${char.name} (${char.realMetrics.heightOrLength})`}
             >
               <span className="hud-char-icon">{char.icon}</span>
-              <span className="hud-char-label">{char.name.split(' ')[0]}</span>
+              <span className="hud-char-label">{char.id === 'iron_man' ? 'Vesper' : char.name.split(' ')[0]}</span>
             </button>
           )
         })}
@@ -142,7 +142,7 @@ export function GameHUD() {
 
       {/* HUD inferior centro - Controles */}
       <div className="hud-card hud-panel-controls">
-        ⬆️/W: Avanzar | ⬇️/S: Frenar | ⬅️➡️/A/D: Girar | ESPACIO: Subir | SHIFT: Bajar{selectedCharacter === 'iron_man' ? ' | 🔄 Clic en Iron Man / T: Invertir Vista' : ''} | ENTER: Pausa | M: Sonido
+        ⬆️/W: Avanzar | ⬇️/S: Frenar | ⬅️➡️/A/D: Girar | ESPACIO: Subir | SHIFT: Bajar{selectedCharacter === 'iron_man' ? ' | 🔄 Clic en Vesper / T: Invertir Vista' : ''} | ENTER: Pausa | M: Sonido
       </div>
 
       {/* Pantalla de pausa */}

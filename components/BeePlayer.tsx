@@ -254,7 +254,7 @@ function ButterflyPlayerModel({ modelPath = '/models/butterfly.jb3d' }: { modelP
  * - Propulsores de plasma integrados en las suelas de las botas y palmas (sin conos toscos)
  * - Iluminación de estudio dedicada (key & rim light) para resaltar los acabados Rojo Carmesí y Oro Titanio
  */
-function IronManPlayerModel({ modelPath = '/models/iron_man.jb3d' }: { modelPath?: string }) {
+function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { modelPath?: string }) {
   const resolvedModelPath = getAssetPath(modelPath)
   const gltf = useSecureGLTF(resolvedModelPath) as GLTFResult
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
@@ -279,7 +279,7 @@ function IronManPlayerModel({ modelPath = '/models/iron_man.jb3d' }: { modelPath
   const sceneClone = useMemo(() => {
     const cloned = clone(gltf.scene)
 
-    // Configurar y calibrar materiales originales PBR
+    // Configurar y calibrar materiales PBR oficiales de la Armadura JarBees
     cloned.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh
@@ -296,28 +296,27 @@ function IronManPlayerModel({ modelPath = '/models/iron_man.jb3d' }: { modelPath
             mat.map.needsUpdate = true
           }
 
-          if (matName.includes('Arc_Reactor')) {
-            mat.color = new THREE.Color('#38bdf8')
-            mat.emissive = new THREE.Color('#38bdf8')
-            mat.emissiveIntensity = 4.5
+          if (matName.includes('Cyan') || matName.includes('Arc_Reactor') || matName.includes('Lights') || matName.includes('Glass')) {
+            // Cian Energético (#55F0FF) - Reactor Hex-Core, visor y sensores
+            mat.color = new THREE.Color('#55F0FF')
+            mat.emissive = new THREE.Color('#55F0FF')
+            mat.emissiveIntensity = 4.8
             mat.toneMapped = false
-          } else if (matName.includes('Lights')) {
-            mat.color = new THREE.Color('#ffffff')
-            mat.emissive = new THREE.Color('#ffffff')
-            mat.emissiveIntensity = 3.5
-            mat.toneMapped = false
-          } else if (matName.includes('Red_Part')) {
-            mat.color = new THREE.Color('#c21a1a') // Rojo carmesí vibrante
-            mat.roughness = 0.28
-            mat.metalness = 0.65
-          } else if (matName.includes('Gold_Part')) {
-            mat.color = new THREE.Color('#f59e0b') // Oro titanio cálido
-            mat.roughness = 0.24
-            mat.metalness = 0.75
-          } else if (matName.includes('Silver_Part')) {
-            mat.color = new THREE.Color('#f8fafc') // Plata nanotech
-            mat.roughness = 0.20
-            mat.metalness = 0.85
+          } else if (matName.includes('Petroleum') || matName.includes('Red_Part')) {
+            // Azul Petróleo (#102D46, 60%) - Estructura y carrocería principal
+            mat.color = new THREE.Color('#102D46')
+            mat.roughness = 0.26
+            mat.metalness = 0.82
+          } else if (matName.includes('Violet') || matName.includes('Gold_Part')) {
+            // Violeta Profundo (#35205B, 20%) - Placas secundarias, hombros y antebrazos
+            mat.color = new THREE.Color('#35205B')
+            mat.roughness = 0.22
+            mat.metalness = 0.78
+          } else if (matName.includes('Titanium') || matName.includes('Silver_Part')) {
+            // Titanio Frío (#A8C4D5, 15%) - Biseles, articulaciones expuestas y exoesqueleto
+            mat.color = new THREE.Color('#A8C4D5')
+            mat.roughness = 0.18
+            mat.metalness = 0.88
           }
           mat.needsUpdate = true
         }
@@ -407,12 +406,12 @@ function IronManPlayerModel({ modelPath = '/models/iron_man.jb3d' }: { modelPath
       }}
     >
       {/* =====================================================================
-          ILUMINACIÓN DE ESTUDIO DEDICADA: Resalta el Rojo Carmesí y Oro Titanio
+          ILUMINACIÓN DE ESTUDIO DEDICADA: Resalta el Azul Petróleo y Titanio Frío
           desde cualquier ángulo de cámara sin sombras oscuras planas
           ===================================================================== */}
       <pointLight position={[0, 1.2, 2.5]} intensity={2.2} color="#ffffff" distance={7} />
-      <pointLight position={[0, -0.5, -2.2]} intensity={1.8} color="#93c5fd" distance={6} />
-      <directionalLight position={[-2, 1.0, 1]} intensity={1.2} color="#fed7aa" />
+      <pointLight position={[0, -0.5, -2.2]} intensity={2.0} color="#55F0FF" distance={6} />
+      <directionalLight position={[-2, 1.0, 1]} intensity={1.4} color="#A8C4D5" />
 
       {/* =====================================================================
           CÁPSULA HITBOX INVISIBLE: Permite capturar clics con total facilidad
@@ -433,18 +432,18 @@ function IronManPlayerModel({ modelPath = '/models/iron_man.jb3d' }: { modelPath
         <primitive object={sceneClone} />
 
         {/* =====================================================================
-            LUZ INTERNA OCULTA DENTRO DEL CUERPO (Detrás del Reactor Arc del pecho)
+            LUZ INTERNA OCULTA DENTRO DEL CUERPO (Detrás del Hex-Core del pecho)
             Sin esferas ni conos flotando en el aire exterior
             ===================================================================== */}
         <mesh position={[0, 0.35, 0.04]}>
           <sphereGeometry args={[0.032, 16, 16]} />
-          <meshBasicMaterial color="#38bdf8" />
+          <meshBasicMaterial color="#55F0FF" />
         </mesh>
         <pointLight
           position={[0, 0.35, 0.10]}
-          color="#38bdf8"
-          intensity={2.4}
-          distance={2.2}
+          color="#55F0FF"
+          intensity={2.8}
+          distance={2.5}
         />
       </group>
     </group>
@@ -723,6 +722,7 @@ try {
   useSecureGLTF.preload(getAssetPath('/models/bee.jb3d'))
   useSecureGLTF.preload(getAssetPath('/models/colibri.jb3d'))
   useSecureGLTF.preload(getAssetPath('/models/butterfly.jb3d'))
+  useSecureGLTF.preload(getAssetPath('/models/jarbees_suit.jb3d'))
   useSecureGLTF.preload(getAssetPath('/models/iron_man.jb3d'))
 } catch {
   // Ignorar errores en precarga estática

@@ -4,7 +4,7 @@ export interface CharacterProfile {
   id: CharacterId
   name: string
   title: string
-  category: 'Fauna Silvestre' | 'Vengador Acorazado'
+  category: 'Fauna Silvestre' | 'Vengador Acorazado' | 'Exoesqueleto Enjambre'
   icon: string
   badge: string
   badgeColor: string
@@ -197,22 +197,22 @@ export const CHARACTER_PROFILES: Record<CharacterId, CharacterProfile> = {
 
   iron_man: {
     id: 'iron_man',
-    name: 'Iron Man (Mark 85)',
-    title: 'El Vengador Acorazado',
-    category: 'Vengador Acorazado',
-    icon: '🦾',
-    badge: 'Nanotecnología Stark',
-    badgeColor: '#dc2626',
-    modelPath: '/models/iron_man.jb3d',
+    name: 'Armadura JarBees (BEE-01 Vesper)',
+    title: 'Protocolo Enjambre • Vanguardia Tecnológica',
+    category: 'Exoesqueleto Enjambre',
+    icon: '⬡',
+    badge: 'Tecnología JarBees',
+    badgeColor: '#55F0FF',
+    modelPath: '/models/jarbees_suit.jb3d',
     fallbackKind: 'iron_man',
     realMetrics: {
-      heightOrLength: '1.85 m (Estatura real con armadura)',
-      wingspanOrWidth: '0.82 m (Anchura de hombreras)',
-      weight: '95 kg (Aleación Oro-Titanio / Nanotecnología)',
+      heightOrLength: '1.85 m (Estatura real con exoesqueleto)',
+      wingspanOrWidth: '0.84 m (Anchura con estabilizadores dorsales)',
+      weight: '92 kg (Aleación Titanio Frío / Polímeros de Colmena)',
       scaleRatio: '1:1 (Escala Humana Completa)',
-      propulsion: 'Repulsores de plasma en botas y palmas + Reactor Arc Unibeam',
+      propulsion: 'Microturbinas repulsoras en botas y palmas + Hex-Core de colmena',
       maxSpeedKmh: '230 km/h crucero (Supersónico x4) / Mach 3+ supersónico',
-      flightAcrobatics: 'Vuelo supersónico horizontal, estabilizadores inerciales y picado balístico',
+      flightAcrobatics: 'Giro 180° acrobático por clic, estabilizadores dorsales dinámicos y vuelo supino',
     },
     renderConfig: {
       // Modelo optimizado en Blender a 1.85m exactos de altura
@@ -236,13 +236,13 @@ export const CHARACTER_PROFILES: Record<CharacterId, CharacterProfile> = {
       basePitch: 0.92,
       pitchRange: 0.55,
     },
-    description: 'La culminación de la tecnología de Tony Stark: armadura Mark 85 con nanorobots, unibeam concéntrico, materiales PBR originales en rojo carmesí y oro titánico, y propulsores repulsores reactivos.',
+    description: 'Armadura de combate y exploración diseñada para proteger lo que importa. Inspirada en la ingeniería avanzada y la naturaleza colaborativa de las abejas, JarBees combina poder, precisión y evolución constante.',
     highlights: [
-      'Armadura Mark 85 original con 6 materiales PBR y texturas cinematográficas',
-      'Pose de vuelo procedural en Pose Mode sobre el esqueleto Mixamo de 66 huesos',
-      'Luces emisivas en Reactor Arc del pecho y visor de ojos',
-      'Efectos de llamaradas repulsoras y luz dinámica en botas al acelerar',
-      'Sonido de turbina de plasma Stark con modulación sonora al acelerar',
+      'Visor angular estilizado en V con antenas laterales tipo abeja',
+      'Reactor hexagonal de colmena (Hex-Core) con flujo energético cian #55F0FF',
+      'Paleta PBR: Azul Petróleo (60%), Violeta Profundo (20%) y Titanio Frío (15%)',
+      'Estabilizadores dorsales gemelos para maniobras ultrasónicas a 230 km/h',
+      'Acrobacia 180° en tiempo real por clic directo en la armadura',
     ],
   },
 }
