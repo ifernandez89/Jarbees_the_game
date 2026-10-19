@@ -44,7 +44,7 @@
 #### Corregido
 - **Llamas Repulsoras de Botas (`components/FlightEffects.tsx`)**:
   - Rediseñada la geometría de los conos de propulsión de las botas (`SuitThrusterFlames`): diámetro de base reducido de 19 cm a 4.8 cm para que queden contenidos dentro de la planta del pie (~8 cm) sin sobresalir por los bordes.
-  - Anclaje anatómico exacto en el arco de la suela mediante interpolación entre el hueso del tobillo (`LeftFoot`/`RightFoot`) y la base de los dedos (`LeftToeBase`/`RightToeBase`), eliminando la intersección que atravesaba el calzado.
+  - Anclaje anatómico exacto en el centro geométrico de cada suela: interpolación longitudinal entre el tobillo (`LeftFoot`/`RightFoot`) y la base de los dedos (`LeftToeBase`/`RightToeBase`), sumada al vector lateral corporal para desplazar cada tobera 3.0 cm hacia el eje medio de cada pie, erradicando el sesgo hacia el borde interno.
   - Sombreador GLSL personalizado con atenuación de tobera (`rimSoft`) y desvanecimiento suave hacia la punta, eliminando cualquier aro plano o corte circular visible.
 
 #### Mejorado

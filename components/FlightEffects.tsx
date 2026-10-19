@@ -351,7 +351,8 @@ interface FlameUnit {
   core: THREE.Mesh
   outer: THREE.Mesh
   bone: THREE.Object3D
-  toe?: THREE.Object3D
+  toeBase?: THREE.Object3D
+  isLeft: boolean
   phase: number
 }
 
@@ -360,6 +361,9 @@ export function SuitThrusterFlames({ root }: { root: THREE.Object3D }) {
   const tmpPos = useRef(new THREE.Vector3())
   const tmpFoot = useRef(new THREE.Vector3())
   const tmpToe = useRef(new THREE.Vector3())
+  const tmpLeftFoot = useRef(new THREE.Vector3())
+  const tmpRightFoot = useRef(new THREE.Vector3())
+  const tmpLateral = useRef(new THREE.Vector3())
   const tmpDir = useRef(new THREE.Vector3())
   const tmpBack = useRef(new THREE.Vector3())
   const down = useRef(new THREE.Vector3(0, -1, 0))
@@ -369,22 +373,22 @@ export function SuitThrusterFlames({ root }: { root: THREE.Object3D }) {
   const flames = useMemo<FlameUnit[]>(() => {
     let leftFoot: THREE.Object3D | null = null
     let rightFoot: THREE.Object3D | null = null
-    let leftToe: THREE.Object3D | null = null
-    let rightToe: THREE.Object3D | null = null
+    let leftToeBase: THREE.Object3D | null = null
+    let rightToeBase: THREE.Object3D | null = null
 
     root.traverse((child) => {
       const n = child.name || ''
       if (n.includes('LeftFoot')) leftFoot = child
       else if (n.includes('RightFoot')) rightFoot = child
-      else if (n.includes('LeftToe')) leftToe = child
-      else if (n.includes('RightToe')) rightToe = child
+      else if (n.includes('LeftToeBase')) leftToeBase = child
+      else if (n.includes('RightToeBase')) rightToeBase = child
     })
 
-    const pairs: Array<{ bone: THREE.Object3D; toe?: THREE.Object3D }> = []
-    if (leftFoot) pairs.push({ bone: leftFoot, toe: leftToe || undefined })
-    if (rightFoot) pairs.push({ bone: rightFoot, toe: rightToe || undefined })
+    const pairs: Array<{ bone: THREE.Object3D; toeBase?: THREE.Object3D; isLeft: boolean }> = []
+    if (leftFoot) pairs.push({ bone: leftFoot, toeBase: leftToeBase || undefined, isLeft: true })
+    if (rightFoot) pairs.push({ bone: rightFoot, toeBase: rightToeBase || undefined, isLeft: false })
 
-    return pairs.map(({ bone, toe }, idx) => {
+    return pairs.map(({ bone, toeBase, isLeft }, idx) => {
       const group = new THREE.Group()
       group.visible = false
 
@@ -406,7 +410,7 @@ export function SuitThrusterFlames({ root }: { root: THREE.Object3D }) {
       })
       const core = new THREE.Mesh(coreGeo, coreMat)
 
-      // Cono exterior de llama (radio 0.024 = 2.4 cm, diámetro 4.8 cm: más chico que la planta del pie de ~8 cm)
+      // Cono exterior de llama (radio 0.024 = 2.4 cm, diámetro 4.8 cm: contenido dentro de la planta del pie)
       const outerGeo = new THREE.ConeGeometry(0.024, 1, 18, 1, true)
       outerGeo.translate(0, 0.5, 0)
       const outerMat = new THREE.ShaderMaterial({
@@ -426,7 +430,7 @@ export function SuitThrusterFlames({ root }: { root: THREE.Object3D }) {
 
       group.add(outer)
       group.add(core)
-      return { group, core, outer, bone, toe, phase: idx * 1.7 }
+      return { group, core, outer, bone, toeBase, isLeft, phase: idx * 1.7 }
     })
   }, [root])
 
@@ -447,6 +451,22 @@ export function SuitThrusterFlames({ root }: { root: THREE.Object3D }) {
     const rt = flightRuntime
     const t = clock.getElapsedTime()
 
+    // Vector lateral corporal: apunta desde el tobillo derecho hacia el izquierdo
+    const leftFlame = flames.find((f) => f.isLeft)
+    const rightFlame = flames.find((f) => !f.isLeft)
+    if (leftFlame && rightFlame) {
+      leftFlame.bone.getWorldPosition(tmpLeftFoot.current)
+      rightFlame.bone.getWorldPosition(tmpRightFoot.current)
+      tmpLateral.current.subVectors(tmpLeftFoot.current, tmpRightFoot.current)
+      if (tmpLateral.current.lengthSq() > 0.0001) {
+        tmpLateral.current.normalize()
+      } else {
+        tmpLateral.current.set(1, 0, 0)
+      }
+    } else {
+      tmpLateral.current.set(1, 0, 0)
+    }
+
     for (const f of flames) {
       if (!rt.active) {
         f.group.visible = false
@@ -463,16 +483,21 @@ export function SuitThrusterFlames({ root }: { root: THREE.Object3D }) {
       }
       tmpDir.current.normalize()
 
-      // Ubicación exacta en la planta del pie (arco plantar central, en la cara inferior de la suela)
-      if (f.toe) {
+      // 1. Centro longitudinal del pie (entre tobillo y base de dedos en el arco plantar)
+      if (f.toeBase) {
         f.bone.getWorldPosition(tmpFoot.current)
-        f.toe.getWorldPosition(tmpToe.current)
-        tmpPos.current.copy(tmpFoot.current).lerp(tmpToe.current, 0.42)
-        tmpPos.current.addScaledVector(tmpDir.current, 0.03)
+        f.toeBase.getWorldPosition(tmpToe.current)
+        tmpPos.current.copy(tmpFoot.current).lerp(tmpToe.current, 0.45)
       } else {
         f.bone.getWorldPosition(tmpPos.current)
-        tmpPos.current.addScaledVector(tmpDir.current, 0.09)
       }
+
+      // 2. Centrado lateral exacto en el eje medio de cada pie (desplazamiento hacia el exterior del pie)
+      const latOffset = f.isLeft ? 0.030 : -0.030
+      tmpPos.current.addScaledVector(tmpLateral.current, latOffset)
+
+      // 3. Salida rasante en la cara inferior de la suela en la dirección del flujo de propulsión
+      tmpPos.current.addScaledVector(tmpDir.current, 0.035)
 
       f.group.position.copy(tmpPos.current)
       f.group.quaternion.setFromUnitVectors(UP, tmpDir.current)
