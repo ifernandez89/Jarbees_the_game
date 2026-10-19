@@ -15,7 +15,7 @@ export function GameHUD() {
 
   const selectedCharacter = useGameStore((state) => state.selectedCharacter)
   const setSelectedCharacter = useGameStore((state) => state.setSelectedCharacter)
-  const acrobaticFlip = useGameStore((state) => state.acrobaticFlip)
+  const isIronManFlipped = useGameStore((state) => state.isIronManFlipped)
   const flight = useGameStore((state) => state.flight)
   const flightMode = useGameStore((state) => state.flightMode)
   const toggleFlightMode = useGameStore((state) => state.toggleFlightMode)
@@ -93,10 +93,10 @@ export function GameHUD() {
         <div className="hud-status">
           {isPaused
             ? '⏸ PAUSADO'
-            : acrobaticFlip
-            ? acrobaticFlip.direction === 'up'
-              ? '⤴ Giro Acrobático (Loop)'
-              : '⤵ Giro Acrobático (Picado)'
+            : selectedCharacter === 'iron_man' && isIronManFlipped
+            ? Math.abs(velocity) > 0.5
+              ? '🔄 Boca Arriba (Cielo)'
+              : '🔄 Mirando al Usuario'
             : Math.abs(velocity) > 0.5
             ? '▶ Volando'
             : '🌸 Suspendido'}

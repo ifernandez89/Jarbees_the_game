@@ -2,15 +2,15 @@
 
 ## [0.8.9] - 2026-10-19
 
-### 📱 Optimización de UI Móvil, Giros Acrobáticos Discretos y Retiro de Turbo
+### 📱 Optimización de UI Móvil: Touch en Traje para Giro de Vesper, D-Pad Limpio y Retiro de Turbo
 
 #### Optimizado
 - **Controles Táctiles Móviles (`components/MobileTouchControls.tsx`)**:
-  - **Eliminación del botón ⚡TURBO**: Se eliminó por completo el botón de postquemador en pantallas táctiles que sobrecargaba la esquina inferior derecha y se superponía a la telemetría.
-  - **Giros Acrobáticos Limitados por Toque (Arriba y Abajo)**: Sustituido el botón de giro continuo `🔄` (que invertía la orientación a 180° indefinidamente) por dos botones discretos en el centro del D-Pad:
-    - `⤴` **Giro hacia arriba (Looping 360°)**: Maniobra vertical con arco de ascenso (+1.9m) que recupera automáticamente la horizontalidad frontal.
-    - `⤵` **Giro hacia abajo (Picado 360°)**: Inmersión vertical controlada (-1.6m) con salida suave a nivel de vuelo.
-    - Cada toque ejecuta una acrobacia acotada de 0.82s sin desorientar al usuario ni dejar al personaje volando de espaldas.
+  - **Eliminación total de botones centrales en el D-Pad**: Se retiró cualquier botón adicional en el centro de los 4 controles direccionales (▲, ▼, ◀, ▶), dejando el centro limpio y despejado con un espacio vacío original.
+  - **Eliminación del botón ⚡TURBO**: Se removió el botón de postquemador en pantallas táctiles que sobrecargaba la esquina inferior derecha y se superponía con la telemetría.
+- **Giro de Vesper por Touch Directo en Pantalla (`components/BeePlayer.tsx`)**:
+  - Exclusivo para Vesper: el giro de 180° para mirar al usuario o quedar de espaldas cuando está suspendido se activa ahora directamente mediante un toque (*touch / pointer down*) del usuario sobre el traje en la escena 3D, de forma idéntica al clic en PC y sin requerir botones adicionales en la interfaz.
+  - **Preservación estricta de mecánicas originales**: Las mecánicas de vuelo, cabeceo y físicas de la abeja, el colibrí y la mariposa se mantienen 100% preexistentes e intactas.
 - **Simplificación del HUD de Telemetría en Móviles (`components/GameHUD.tsx` & `app/globals.css`)**:
   - Saneamiento de pantalla en smartphones/tablets: se ocultan filas secundarias de telemetría técnica (`Empuje`, `Energía`, `Núcleo °C`, `Carga G`, botón redundante `MODO` y descripciones extensas) mediante `.hud-desktop-only`.
   - El HUD móvil queda reducido a un indicador ultraligero y nítido (Mach, km/h, insignia de régimen y altitud) ubicado arriba a la derecha sin ninguna colisión con los botones de `SUBIR` / `BAJAR`.

@@ -14,7 +14,6 @@ export function MobileTouchControls() {
   const selectedCharacter = useGameStore((state) => state.selectedCharacter)
   const flightMode = useGameStore((state) => state.flightMode)
   const toggleFlightMode = useGameStore((state) => state.toggleFlightMode)
-  const triggerAcrobaticFlip = useGameStore((state) => state.triggerAcrobaticFlip)
 
   useEffect(() => {
     setShowControls(isTouchScreen())
@@ -166,73 +165,7 @@ export function MobileTouchControls() {
         >
           ◀
         </button>
-        {/* CENTRO: Giros acrobáticos limitados por toque (Arriba / Abajo) */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-            width: '54px',
-            height: '54px',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <button
-            onTouchStart={(e) => {
-              e.preventDefault()
-              triggerAcrobaticFlip('up')
-            }}
-            onClick={(e) => {
-              e.preventDefault()
-              triggerAcrobaticFlip('up')
-            }}
-            style={{
-              ...btnStyle,
-              width: '54px',
-              height: '24px',
-              borderRadius: '12px',
-              fontSize: '0.95rem',
-              lineHeight: '1',
-              padding: 0,
-              background: 'rgba(56, 189, 248, 0.25)',
-              borderColor: '#38BDF8',
-              color: '#BAE6FD',
-              boxShadow: '0 2px 8px rgba(56, 189, 248, 0.3)',
-            }}
-            aria-label="Giro hacia arriba (Looping)"
-            title="Giro hacia arriba por toque"
-          >
-            ⤴
-          </button>
-          <button
-            onTouchStart={(e) => {
-              e.preventDefault()
-              triggerAcrobaticFlip('down')
-            }}
-            onClick={(e) => {
-              e.preventDefault()
-              triggerAcrobaticFlip('down')
-            }}
-            style={{
-              ...btnStyle,
-              width: '54px',
-              height: '24px',
-              borderRadius: '12px',
-              fontSize: '0.95rem',
-              lineHeight: '1',
-              padding: 0,
-              background: 'rgba(192, 132, 252, 0.25)',
-              borderColor: '#C084FC',
-              color: '#E9D5FF',
-              boxShadow: '0 2px 8px rgba(192, 132, 252, 0.3)',
-            }}
-            aria-label="Giro hacia abajo (Picado)"
-            title="Giro hacia abajo por toque"
-          >
-            ⤵
-          </button>
-        </div>
+        <div />
         {/* GIRAR DERECHA */}
         <button
           style={btnStyle}

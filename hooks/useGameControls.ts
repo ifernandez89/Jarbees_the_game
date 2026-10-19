@@ -33,15 +33,12 @@ export function useGameControls() {
         return
       }
 
-      // Trucos acrobáticos discretos por toque (T: Looping Arriba, F: Picado Abajo)
-      if (e.code === 'KeyT') {
+      // Giro para quedar de espaldas o mirar al usuario con T o F
+      if (e.code === 'KeyT' || e.code === 'KeyF') {
         e.preventDefault()
-        useGameStore.getState().triggerAcrobaticFlip('up')
-        return
-      }
-      if (e.code === 'KeyF') {
-        e.preventDefault()
-        useGameStore.getState().triggerAcrobaticFlip('down')
+        if (useGameStore.getState().selectedCharacter === 'iron_man') {
+          useGameStore.getState().toggleIronManFlip()
+        }
         return
       }
 

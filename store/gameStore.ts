@@ -86,7 +86,6 @@ export interface GameState {
   selectedCharacter: CharacterId
   isSpecsModalOpen: boolean
   isIronManFlipped: boolean
-  acrobaticFlip: { direction: 'up' | 'down'; id: number } | null
 
   // JARBEES FLIGHT SYSTEM (armadura): modo de control y telemetría
   flightMode: FlightMode
@@ -99,7 +98,6 @@ export interface GameState {
   setSelectedCharacter: (character: CharacterId) => void
   toggleIronManFlip: () => void
   setIronManFlipped: (flipped: boolean) => void
-  triggerAcrobaticFlip: (direction: 'up' | 'down') => void
   setSpecsModalOpen: (open: boolean) => void
   setPosition: (position: [number, number, number]) => void
   setRotation: (rotation: [number, number, number]) => void
@@ -153,12 +151,11 @@ const initialState = {
   selectedCharacter: 'bee' as CharacterId,
   isSpecsModalOpen: false,
   isIronManFlipped: false,
-  acrobaticFlip: null as { direction: 'up' | 'down'; id: number } | null,
   flightMode: 'assist' as FlightMode,
   flight: INITIAL_FLIGHT_TELEMETRY,
 }
 
-export const useGameStore = create<GameState>((set, get) => ({
+export const useGameStore = create<GameState>((set) => ({
   ...initialState,
   
   setSelectedCharacter: (selectedCharacter) =>
@@ -167,17 +164,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   toggleFlightMode: () =>
     set((state) => ({ flightMode: state.flightMode === 'assist' ? 'sim' : 'assist' })),
   setFlightTelemetry: (flight) => set({ flight }),
-  toggleIronManFlip: () => {
-    // Por compatibilidad: ejecuta un giro hacia arriba por toque en lugar de invertir indefinidamente
-    get().triggerAcrobaticFlip('up')
-  },
+  toggleIronManFlip: () =>
+    set((state) => ({ isIronManFlipped: !state.isIronManFlipped })),
   setIronManFlipped: (isIronManFlipped) => set({ isIronManFlipped }),
-  triggerAcrobaticFlip: (direction) => {
-    const now = Date.now()
-    const current = get().acrobaticFlip
-    if (current && now - current.id < 300) return
-    set({ acrobaticFlip: { direction, id: now } })
-  },
   setSpecsModalOpen: (isSpecsModalOpen) => set({ isSpecsModalOpen }),
   
   setPosition: (position) => set({ position }),
