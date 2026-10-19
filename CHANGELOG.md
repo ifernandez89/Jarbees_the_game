@@ -1,5 +1,56 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.7] - 2026-10-19
+
+### ⚡ Simulador Aerodinámico JarBees (BEE-01 Vesper), Regímenes Supersónicos y Acabado Stealth Black
+
+#### Añadido
+- **Simulador Aerodinámico JarBees (`systems/FlightDynamics.ts`)**:
+  - Motor de dinámica de vuelo puro desacoplado de React y Three.js, modelando resistencia atmosférica real ($F_D = \frac{1}{2} \rho v^2 C_D A \cdot k_{onda}(M)$) con atmósfera estándar ISA.
+  - Curva de resistencia de onda transónica que penaliza el avance cerca de Mach 1 y exige postquemador para franquear la barrera del sonido.
+  - 5 regímenes cinemáticos calculados dinámicamente:
+    - `hover` (0–60 km/h: sustentación estacionaria y micro-maniobras).
+    - `cruise` (60–300 km/h: vuelo rasante sobre valles y colinas).
+    - `high` (300–800 km/h: alta velocidad subsónica).
+    - `transonic` (800–1200 km/h / Mach 0.65–1.0: buffet oscilatorio y alta fricción).
+    - `supersonic` (1200–2800 km/h / Mach 1.0–2.5+: onda de choque y penetración atmosférica).
+  - Termodinámica del núcleo **Hex-Core**: consumo energético con postquemador (`boost`) y calentamiento acumulativo con alerta térmica y protección por sobrecalentamiento.
+  - Modos de vuelo duales con alternancia instantánea por tecla `[G]`: **Modo Asistido** (estabilización automática) y **Modo Simulación Inercial** (inercia pura sin asistencia).
+  - Script de pruebas headless del modelo de vuelo (`scripts/flight_sim_test.ts`) para verificación determinista de aceleración, frenado y consumo.
+
+- **Audio Procedural en Tiempo Real (`systems/FlightAudio.ts`)**:
+  - Motor de sonido procedural 100% sintetizado con Web Audio API (cero dependencias de archivos de audio externos):
+    - Ruido de viento filtrado que asciende en frecuencia con la velocidad y atenúa los agudos al superar Mach 1 ("el sonido del entorno queda atrás").
+    - Ruido tonal de turbinas repulsoras modulado en frecuencia y amplitud por el empuje (`throttle`).
+    - Rugido subsónico de postquemador (`afterburner`) mediante generador de ruido marrón con filtros paso bajo dinámicos.
+    - Modulación de vibración transónica (*buffet*) a ~16 Hz en la zona crítica.
+    - Estampido sónico (*sonic boom*) procedural con pulso subsónico y chasquido al quebrar la velocidad del sonido.
+
+- **Efectos Audiovisuales Hipersónicos (`components/FlightEffects.tsx`)**:
+  - Estelas aerodinámicas (*speed streaks*) en túnel de viento volumétrico que se estiran proporcionalmente a la velocidad del aire.
+  - Cono de condensación / cono de Mach volumétrico con sombreador GLSL personalizado y degradado de vapor opaco en el ápice.
+  - Ondas de choque sónicas (*shockwave rings*) expansivas que se dispersan en el espacio al producirse cada estampido sónico.
+  - Llamas de propulsión repulsora en botas (`SuitThrusterFlames`) vinculadas dinámicamente al vector de empuje y estado de postquemador.
+
+- **Streaming Anticipado de Terreno Procedural (`systems/ChunkManager.ts` & `components/InfiniteTerrain.tsx`)**:
+  - Precarga direccional predictiva: proyecta hasta 380m por delante según el vector de avance horizontal ($v_x, v_z$).
+  - Presupuesto controlado de instanciación por frame (`maxNew = 4`) para evitar micro-tirones de CPU a más de 2000 km/h.
+
+- **Telemetría Avanzada en HUD y Controles Móviles (`components/GameHUD.tsx` & `components/MobileTouchControls.tsx`)**:
+  - Telemetría en tiempo real para la armadura: Mach digital, velocímetro km/h, insignia de régimen aerodinámico, barra de empuje, indicador ⚡AB, porcentaje de carga Hex-Core, termómetro de núcleo (°C) y carga de gravedad (G).
+  - Selector de modo de vuelo en pantalla `[G] ASIST / SIM`.
+  - Controles móviles táctiles enriquecidos: botón dedicado `⚡TURBO` (Postquemador), botón central `🔄` en el D-pad para inversión de orientación 180° y botón superior de modo de vuelo.
+
+#### Mejorado
+- **Identidad Propia JarBees (BEE-01 Vesper) (`components/BeePlayer.tsx` & `types/characters.ts`)**:
+  - Rostro, visores ópticos y núcleo frontal transformados a acabado **Stealth Black mate** (`#0D0D11`), distanciando radicalmente el diseño de cualquier similitud visual con Iron Man y afianzando la personalidad propia del universo JarBees.
+  - Inclinación visual dinámica que mantiene postura horizontal de torpedo a alta velocidad y se yergue al activar el aerofreno (tecla `S`).
+  - Vibración estructural microscópica en el modelo 3D derivada de la telemetría de buffet y estampido.
+- **Cámara Dinámica de Persecución (`components/FollowCamera.tsx`)**:
+  - Seguimiento relativo con amortiguación exponencial adaptativa a la velocidad: elimina el retraso excesivo a Mach 2 manteniendo la distancia focal constante (~3-4m).
+  - Retroceso y elevación progresiva de cámara (`camPull`) y apertura dinámica de campo visual (+25° FOV) a altas velocidades.
+  - Sacudida y rotación angular de cámara sincronizadas con las turbulencias transónicas y estampidos.
+
 ## [0.8.6] - 2026-10-18
 
 ### 🛡️ Bóveda de Protección de Modelos 3D (.jb3d) y Descifrado en Memoria (RAM)

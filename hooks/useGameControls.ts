@@ -42,6 +42,15 @@ export function useGameControls() {
         return
       }
 
+      // JARBEES FLIGHT SYSTEM: alternar modo Asistido / Simulación con G
+      if (e.code === 'KeyG') {
+        e.preventDefault()
+        if (useGameStore.getState().selectedCharacter === 'iron_man') {
+          useGameStore.getState().toggleFlightMode()
+        }
+        return
+      }
+
       // Evitar controles de vuelo si está pausado
       if (isPaused) return
 
@@ -77,9 +86,17 @@ export function useGameControls() {
           e.preventDefault()
           setControls({ up: true })
           break
-        // BAJAR ALTITUD con SHIFT, Q o AvPág
+        // BAJAR ALTITUD con Q o AvPág (y SHIFT para los personajes sin postquemador)
         case 'ShiftLeft':
         case 'ShiftRight':
+          e.preventDefault()
+          if (useGameStore.getState().selectedCharacter === 'iron_man') {
+            // POSTQUEMADOR del traje JarBees
+            setControls({ boost: true })
+          } else {
+            setControls({ down: true })
+          }
+          break
         case 'KeyQ':
         case 'PageDown':
           e.preventDefault()
@@ -113,6 +130,9 @@ export function useGameControls() {
           break
         case 'ShiftLeft':
         case 'ShiftRight':
+          // Soltar SHIFT libera tanto el postquemador como el descenso (según el personaje activo)
+          setControls({ boost: false, down: false })
+          break
         case 'KeyQ':
         case 'PageDown':
           setControls({ down: false })

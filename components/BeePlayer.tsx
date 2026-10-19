@@ -9,6 +9,8 @@ import { useGameStore } from '@/store/gameStore'
 import { getAudioManager } from '@/hooks/useAudio'
 import { getAssetPath } from '@/utils/assetPath'
 import { CHARACTER_PROFILES, CharacterId } from '@/types/characters'
+import { FlightDynamics, flightRuntime } from '@/systems/FlightDynamics'
+import { SuitThrusterFlames } from '@/components/FlightEffects'
 import type { GLTF } from 'three-stdlib'
 
 type GLTFResult = GLTF & {
@@ -19,6 +21,9 @@ type GLTFResult = GLTF & {
 interface BeePlayerProps {
   modelPath?: string
 }
+
+/** Techo de vuelo de la armadura JarBees (m). Los demás personajes conservan su límite de 82 m. */
+const SUIT_CEILING = 400
 
 // Error Boundary para capturar fallos de carga del modelo 3D y usar el fallback
 class ModelErrorBoundary extends Component<
@@ -404,7 +409,8 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
         currentActionRef.current = targetAction
       }
 
-      const animSpeed = isForward ? 1.0 + (Math.abs(velocity) / 64) * 0.4 : 1.0
+      // Limitar el factor: a velocidades supersónicas el ciclo de animación no debe desbocarse
+      const animSpeed = isForward ? 1.0 + Math.min(1, Math.abs(velocity) / 64) * 0.4 : 1.0
       mixerRef.current.update(delta * animSpeed)
     }
 
@@ -442,6 +448,9 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       <pointLight position={[0, 1.2, 2.5]} intensity={2.2} color="#ffffff" distance={7} />
       <pointLight position={[0, -0.5, -2.2]} intensity={2.0} color="#55F0FF" distance={6} />
       <directionalLight position={[-2, 1.0, 1]} intensity={1.4} color="#A8C4D5" />
+
+      {/* Llamas de los propulsores de las botas (reaccionan al empuje y al postquemador) */}
+      <SuitThrusterFlames root={sceneClone} />
 
       {/* =====================================================================
           CÁPSULA HITBOX INVISIBLE: Permite capturar clics con total facilidad
@@ -560,6 +569,9 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
   const forwardVectorRef = useRef(new THREE.Vector3())
   const hudUpdateTimer = useRef(0)
   const accumulatedDistanceRef = useRef(0)
+  // JARBEES FLIGHT SYSTEM: motor de vuelo de la armadura
+  const flightRef = useRef(new FlightDynamics())
+  const flightWasActiveRef = useRef(false)
 
   // Estado del juego
   const controls = useGameStore((state) => state.controls)
@@ -571,6 +583,7 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
   const updateAltitude = useGameStore((state) => state.updateAltitude)
   const setVelocity = useGameStore((state) => state.setVelocity)
   const terrainManager = useGameStore((state) => state.terrainManager)
+  const setFlightTelemetry = useGameStore((state) => state.setFlightTelemetry)
 
   // Loop de actualización de vuelo
   useFrame((state, delta) => {
@@ -580,32 +593,110 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
     const profile = CHARACTER_PROFILES[selectedCharacter] || CHARACTER_PROFILES.bee
     const isIronMan = selectedCharacter === 'iron_man'
 
-    // VELOCIDAD DE AVANCE:
-    // Por defecto es 0 (suspendido en el aire).
-    // Solo avanza al presionar W / Flecha Arriba.
-    // Iron Man vuela a 64.0 m/s (~230 km/h, 4x la velocidad de la abeja de 16.0 m/s ~ 58 km/h).
-    let targetSpeed = 0.0
-    if (controls.forward) {
-      targetSpeed = isIronMan ? 64.0 : 16.0
-    } else if (controls.backward) {
-      targetSpeed = isIronMan ? -16.0 : -4.0
-    }
+    const flight = flightRef.current
+    let currentVelocity = 0
+    const rotationSpeed = 2.4 * delta
 
-    velocityRef.current = THREE.MathUtils.lerp(
-      velocityRef.current,
-      targetSpeed,
-      delta * (isIronMan ? 5.0 : 4.0)
-    )
-    const currentVelocity = velocityRef.current
+    if (isIronMan) {
+      // =====================================================================
+      // JARBEES FLIGHT SYSTEM — vuelo con física para la armadura:
+      // empuje vectorial, resistencia cuadrática con onda transónica, postquemador,
+      // energía, temperatura y carga G. La simulación se integra en SUBPASOS para
+      // no atravesar el terreno a velocidades supersónicas.
+      // =====================================================================
+      const mode = useGameStore.getState().flightMode
+      const input = {
+        forward: controls.forward,
+        backward: controls.backward,
+        left: controls.left,
+        right: controls.right,
+        up: controls.up,
+        down: controls.down,
+        boost: controls.boost,
+      }
+      const dt = Math.min(delta, 0.05)
+      const speedEstimate = Math.hypot(flight.vx, flight.vz) + Math.abs(flight.vy)
+      const steps = Math.min(12, Math.max(1, Math.ceil((speedEstimate * dt) / 5)))
+      const subDt = dt / steps
 
-    const moveSpeed = currentVelocity * delta
-    const rotationSpeed = (isIronMan ? 2.8 : 2.4) * delta
+      for (let i = 0; i < steps; i++) {
+        const { yawDelta } = flight.step(subDt, input, player.rotation.y, player.position.y, mode)
+        player.rotation.y += yawDelta
+        player.position.x += flight.vx * subDt
+        player.position.y += flight.vy * subDt
+        player.position.z += flight.vz * subDt
 
-    // Movimiento hacia adelante a ALTURA CONSTANTE en el plano horizontal XZ:
-    if (Math.abs(currentVelocity) > 0.01) {
-      forwardVectorRef.current.set(-Math.sin(player.rotation.y), 0, -Math.cos(player.rotation.y))
-      player.position.addScaledVector(forwardVectorRef.current, moveSpeed)
-      accumulatedDistanceRef.current += Math.abs(moveSpeed)
+        // Colisión continua con el terreno en cada subpaso
+        const floorY = terrainManager
+          ? terrainManager.getHeightAt(player.position.x, player.position.z) + 1.4
+          : 0.8
+        if (player.position.y < floorY) {
+          player.position.y = floorY
+          if (flight.vy < 0) flight.vy = 0
+        }
+        if (player.position.y > SUIT_CEILING) {
+          player.position.y = SUIT_CEILING
+          if (flight.vy > 0) flight.vy = 0
+        }
+      }
+
+      accumulatedDistanceRef.current += Math.hypot(flight.vx, flight.vz) * dt
+      currentVelocity = flight.forwardSpeed
+      velocityRef.current = currentVelocity
+      flightWasActiveRef.current = true
+    } else {
+      if (flightWasActiveRef.current) {
+        flight.reset()
+        flightWasActiveRef.current = false
+      }
+
+      // VELOCIDAD DE AVANCE:
+      // Por defecto es 0 (suspendido en el aire).
+      // Solo avanza al presionar W / Flecha Arriba.
+      let targetSpeed = 0.0
+      if (controls.forward) {
+        targetSpeed = 16.0
+      } else if (controls.backward) {
+        targetSpeed = -4.0
+      }
+
+      velocityRef.current = THREE.MathUtils.lerp(velocityRef.current, targetSpeed, delta * 4.0)
+      currentVelocity = velocityRef.current
+
+      const moveSpeed = currentVelocity * delta
+
+      // Movimiento hacia adelante a ALTURA CONSTANTE en el plano horizontal XZ:
+      if (Math.abs(currentVelocity) > 0.01) {
+        forwardVectorRef.current.set(-Math.sin(player.rotation.y), 0, -Math.cos(player.rotation.y))
+        player.position.addScaledVector(forwardVectorRef.current, moveSpeed)
+        accumulatedDistanceRef.current += Math.abs(moveSpeed)
+      }
+
+      // Controles de rotación (Yaw - izquierda/derecha)
+      if (controls.left) {
+        player.rotation.y += rotationSpeed
+      }
+      if (controls.right) {
+        player.rotation.y -= rotationSpeed
+      }
+
+      // Controles de altitud (ESPACIO/E para subir rápido, SHIFT/Q para bajar)
+      if (controls.up) {
+        player.position.y += 14.0 * delta
+      }
+      if (controls.down) {
+        player.position.y -= 12.0 * delta
+      }
+
+      // Colisión suave con terreno (mínimo 0.6m sobre el suelo)
+      let minHeight = 0.8
+      if (terrainManager) {
+        const terrainHeight = terrainManager.getHeightAt(player.position.x, player.position.z)
+        minHeight = terrainHeight + 0.6
+      }
+
+      // Límites de altitud: Permite ascender bien alto
+      player.position.y = Math.max(minHeight, Math.min(player.position.y, 82))
     }
 
     // Leve efecto de viento permanente y flotabilidad natural
@@ -625,15 +716,23 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       const hoverAmp = profile.renderConfig.hoverBobbingAmplitude
       const hoverBobbing = Math.sin(t * 3.2) * hoverAmp
       const windSway = Math.cos(t * 1.6) * 0.02
-      modelAnchorRef.current.position.y = hoverBobbing
+
+      // Vibración estructural del traje (buffet transónico, postquemador y estampido sónico)
+      const shake = isIronMan ? flightRuntime.shake : 0
+      const jitterX = (Math.sin(t * 61) + Math.sin(t * 37 + 1.3)) * 0.5 * 0.03 * shake
+      const jitterY = (Math.sin(t * 53 + 0.7) + Math.sin(t * 29)) * 0.5 * 0.03 * shake
+      modelAnchorRef.current.position.x = jitterX
+      modelAnchorRef.current.position.y = hoverBobbing + jitterY
 
       // Inclinación dinámica visual del modelo (Pitch al acelerar/frenar y Roll al virar)
-      // Iron Man adopta una inclinación a -78° hacia adelante (vuelo horizontal "acostado" estilo torpedo)
+      // La armadura adopta una inclinación a -78° hacia adelante (vuelo horizontal "acostado" estilo torpedo)
+      // mientras empuja o conserva velocidad; con el aerofreno (S) se endereza como freno aerodinámico.
+      const isFlying = isIronMan ? controls.forward || flight.forwardSpeed > 12 : controls.forward
       let baseTargetPitch = 0
-      if (controls.forward) {
-        baseTargetPitch = isIronMan ? -1.36 : -0.16
-      } else if (controls.backward) {
+      if (controls.backward) {
         baseTargetPitch = isIronMan ? 0.22 : 0.12
+      } else if (isFlying) {
+        baseTargetPitch = isIronMan ? -1.36 : -0.16
       }
 
       const targetPitch = baseTargetPitch * profile.renderConfig.pitchMultiplier
@@ -651,36 +750,9 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       )
     }
 
-    // Controles de rotación (Yaw - izquierda/derecha)
-    if (controls.left) {
-      player.rotation.y += rotationSpeed
-    }
-    if (controls.right) {
-      player.rotation.y -= rotationSpeed
-    }
-
     // Mantener la orientación base del grupo nivelada horizontalmente
     player.rotation.x = 0
     player.rotation.z = 0
-
-    // Controles de altitud (ESPACIO/E para subir rápido, SHIFT/Q para bajar)
-    const vertMultiplier = isIronMan ? 2.2 : 1.0
-    if (controls.up) {
-      player.position.y += 14.0 * vertMultiplier * delta
-    }
-    if (controls.down) {
-      player.position.y -= 12.0 * vertMultiplier * delta
-    }
-
-    // Colisión suave con terreno (mínimo 0.8m sobre el suelo)
-    let minHeight = 0.8
-    if (terrainManager) {
-      const terrainHeight = terrainManager.getHeightAt(player.position.x, player.position.z)
-      minHeight = terrainHeight + (isIronMan ? 1.4 : 0.6)
-    }
-
-    // Límites de altitud: Permite ascender bien alto
-    player.position.y = Math.max(minHeight, Math.min(player.position.y, 82))
 
     // Sincronizar estado global para HUD (~10Hz)
     hudUpdateTimer.current += delta
@@ -690,6 +762,24 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       setRotation([player.rotation.x, player.rotation.y, player.rotation.z])
       updateAltitude(player.position.y)
       setVelocity(currentVelocity)
+      if (isIronMan) {
+        const rt = flightRuntime
+        setFlightTelemetry({
+          mach: rt.mach,
+          speedKmh: rt.speedKmh,
+          regime: rt.regime,
+          thrustPct: rt.thrustPct,
+          afterburner: rt.afterburner > 0.3,
+          energy: rt.energy,
+          heat: rt.heat,
+          gLoad: rt.gLoad,
+          vertical: rt.vy,
+          overheated: rt.overheated,
+          lowEnergy: rt.lowEnergy,
+          boomSeq: rt.boomSeq,
+          boomIntensity: rt.boomIntensity,
+        })
+      }
       if (accumulatedDistanceRef.current > 0) {
         updateDistanceTraveled(accumulatedDistanceRef.current)
         accumulatedDistanceRef.current = 0
@@ -716,11 +806,12 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
         }
       }
 
-      // Modular sonido del personaje activo
-      const maxSpeedRef = isIronMan ? 64.0 : 16.0
-      const pitch = basePitch + (Math.abs(currentVelocity) / maxSpeedRef) * pitchRange + (isManeuvering ? 0.04 : 0.0)
+      // Modular sonido del personaje activo (la armadura normaliza contra 300 m/s para que el tono no se desboque)
+      const maxSpeedRef = isIronMan ? 300.0 : 16.0
+      const speedNorm = Math.min(1, Math.abs(currentVelocity) / maxSpeedRef)
+      const pitch = basePitch + speedNorm * pitchRange + (isManeuvering ? 0.04 : 0.0)
       const currentVol = isMoving
-        ? baseVolume + (Math.abs(currentVelocity) / maxSpeedRef) * (maxVolume - baseVolume)
+        ? baseVolume + speedNorm * (maxVolume - baseVolume)
         : baseVolume
 
       audio.setSoundPitch(soundKey, pitch)

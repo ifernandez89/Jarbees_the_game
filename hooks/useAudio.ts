@@ -7,6 +7,7 @@ import { useDayNightCycle } from '@/hooks/useDayNightCycle'
 import { getAssetPath } from '@/utils/assetPath'
 
 let globalAudioManager: AudioManager | null = null
+let globalAudioListener: THREE.AudioListener | null = null
 
 export function useAudio() {
   const { camera } = useThree()
@@ -27,6 +28,7 @@ export function useAudio() {
     if (!listenerRef.current) {
       listenerRef.current = new THREE.AudioListener()
       camera.add(listenerRef.current)
+      globalAudioListener = listenerRef.current
     }
 
     // Crear AudioManager global si no existe
@@ -124,4 +126,11 @@ async function loadGameAudio(manager: AudioManager) {
  */
 export function getAudioManager(): AudioManager | null {
   return globalAudioManager
+}
+
+/**
+ * Obtener el AudioListener global (comparte AudioContext con el sistema de vuelo procedural)
+ */
+export function getAudioListener(): THREE.AudioListener | null {
+  return globalAudioListener
 }

@@ -1,6 +1,40 @@
 import { create } from 'zustand'
 import type { ChunkManager } from '@/systems/ChunkManager'
 import type { CharacterId } from '@/types/characters'
+import type { FlightMode, FlightRegime } from '@/systems/FlightDynamics'
+
+/** Telemetría del JARBEES FLIGHT SYSTEM sincronizada con el HUD (~10 Hz) */
+export interface FlightTelemetry {
+  mach: number
+  speedKmh: number
+  regime: FlightRegime
+  thrustPct: number
+  afterburner: boolean
+  energy: number
+  heat: number
+  gLoad: number
+  vertical: number
+  overheated: boolean
+  lowEnergy: boolean
+  boomSeq: number
+  boomIntensity: number
+}
+
+export const INITIAL_FLIGHT_TELEMETRY: FlightTelemetry = {
+  mach: 0,
+  speedKmh: 0,
+  regime: 'hover',
+  thrustPct: 0,
+  afterburner: false,
+  energy: 100,
+  heat: 10,
+  gLoad: 1,
+  vertical: 0,
+  overheated: false,
+  lowEnergy: false,
+  boomSeq: 0,
+  boomIntensity: 0,
+}
 
 export interface GameState {
   // Posición de la abeja
@@ -20,6 +54,7 @@ export interface GameState {
     right: boolean
     up: boolean
     down: boolean
+    boost: boolean
   }
   
   // Estado del juego
@@ -52,7 +87,14 @@ export interface GameState {
   isSpecsModalOpen: boolean
   isIronManFlipped: boolean
 
+  // JARBEES FLIGHT SYSTEM (armadura): modo de control y telemetría
+  flightMode: FlightMode
+  flight: FlightTelemetry
+
   // Acciones
+  setFlightMode: (mode: FlightMode) => void
+  toggleFlightMode: () => void
+  setFlightTelemetry: (flight: FlightTelemetry) => void
   setSelectedCharacter: (character: CharacterId) => void
   toggleIronManFlip: () => void
   setIronManFlipped: (flipped: boolean) => void
@@ -89,6 +131,7 @@ const initialState = {
     right: false,
     up: false,
     down: false,
+    boost: false,
   },
   isPaused: false,
   distanceTraveled: 0,
@@ -108,13 +151,19 @@ const initialState = {
   selectedCharacter: 'bee' as CharacterId,
   isSpecsModalOpen: false,
   isIronManFlipped: false,
+  flightMode: 'assist' as FlightMode,
+  flight: INITIAL_FLIGHT_TELEMETRY,
 }
 
 export const useGameStore = create<GameState>((set) => ({
   ...initialState,
   
   setSelectedCharacter: (selectedCharacter) =>
-    set({ selectedCharacter, isIronManFlipped: false }),
+    set({ selectedCharacter, isIronManFlipped: false, flight: INITIAL_FLIGHT_TELEMETRY }),
+  setFlightMode: (flightMode) => set({ flightMode }),
+  toggleFlightMode: () =>
+    set((state) => ({ flightMode: state.flightMode === 'assist' ? 'sim' : 'assist' })),
+  setFlightTelemetry: (flight) => set({ flight }),
   toggleIronManFlip: () =>
     set((state) => ({ isIronManFlipped: !state.isIronManFlipped })),
   setIronManFlipped: (isIronManFlipped) => set({ isIronManFlipped }),

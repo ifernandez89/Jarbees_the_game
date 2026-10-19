@@ -155,45 +155,74 @@ export class ChunkManager {
   }
 
   /**
-   * Actualizar chunks basado en la posición del jugador
+   * Actualizar chunks basado en la posición del jugador.
+   *
+   * Parámetros opcionales para vuelo a alta velocidad (streaming anticipado):
+   * @param aheadX/aheadZ  Desplazamiento (m) hacia donde viaja el jugador: se precargan chunks en esa dirección.
+   * @param extraView      Metros extra de radio de carga alrededor del punto anticipado.
+   * @param maxNew         Presupuesto máximo de chunks nuevos por llamada (evita tirones de CPU).
    */
-  updateChunks(playerX: number, playerZ: number): ChunkData[] {
+  updateChunks(
+    playerX: number,
+    playerZ: number,
+    aheadX = 0,
+    aheadZ = 0,
+    extraView = 0,
+    maxNew = Infinity
+  ): ChunkData[] {
     const [centerChunkX, centerChunkZ] = this.worldToChunkCoords(playerX, playerZ)
-    const renderDistance = Math.ceil(this.config.viewDistance / this.config.size)
-    
-    const newActiveChunks = new Set<string>()
-    const chunksToAdd: ChunkData[] = []
-    
-    // Generar chunks en área visible
-    for (let x = -renderDistance; x <= renderDistance; x++) {
-      for (let z = -renderDistance; z <= renderDistance; z++) {
-        const chunkX = centerChunkX + x
-        const chunkZ = centerChunkZ + z
-        const key = this.getChunkKey(chunkX, chunkZ)
-        
-        newActiveChunks.add(key)
-        
-        if (!this.chunks.has(key)) {
-          const chunk = this.createChunk(chunkX, chunkZ)
-          this.chunks.set(key, chunk)
-          chunksToAdd.push(chunk)
+    const baseRadius = Math.ceil(this.config.viewDistance / this.config.size)
+
+    // Conjunto de chunks requeridos: área alrededor del jugador + área alrededor del punto anticipado
+    const required = new Map<string, { x: number; z: number; d: number }>()
+    const addArea = (cx: number, cz: number, radius: number) => {
+      for (let x = -radius; x <= radius; x++) {
+        for (let z = -radius; z <= radius; z++) {
+          const chunkX = cx + x
+          const chunkZ = cz + z
+          const key = this.getChunkKey(chunkX, chunkZ)
+          if (required.has(key)) continue
+          const dx = chunkX - centerChunkX
+          const dz = chunkZ - centerChunkZ
+          required.set(key, { x: chunkX, z: chunkZ, d: dx * dx + dz * dz })
         }
       }
     }
-    
+
+    addArea(centerChunkX, centerChunkZ, baseRadius)
+    if (aheadX !== 0 || aheadZ !== 0) {
+      const [aheadChunkX, aheadChunkZ] = this.worldToChunkCoords(playerX + aheadX, playerZ + aheadZ)
+      addArea(aheadChunkX, aheadChunkZ, Math.ceil((this.config.viewDistance + extraView) / this.config.size))
+    }
+
+    // Crear primero los chunks más cercanos al jugador, respetando el presupuesto por frame
+    const missing: Array<{ x: number; z: number; d: number }> = []
+    required.forEach((entry, key) => {
+      if (!this.chunks.has(key)) missing.push(entry)
+    })
+    missing.sort((a, b) => a.d - b.d)
+
+    const chunksToAdd: ChunkData[] = []
+    for (let i = 0; i < missing.length && chunksToAdd.length < maxNew; i++) {
+      const { x, z } = missing[i]
+      const chunk = this.createChunk(x, z)
+      this.chunks.set(chunk.key, chunk)
+      chunksToAdd.push(chunk)
+    }
+
     // Desactivar chunks fuera de rango
     const chunksToRemove: string[] = []
     this.chunks.forEach((chunk, key) => {
-      if (!newActiveChunks.has(key)) {
+      if (!required.has(key)) {
         chunk.isActive = false
         chunksToRemove.push(key)
         this.chunkPool.push(chunk)
       }
     })
-    
+
     // Limpiar chunks inactivos
     chunksToRemove.forEach(key => this.chunks.delete(key))
-    
+
     return chunksToAdd
   }
 

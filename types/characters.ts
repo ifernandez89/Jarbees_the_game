@@ -238,11 +238,12 @@ export const CHARACTER_PROFILES: Record<CharacterId, CharacterProfile> = {
     },
     description: 'Armadura de combate y exploración diseñada para proteger lo que importa. Inspirada en la ingeniería avanzada y la naturaleza colaborativa de las abejas, JarBees combina poder, precisión y evolución constante.',
     highlights: [
-      'Visor angular estilizado en V con antenas laterales tipo abeja',
-      'Reactor hexagonal de colmena (Hex-Core) con flujo energético cian #55F0FF',
-      'Paleta PBR: Azul Petróleo (60%), Violeta Profundo (20%) y Titanio Frío (15%)',
-      'Estabilizadores dorsales gemelos para maniobras ultrasónicas a 230 km/h',
-      'Acrobacia 180° en tiempo real por clic directo en la armadura',
+      'Máscara y visor en Stealth Black mate eliminando reminiscencias de Iron Man',
+      'Reactor hexagonal de colmena (Hex-Core) con telemetría de energía y disipación térmica',
+      'Simulador aerodinámico JarBees: regímenes de vuelo subsónico a Mach 2.5+ con atmósfera ISA',
+      'Audio procedural Web Audio API: viento supersónico, buffet transónico y estampido sónico',
+      'Efectos audiovisuales: estelas hipersónicas, cono de vapor Mach y ondas de choque',
+      'Modos de vuelo Asistido y Simulación Inercial alternables con tecla [G] y telemetría HUD',
     ],
   },
 }

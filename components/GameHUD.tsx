@@ -16,6 +16,9 @@ export function GameHUD() {
   const selectedCharacter = useGameStore((state) => state.selectedCharacter)
   const setSelectedCharacter = useGameStore((state) => state.setSelectedCharacter)
   const isIronManFlipped = useGameStore((state) => state.isIronManFlipped)
+  const flight = useGameStore((state) => state.flight)
+  const flightMode = useGameStore((state) => state.flightMode)
+  const toggleFlightMode = useGameStore((state) => state.toggleFlightMode)
 
   const [fps, setFps] = useState(60)
   const timeOfDay = useDayNightCycle(dayNightEnabled)
@@ -123,18 +126,123 @@ export function GameHUD() {
 
       {/* HUD de datos de vuelo */}
       <div className="hud-card hud-panel-flight-data">
-        <div className="hud-flight-row">
-          <span style={{ color: '#aaa' }}>Vel:</span>{' '}
-          <strong>{(velocity * 3.6).toFixed(0)} km/h</strong>
-        </div>
-        <div className="hud-flight-row">
-          <span style={{ color: '#aaa' }}>Dist:</span>{' '}
-          <strong>{distanceTraveled.toFixed(0)} m</strong>
-        </div>
-        <div className="hud-flight-row">
-          <span style={{ color: '#aaa' }}>Alt:</span>{' '}
-          <strong>{altitude.toFixed(1)} m</strong>
-        </div>
+        {selectedCharacter === 'iron_man' ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+              <span style={{ color: flight.mach >= 1 ? '#FF4444' : flight.mach >= 0.75 ? '#FFAA33' : '#38BDF8', fontWeight: 'bold' }}>
+                MACH {flight.mach.toFixed(2)}
+              </span>
+              <strong style={{ fontSize: '0.95rem' }}>{flight.speedKmh.toFixed(0)} km/h</strong>
+            </div>
+
+            <div style={{ fontSize: '0.66rem', marginBottom: 4, textAlign: 'right' }}>
+              <span
+                style={{
+                  padding: '1px 6px',
+                  borderRadius: '3px',
+                  background:
+                    flight.regime === 'supersonic'
+                      ? 'rgba(255, 68, 68, 0.25)'
+                      : flight.regime === 'transonic'
+                      ? 'rgba(255, 170, 51, 0.25)'
+                      : 'rgba(56, 189, 248, 0.15)',
+                  border: `1px solid ${
+                    flight.regime === 'supersonic'
+                      ? '#FF4444'
+                      : flight.regime === 'transonic'
+                      ? '#FFAA33'
+                      : '#38BDF8'
+                  }`,
+                  color:
+                    flight.regime === 'supersonic'
+                      ? '#FFAAAA'
+                      : flight.regime === 'transonic'
+                      ? '#FFDDAA'
+                      : '#BEE3F8',
+                  textTransform: 'uppercase',
+                  fontWeight: 600,
+                  letterSpacing: '0.5px',
+                }}
+              >
+                {flight.regime === 'hover' && 'Flotación'}
+                {flight.regime === 'cruise' && 'Crucero'}
+                {flight.regime === 'high' && 'Alta Velocidad'}
+                {flight.regime === 'transonic' && 'Transónico'}
+                {flight.regime === 'supersonic' && 'Supersónico (M>1)'}
+              </span>
+            </div>
+
+            <div className="hud-flight-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+              <span style={{ color: '#aaa' }}>Empuje:</span>
+              <span>
+                <strong>{flight.thrustPct.toFixed(0)}%</strong>
+                {flight.afterburner && (
+                  <span style={{ marginLeft: 4, color: '#FF7733', fontWeight: 'bold' }}>⚡AB</span>
+                )}
+              </span>
+            </div>
+
+            <div className="hud-flight-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+              <span style={{ color: '#aaa' }}>Energía:</span>
+              <span style={{ color: flight.lowEnergy ? '#FF4444' : '#38BDF8' }}>
+                <strong>{flight.energy.toFixed(0)}%</strong>
+              </span>
+            </div>
+
+            <div className="hud-flight-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+              <span style={{ color: '#aaa' }}>Núcleo:</span>
+              <span style={{ color: flight.overheated ? '#FF4444' : flight.heat > 60 ? '#FFAA33' : '#aaa' }}>
+                <strong>{flight.heat.toFixed(0)}°C</strong>
+                {flight.overheated && ' 🔥'}
+              </span>
+            </div>
+
+            <div className="hud-flight-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+              <span style={{ color: '#aaa' }}>Carga G:</span>
+              <strong>{flight.gLoad.toFixed(1)} G</strong>
+            </div>
+
+            <div className="hud-flight-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+              <span style={{ color: '#aaa' }}>Alt:</span>
+              <strong>{altitude.toFixed(1)} m</strong>
+            </div>
+
+            <div style={{ marginTop: 4, textAlign: 'right' }}>
+              <button
+                onClick={toggleFlightMode}
+                style={{
+                  pointerEvents: 'auto',
+                  background: flightMode === 'sim' ? 'rgba(168, 85, 247, 0.25)' : 'rgba(56, 189, 248, 0.2)',
+                  border: `1px solid ${flightMode === 'sim' ? '#C084FC' : '#38BDF8'}`,
+                  color: flightMode === 'sim' ? '#E9D5FF' : '#BAE6FD',
+                  borderRadius: 4,
+                  padding: '2px 7px',
+                  fontSize: '0.65rem',
+                  fontFamily: 'monospace',
+                  cursor: 'pointer',
+                }}
+                title="Presiona 'G' para alternar Modo Asistido o Simulación pura"
+              >
+                MODO: {flightMode === 'sim' ? '🕹️ SIM' : '🛡️ ASIST'} [G]
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="hud-flight-row">
+              <span style={{ color: '#aaa' }}>Vel:</span>{' '}
+              <strong>{(velocity * 3.6).toFixed(0)} km/h</strong>
+            </div>
+            <div className="hud-flight-row">
+              <span style={{ color: '#aaa' }}>Dist:</span>{' '}
+              <strong>{distanceTraveled.toFixed(0)} m</strong>
+            </div>
+            <div className="hud-flight-row">
+              <span style={{ color: '#aaa' }}>Alt:</span>{' '}
+              <strong>{altitude.toFixed(1)} m</strong>
+            </div>
+          </>
+        )}
         <div className="hud-flight-fps">
           FPS: {fps}
         </div>
@@ -142,7 +250,15 @@ export function GameHUD() {
 
       {/* HUD inferior centro - Controles */}
       <div className="hud-card hud-panel-controls">
-        ⬆️/W: Avanzar | ⬇️/S: Frenar | ⬅️➡️/A/D: Girar | ESPACIO: Subir | SHIFT: Bajar{selectedCharacter === 'iron_man' ? ' | 🔄 Clic en Vesper / T: Invertir Vista' : ''} | ENTER: Pausa | M: Sonido
+        {selectedCharacter === 'iron_man' ? (
+          <>
+            ⬆️/W: Empuje | ⬇️/S: Freno/Aerofreno | ⬅️➡️/A/D: Rumbo | ESPACIO: Ascenso | SHIFT: Postquemador | Q: Descenso | G: Modo Vuelo | T/Clic: Invertir Vista | M: Audio
+          </>
+        ) : (
+          <>
+            ⬆️/W: Avanzar | ⬇️/S: Frenar | ⬅️➡️/A/D: Girar | ESPACIO: Subir | SHIFT/Q: Bajar | ENTER: Pausa | M: Sonido
+          </>
+        )}
       </div>
 
       {/* Pantalla de pausa */}

@@ -4,6 +4,7 @@ import { Canvas } from '@react-three/fiber'
 import { Suspense, useEffect } from 'react'
 import { Stats } from '@react-three/drei'
 import { BeePlayer } from './BeePlayer'
+import { FlightEffects } from './FlightEffects'
 import { FollowCamera } from './FollowCamera'
 import { GameHUD } from './GameHUD'
 import { InfiniteTerrain } from './InfiniteTerrain'
@@ -67,6 +68,9 @@ function Scene() {
 
       {/* Abeja jugadora con fallback instantáneo y modelo 3D */}
       <BeePlayer />
+
+      {/* Efectos audiovisuales de vuelo aerodinámico (estelas, cono Mach, ondas de choque y audio procedural) */}
+      <FlightEffects />
 
       {/* Cámara en tercera persona */}
       <FollowCamera />

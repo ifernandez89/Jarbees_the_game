@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { ChunkManager, ChunkConfig } from '@/systems/ChunkManager'
 import { useGameStore } from '@/store/gameStore'
 import { TreePopulation } from './TreePopulation'
+import { flightRuntime } from '@/systems/FlightDynamics'
 import { RockPopulation } from './RockPopulation'
 
 interface InfiniteTerrainProps {
@@ -84,8 +85,26 @@ export function InfiniteTerrain({ biome = 'titicaca', seed }: InfiniteTerrainPro
     const playerX = bee ? bee.position.x : useGameStore.getState().position[0]
     const playerZ = bee ? bee.position.z : useGameStore.getState().position[2]
     
+    // Streaming anticipado para vuelo de alta velocidad (JARBEES FLIGHT SYSTEM):
+    // se precarga el terreno en la trayectoria (~0.9 s por delante), se amplía el radio de carga
+    // con la velocidad y se limita la creación de chunks por frame para evitar tirones de CPU.
+    let aheadX = 0
+    let aheadZ = 0
+    let extraView = 0
+    let maxNew = Infinity
+    if (flightRuntime.active && flightRuntime.speed > 60) {
+      const lead = Math.min(380, flightRuntime.speed * 0.9)
+      const hSpeed = Math.hypot(flightRuntime.vx, flightRuntime.vz)
+      if (hSpeed > 1) {
+        aheadX = (flightRuntime.vx / hSpeed) * lead
+        aheadZ = (flightRuntime.vz / hSpeed) * lead
+      }
+      extraView = Math.min(120, flightRuntime.speed * 0.35)
+      maxNew = 4
+    }
+
     // Obtener chunks que deben añadirse
-    const newChunks = chunkManager.updateChunks(playerX, playerZ)
+    const newChunks = chunkManager.updateChunks(playerX, playerZ, aheadX, aheadZ, extraView, maxNew)
     
     // Añadir nuevos chunks a la escena
     newChunks.forEach(chunkData => {

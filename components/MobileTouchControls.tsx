@@ -11,6 +11,11 @@ export function MobileTouchControls() {
   const setPaused = useGameStore((state) => state.setPaused)
   const audioEnabled = useGameStore((state) => state.audioEnabled)
   const setAudioEnabled = useGameStore((state) => state.setAudioEnabled)
+  const selectedCharacter = useGameStore((state) => state.selectedCharacter)
+  const flightMode = useGameStore((state) => state.flightMode)
+  const toggleFlightMode = useGameStore((state) => state.toggleFlightMode)
+  const isIronManFlipped = useGameStore((state) => state.isIronManFlipped)
+  const toggleIronManFlip = useGameStore((state) => state.toggleIronManFlip)
 
   useEffect(() => {
     setShowControls(isTouchScreen())
@@ -26,14 +31,14 @@ export function MobileTouchControls() {
   if (!showControls) return null
 
   // Helpers de touch para activar/desactivar controles
-  const handleTouchStart = (key: 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down') => (e: React.TouchEvent | React.MouseEvent) => {
+  const handleTouchStart = (key: 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down' | 'boost') => (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault()
     if (!isPaused) {
       setControls({ [key]: true })
     }
   }
 
-  const handleTouchEnd = (key: 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down') => (e: React.TouchEvent | React.MouseEvent) => {
+  const handleTouchEnd = (key: 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down' | 'boost') => (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault()
     setControls({ [key]: false })
   }
@@ -77,6 +82,24 @@ export function MobileTouchControls() {
           pointerEvents: 'auto',
         }}
       >
+        {selectedCharacter === 'iron_man' && (
+          <button
+            onClick={toggleFlightMode}
+            style={{
+              ...btnStyle,
+              width: '38px',
+              height: '38px',
+              fontSize: '0.8rem',
+              borderColor: flightMode === 'sim' ? '#C084FC' : '#38BDF8',
+              color: flightMode === 'sim' ? '#E9D5FF' : '#BAE6FD',
+            }}
+            aria-label="Modo de Vuelo Asistido o Simulación"
+            title={`Modo: ${flightMode === 'sim' ? 'Simulación Inercial' : 'Vuelo Asistido'}`}
+          >
+            {flightMode === 'sim' ? '🕹️' : '🛡️'}
+          </button>
+        )}
+
         <button
           onClick={() => setAudioEnabled(!audioEnabled)}
           style={{
@@ -144,7 +167,24 @@ export function MobileTouchControls() {
         >
           ◀
         </button>
-        <div />
+        {/* CENTRO: Invertir orientación para la armadura */}
+        {selectedCharacter === 'iron_man' ? (
+          <button
+            onClick={toggleIronManFlip}
+            style={{
+              ...btnStyle,
+              fontSize: '1.05rem',
+              borderColor: isIronManFlipped ? '#38BDF8' : 'rgba(255, 215, 0, 0.5)',
+              background: isIronManFlipped ? 'rgba(56, 189, 248, 0.25)' : 'rgba(0, 0, 0, 0.65)',
+            }}
+            aria-label="Invertir orientación"
+            title="Invertir orientación"
+          >
+            🔄
+          </button>
+        ) : (
+          <div />
+        )}
         {/* GIRAR DERECHA */}
         <button
           style={btnStyle}
@@ -174,7 +214,7 @@ export function MobileTouchControls() {
         <div />
       </div>
 
-      {/* Control de Altitud (Subir / Bajar) - Esquina inferior derecha */}
+      {/* Control de Altitud (Subir / Bajar / Turbo) - Esquina inferior derecha */}
       <div
         style={{
           position: 'absolute',
@@ -186,6 +226,30 @@ export function MobileTouchControls() {
           pointerEvents: 'auto',
         }}
       >
+        {/* TURBO / POSTQUEMADOR (Sólo Armadura JarBees) */}
+        {selectedCharacter === 'iron_man' && (
+          <button
+            style={{
+              ...btnStyle,
+              width: '60px',
+              height: '60px',
+              fontSize: '0.78rem',
+              fontWeight: 'bold',
+              background: 'linear-gradient(135deg, rgba(255, 100, 20, 0.85), rgba(255, 30, 0, 0.95))',
+              borderColor: '#FF7733',
+              color: '#FFFFFF',
+              boxShadow: '0 0 16px rgba(255, 100, 20, 0.6)',
+            }}
+            onTouchStart={handleTouchStart('boost')}
+            onTouchEnd={handleTouchEnd('boost')}
+            onTouchCancel={handleTouchEnd('boost')}
+            onMouseDown={handleTouchStart('boost')}
+            onMouseUp={handleTouchEnd('boost')}
+            aria-label="Postquemador Turbo"
+          >
+            ⚡TURBO
+          </button>
+        )}
         <button
           style={{
             ...btnStyle,
