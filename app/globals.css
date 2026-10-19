@@ -287,8 +287,9 @@ canvas {
     margin-top: 2px;
   }
 
-  /* Ocultar barra de teclado en móviles para liberar pantalla */
-  .hud-panel-controls {
+  /* Ocultar barra de teclado y datos secundarios en móviles para liberar pantalla */
+  .hud-panel-controls,
+  .hud-desktop-only {
     display: none !important;
   }
 

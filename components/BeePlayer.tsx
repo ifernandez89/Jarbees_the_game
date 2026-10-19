@@ -266,12 +266,9 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
   const hoverActionRef = useRef<THREE.AnimationAction | null>(null)
   const flightActionRef = useRef<THREE.AnimationAction | null>(null)
 
-  // Referencia para la rotación acrobática del truco (180° sobre su eje longitudinal)
+  // Referencia para la orientación hacia adelante del modelo
   const rotatingGroupRef = useRef<THREE.Group | null>(null)
-  const currentRotY = useRef(Math.PI)
-
-  const isFlipped = useGameStore((state) => state.isIronManFlipped)
-  const toggleFlip = useGameStore((state) => state.toggleIronManFlip)
+  const triggerAcrobaticFlip = useGameStore((state) => state.triggerAcrobaticFlip)
 
   // Asegurar restauración del cursor al desmontar
   useEffect(() => {
@@ -451,13 +448,9 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       mixerRef.current.update(delta * animSpeed)
     }
 
-    // Suave giro acrobático de 180° sobre el eje longitudinal al hacer clic sobre Iron Man:
-    // - En reposo/hover: Rota 180° para mirar de frente al usuario
-    // - En vuelo inclinado hacia adelante: Rota 180° sobre su espina y vuela boca arriba mirando al cielo
+    // Mantener orientación frontal estable
     if (rotatingGroupRef.current) {
-      const targetRotY = isFlipped ? 0 : Math.PI
-      currentRotY.current = THREE.MathUtils.lerp(currentRotY.current, targetRotY, delta * 9.0)
-      rotatingGroupRef.current.rotation.y = currentRotY.current
+      rotatingGroupRef.current.rotation.y = Math.PI
     }
   })
 
@@ -469,7 +462,7 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       position={[0, -0.10, 0]}
       onClick={(e) => {
         e.stopPropagation()
-        toggleFlip()
+        triggerAcrobaticFlip('up')
       }}
       onPointerOver={() => {
         document.body.style.cursor = 'pointer'
@@ -607,11 +600,18 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
   // JARBEES FLIGHT SYSTEM: motor de vuelo de la armadura
   const flightRef = useRef(new FlightDynamics())
   const flightWasActiveRef = useRef(false)
+  const acrobaticStateRef = useRef<{
+    direction: 'up' | 'down'
+    progress: number
+    duration: number
+    lastId: number
+  } | null>(null)
 
   // Estado del juego
   const controls = useGameStore((state) => state.controls)
   const isPaused = useGameStore((state) => state.isPaused)
   const selectedCharacter = useGameStore((state) => state.selectedCharacter)
+  const acrobaticFlip = useGameStore((state) => state.acrobaticFlip)
   const setPosition = useGameStore((state) => state.setPosition)
   const setRotation = useGameStore((state) => state.setRotation)
   const updateDistanceTraveled = useGameStore((state) => state.updateDistanceTraveled)
@@ -756,8 +756,35 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       const shake = isIronMan ? flightRuntime.shake : 0
       const jitterX = (Math.sin(t * 61) + Math.sin(t * 37 + 1.3)) * 0.5 * 0.03 * shake
       const jitterY = (Math.sin(t * 53 + 0.7) + Math.sin(t * 29)) * 0.5 * 0.03 * shake
+
+      // Animación de giro acrobático discreto por toque (360° en cabeceo con arco vertical)
+      if (acrobaticFlip && (!acrobaticStateRef.current || acrobaticStateRef.current.lastId !== acrobaticFlip.id)) {
+        acrobaticStateRef.current = {
+          direction: acrobaticFlip.direction,
+          progress: 0,
+          duration: 0.82,
+          lastId: acrobaticFlip.id,
+        }
+      }
+
+      let loopAngle = 0
+      let loopAltitudeArc = 0
+      if (acrobaticStateRef.current) {
+        const trick = acrobaticStateRef.current
+        trick.progress += delta / trick.duration
+        const p = Math.min(1, trick.progress)
+        const ease = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+        const sign = trick.direction === 'up' ? 1 : -1
+        loopAngle = sign * Math.PI * 2 * ease
+        loopAltitudeArc = Math.sin(p * Math.PI) * (trick.direction === 'up' ? 1.9 : -1.6)
+
+        if (p >= 1) {
+          acrobaticStateRef.current = null
+        }
+      }
+
       modelAnchorRef.current.position.x = jitterX
-      modelAnchorRef.current.position.y = hoverBobbing + jitterY
+      modelAnchorRef.current.position.y = hoverBobbing + jitterY + loopAltitudeArc
 
       // Inclinación dinámica visual del modelo (Pitch al acelerar/frenar y Roll al virar)
       // La armadura adopta una inclinación a -78° hacia adelante (vuelo horizontal "acostado" estilo torpedo)
@@ -776,8 +803,8 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       modelAnchorRef.current.rotation.x = THREE.MathUtils.lerp(
         modelAnchorRef.current.rotation.x,
         targetPitch,
-        delta * 5
-      )
+        delta * 6
+      ) + loopAngle
       modelAnchorRef.current.rotation.z = THREE.MathUtils.lerp(
         modelAnchorRef.current.rotation.z,
         targetRoll + windSway,

@@ -15,7 +15,7 @@ export function GameHUD() {
 
   const selectedCharacter = useGameStore((state) => state.selectedCharacter)
   const setSelectedCharacter = useGameStore((state) => state.setSelectedCharacter)
-  const isIronManFlipped = useGameStore((state) => state.isIronManFlipped)
+  const acrobaticFlip = useGameStore((state) => state.acrobaticFlip)
   const flight = useGameStore((state) => state.flight)
   const flightMode = useGameStore((state) => state.flightMode)
   const toggleFlightMode = useGameStore((state) => state.toggleFlightMode)
@@ -87,16 +87,16 @@ export function GameHUD() {
           <span>{currentProfile.icon}</span>
           <span>{currentProfile.name}</span>
         </div>
-        <div style={{ fontSize: '0.68rem', color: currentProfile.badgeColor, marginBottom: 2 }}>
+        <div className="hud-desktop-only" style={{ fontSize: '0.68rem', color: currentProfile.badgeColor, marginBottom: 2 }}>
           {currentProfile.title} • {currentProfile.realMetrics.heightOrLength}
         </div>
         <div className="hud-status">
           {isPaused
             ? '⏸ PAUSADO'
-            : selectedCharacter === 'iron_man' && isIronManFlipped
-            ? Math.abs(velocity) > 0.5
-              ? '🔄 Supersónico Boca Arriba (Cielo)'
-              : '🔄 Mirando al Usuario'
+            : acrobaticFlip
+            ? acrobaticFlip.direction === 'up'
+              ? '⤴ Giro Acrobático (Loop)'
+              : '⤵ Giro Acrobático (Picado)'
             : Math.abs(velocity) > 0.5
             ? '▶ Volando'
             : '🌸 Suspendido'}
@@ -172,7 +172,7 @@ export function GameHUD() {
               </span>
             </div>
 
-            <div className="hud-flight-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+            <div className="hud-flight-row hud-desktop-only" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
               <span style={{ color: '#aaa' }}>Empuje:</span>
               <span>
                 <strong>{flight.thrustPct.toFixed(0)}%</strong>
@@ -182,14 +182,14 @@ export function GameHUD() {
               </span>
             </div>
 
-            <div className="hud-flight-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+            <div className="hud-flight-row hud-desktop-only" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
               <span style={{ color: '#aaa' }}>Energía:</span>
               <span style={{ color: flight.lowEnergy ? '#FF4444' : '#38BDF8' }}>
                 <strong>{flight.energy.toFixed(0)}%</strong>
               </span>
             </div>
 
-            <div className="hud-flight-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+            <div className="hud-flight-row hud-desktop-only" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
               <span style={{ color: '#aaa' }}>Núcleo:</span>
               <span style={{ color: flight.overheated ? '#FF4444' : flight.heat > 60 ? '#FFAA33' : '#aaa' }}>
                 <strong>{flight.heat.toFixed(0)}°C</strong>
@@ -197,7 +197,7 @@ export function GameHUD() {
               </span>
             </div>
 
-            <div className="hud-flight-row" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+            <div className="hud-flight-row hud-desktop-only" style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
               <span style={{ color: '#aaa' }}>Carga G:</span>
               <strong>{flight.gLoad.toFixed(1)} G</strong>
             </div>
@@ -207,7 +207,7 @@ export function GameHUD() {
               <strong>{altitude.toFixed(1)} m</strong>
             </div>
 
-            <div style={{ marginTop: 4, textAlign: 'right' }}>
+            <div className="hud-desktop-only" style={{ marginTop: 4, textAlign: 'right' }}>
               <button
                 onClick={toggleFlightMode}
                 style={{

@@ -33,12 +33,15 @@ export function useGameControls() {
         return
       }
 
-      // Truco acrobático de la Armadura JarBees (BEE-01 Vesper) con T o F (también disponible haciendo clic directo sobre ella)
-      if (e.code === 'KeyT' || e.code === 'KeyF') {
+      // Trucos acrobáticos discretos por toque (T: Looping Arriba, F: Picado Abajo)
+      if (e.code === 'KeyT') {
         e.preventDefault()
-        if (useGameStore.getState().selectedCharacter === 'iron_man') {
-          useGameStore.getState().toggleIronManFlip()
-        }
+        useGameStore.getState().triggerAcrobaticFlip('up')
+        return
+      }
+      if (e.code === 'KeyF') {
+        e.preventDefault()
+        useGameStore.getState().triggerAcrobaticFlip('down')
         return
       }
 

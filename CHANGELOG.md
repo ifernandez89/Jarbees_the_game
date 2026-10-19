@@ -1,5 +1,20 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.9] - 2026-10-19
+
+### 📱 Optimización de UI Móvil, Giros Acrobáticos Discretos y Retiro de Turbo
+
+#### Optimizado
+- **Controles Táctiles Móviles (`components/MobileTouchControls.tsx`)**:
+  - **Eliminación del botón ⚡TURBO**: Se eliminó por completo el botón de postquemador en pantallas táctiles que sobrecargaba la esquina inferior derecha y se superponía a la telemetría.
+  - **Giros Acrobáticos Limitados por Toque (Arriba y Abajo)**: Sustituido el botón de giro continuo `🔄` (que invertía la orientación a 180° indefinidamente) por dos botones discretos en el centro del D-Pad:
+    - `⤴` **Giro hacia arriba (Looping 360°)**: Maniobra vertical con arco de ascenso (+1.9m) que recupera automáticamente la horizontalidad frontal.
+    - `⤵` **Giro hacia abajo (Picado 360°)**: Inmersión vertical controlada (-1.6m) con salida suave a nivel de vuelo.
+    - Cada toque ejecuta una acrobacia acotada de 0.82s sin desorientar al usuario ni dejar al personaje volando de espaldas.
+- **Simplificación del HUD de Telemetría en Móviles (`components/GameHUD.tsx` & `app/globals.css`)**:
+  - Saneamiento de pantalla en smartphones/tablets: se ocultan filas secundarias de telemetría técnica (`Empuje`, `Energía`, `Núcleo °C`, `Carga G`, botón redundante `MODO` y descripciones extensas) mediante `.hud-desktop-only`.
+  - El HUD móvil queda reducido a un indicador ultraligero y nítido (Mach, km/h, insignia de régimen y altitud) ubicado arriba a la derecha sin ninguna colisión con los botones de `SUBIR` / `BAJAR`.
+
 ## [0.8.8] - 2026-10-19
 
 ### 🛡️ Armadura Berserker Gladiator Protocol (BEE-01 Vesper), Visor Cibernético HUD y Optimización de Rendimiento WebGL
@@ -19,6 +34,15 @@
   - Visor cilíndrico interior emisor en Cian Energético (`#55F0FF`, intensidad 3.5) que brilla tras la ranura en T del casco.
 
 #### Optimizado
+- **Controles Táctiles Móviles y Giros Acrobáticos Discretos (`components/MobileTouchControls.tsx`, `components/BeePlayer.tsx`, `store/gameStore.ts`)**:
+  - **Eliminación del botón ⚡TURBO**: Suprimido el botón de postquemador en pantallas táctiles que sobrecargaba la esquina inferior derecha y se superponía a la telemetría.
+  - **Giros Acrobáticos Limitados por Toque (Arriba y Abajo)**: Sustituido el antiguo botón circular `🔄` (que invertía la orientación a 180° indefinidamente) por dos botones discretos en el centro del D-Pad:
+    - `⤴` **Giro hacia arriba (Looping 360°)**: Maniobra vertical con arco de ascenso (+1.9m) que recupera automáticamente la horizontalidad frontal.
+    - `⤵` **Giro hacia abajo (Picado 360°)**: Inmersión vertical controlada (-1.6m) con salida suave a nivel de vuelo.
+    - Cada toque ejecuta una acrobacia acotada de 0.82s sin desorientar al usuario ni dejar al personaje volando de espaldas.
+- **Simplificación del HUD de Telemetría en Móviles (`components/GameHUD.tsx` & `app/globals.css`)**:
+  - Saneamiento de pantalla en smartphones/tablets: se ocultan filas secundarias de telemetría técnica (`Empuje`, `Energía`, `Núcleo °C`, `Carga G`, botón redundante `MODO` y descripciones extensas) mediante `.hud-desktop-only`.
+  - El HUD móvil queda reducido a un indicador ultraligero y nítido (Mach, km/h, insignia de régimen y altitud) ubicado arriba a la derecha sin ninguna colisión con los botones de `SUBIR` / `BAJAR`.
 - **Rendimiento WebGL y Eliminación de Lag / Stuttering**:
   - **Decimación de Malla en un 75% (`scripts/create_jarbees_suit.py`)**: Los modelos CAD originales de impresión 3D superaban los 250,000 vértices de alta densidad, lo que saturaba el vertex shader y la deformación por huesos en Three.js. Se implementó un algoritmo de decimación adaptativo con ratio 0.25 que preserva los ángulos y aristas afiladas:
     - Escudo del plexo solar: de 28,000 a 8,000 vértices.
