@@ -40,6 +40,8 @@ def create_jarbees_suit():
     COL_VIOLET = hex_to_rgb('#35205B')
     COL_TITANIUM = hex_to_rgb('#A8C4D5')
     COL_CYAN = hex_to_rgb('#55F0FF')
+    COL_STEALTH_BLACK = hex_to_rgb('#08080C')
+    COL_CARBON_BLACK = hex_to_rgb('#060608')
 
     def get_or_create_mat(name, base_col, roughness=0.25, metallic=0.85, is_emissive=False, emissive_strength=1.0):
         mat = bpy.data.materials.get(name)
@@ -54,12 +56,19 @@ def create_jarbees_suit():
             if is_emissive:
                 bsdf.inputs['Emission Color'].default_value = base_col
                 bsdf.inputs['Emission Strength'].default_value = emissive_strength
+            else:
+                if 'Emission Color' in bsdf.inputs:
+                    bsdf.inputs['Emission Color'].default_value = (0.0, 0.0, 0.0, 1.0)
+                if 'Emission Strength' in bsdf.inputs:
+                    bsdf.inputs['Emission Strength'].default_value = 0.0
         return mat
 
     mat_petroleum = get_or_create_mat('JarBees_PetroleumBlue', COL_PETROLEUM, roughness=0.26, metallic=0.82)
     mat_violet = get_or_create_mat('JarBees_DeepViolet', COL_VIOLET, roughness=0.22, metallic=0.78)
     mat_titanium = get_or_create_mat('JarBees_ColdTitanium', COL_TITANIUM, roughness=0.18, metallic=0.88)
-    mat_cyan_glow = get_or_create_mat('JarBees_CyanEnergy', COL_CYAN, roughness=0.10, metallic=0.0, is_emissive=True, emissive_strength=4.5)
+    mat_cyan_glow = get_or_create_mat('JarBees_CyanEnergy', COL_CYAN, roughness=0.10, metallic=0.0, is_emissive=True, emissive_strength=3.5)
+    mat_stealth_black = get_or_create_mat('JarBees_StealthBlack', COL_STEALTH_BLACK, roughness=0.12, metallic=0.92, is_emissive=False)
+    mat_carbon_black = get_or_create_mat('JarBees_CarbonBlack', COL_CARBON_BLACK, roughness=0.22, metallic=0.85, is_emissive=False)
 
     # Reasignar materiales en los objetos originales
     for obj in bpy.context.scene.objects:
@@ -72,8 +81,39 @@ def create_jarbees_suit():
                     slot.material = mat_violet
                 elif 'Silver' in old_name:
                     slot.material = mat_titanium
-                elif 'Arc_Reactor' in old_name or 'Lights' in old_name or 'Glass' in old_name:
+                elif 'Arc_Reactor' in old_name or 'Glass' in old_name:
+                    # El reactor de Iron Man queda completamente en Negro Carbón Stealth
+                    slot.material = mat_carbon_black
+                elif 'Lights' in old_name:
                     slot.material = mat_cyan_glow
+
+    # Transformación Stealth Black en Cara/Ojos y Reactor (eliminación total de Iron Man)
+    # 1. En Object_13 (antigua máscara/faceplate dorada de Iron Man), reasignar polígonos faciales a Stealth Black
+    obj_13 = bpy.data.objects.get('Object_13')
+    if obj_13 and 'mixamorig:Head_06' in obj_13.vertex_groups:
+        obj_13.data.materials.append(mat_stealth_black)
+        black_idx13 = len(obj_13.data.materials) - 1
+        vg_head_13 = obj_13.vertex_groups['mixamorig:Head_06'].index
+        for p in obj_13.data.polygons:
+            if any(any(g.group == vg_head_13 and g.weight > 0.5 for g in obj_13.data.vertices[v].groups) for v in p.vertices):
+                p.material_index = black_idx13
+
+    # 2. En Object_18 (luces), reasignar ojos (Head_06) y núcleo del pecho (Spine1_03) a Stealth Black (dejando propulsores en cian)
+    obj_18 = bpy.data.objects.get('Object_18')
+    if obj_18:
+        obj_18.data.materials.append(mat_stealth_black)
+        black_idx18 = len(obj_18.data.materials) - 1
+        vg_head_18 = obj_18.vertex_groups.get('mixamorig:Head_06')
+        vg_spine_18 = obj_18.vertex_groups.get('mixamorig:Spine1_03')
+        head_idx = vg_head_18.index if vg_head_18 else -1
+        spine_idx = vg_spine_18.index if vg_spine_18 else -1
+        for p in obj_18.data.polygons:
+            is_eye_or_chest = any(
+                any((g.group == head_idx or g.group == spine_idx) and g.weight > 0.5 for g in obj_18.data.vertices[v].groups)
+                for v in p.vertices
+            )
+            if is_eye_or_chest:
+                p.material_index = black_idx18
 
     # -------------------------------------------------------------
     # 2. MODELADO GEOMÉTRICO EXCLUSIVO: VISOR Y ANTENAS EN CASCO
@@ -111,7 +151,7 @@ def create_jarbees_suit():
     
     obj_visor = bpy.data.objects.new('JarBees_Helmet_Visor', mesh_visor)
     bpy.context.scene.collection.objects.link(obj_visor)
-    obj_visor.data.materials.append(mat_cyan_glow)
+    obj_visor.data.materials.append(mat_stealth_black)
 
     # Antenas / sensores laterales de abeja en los costados del casco
     mesh_ant = bpy.data.meshes.new('JarBees_Antennae_Mesh')
@@ -183,11 +223,11 @@ def create_jarbees_suit():
 
     obj_hex = bpy.data.objects.new('JarBees_Chest_HexCore', mesh_hex)
     bpy.context.scene.collection.objects.link(obj_hex)
-    obj_hex.data.materials.append(mat_cyan_glow)
-    obj_hex.data.materials.append(mat_titanium)
-    # Asignar material titanio al borde exterior
-    for poly in obj_hex.data.polygons[1:]:
-        poly.material_index = 1
+    obj_hex.data.materials.append(mat_carbon_black)
+    obj_hex.data.materials.append(mat_carbon_black)
+    # Ambas caras y bisel en Negro Carbón Stealth
+    for poly in obj_hex.data.polygons:
+        poly.material_index = 0
 
     # -------------------------------------------------------------
     # 4. ESTABILIZADORES DORSALES GEMELOS (ALETAS DE ENJAMBRE)

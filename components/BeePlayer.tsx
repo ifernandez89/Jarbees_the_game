@@ -290,17 +290,47 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
         if (mesh.material) {
           const mat = mesh.material as THREE.MeshStandardMaterial
           const matName = mat.name || ''
+          const meshName = mesh.name || ''
 
           if (mat.map) {
             mat.map.colorSpace = THREE.SRGBColorSpace
             mat.map.needsUpdate = true
           }
 
-          if (matName.includes('Cyan') || matName.includes('Arc_Reactor') || matName.includes('Lights') || matName.includes('Glass')) {
-            // Cian Energético (#55F0FF) - Reactor Hex-Core, visor y sensores
+          // 1. CARA Y OJOS: Negro Obsidiana Polarizado (Elimina completamente la cara dorada y los ojos de Iron Man)
+          const isFaceOrEyes =
+            meshName.includes('JarBees_Helmet_Visor') ||
+            matName.includes('StealthBlack')
+
+          // 2. REACTOR DEL PECHO: Negro Carbón Stealth (Elimina el reactor circular y destellos de Iron Man)
+          const isChestReactor =
+            meshName.includes('JarBees_Chest_HexCore') ||
+            meshName.includes('Object_10') ||
+            meshName.includes('Object_11') ||
+            meshName.includes('Object_20') ||
+            matName.includes('Arc_Reactor') ||
+            matName.includes('Glass') ||
+            matName.includes('CarbonBlack')
+
+          if (isFaceOrEyes) {
+            // Visor táctico y máscara facial en Negro Obsidiana Polarizado puro
+            mat.color = new THREE.Color('#08080c')
+            mat.emissive = new THREE.Color('#000000')
+            mat.emissiveIntensity = 0
+            mat.roughness = 0.12
+            mat.metalness = 0.92
+          } else if (isChestReactor) {
+            // Reactor del pecho en Negro Carbón Stealth profundo
+            mat.color = new THREE.Color('#060608')
+            mat.emissive = new THREE.Color('#000000')
+            mat.emissiveIntensity = 0
+            mat.roughness = 0.22
+            mat.metalness = 0.85
+          } else if (matName.includes('Cyan')) {
+            // Acentos de energía cian en sensores y propulsores
             mat.color = new THREE.Color('#55F0FF')
             mat.emissive = new THREE.Color('#55F0FF')
-            mat.emissiveIntensity = 4.8
+            mat.emissiveIntensity = 3.5
             mat.toneMapped = false
           } else if (matName.includes('Petroleum') || matName.includes('Red_Part')) {
             // Azul Petróleo (#102D46, 60%) - Estructura y carrocería principal
@@ -432,19 +462,13 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
         <primitive object={sceneClone} />
 
         {/* =====================================================================
-            LUZ INTERNA OCULTA DENTRO DEL CUERPO (Detrás del Hex-Core del pecho)
-            Sin esferas ni conos flotando en el aire exterior
+            ACABADO STEALTH NEGRO CARBÓN: Sin luz emisiva en el pecho
+            para que el reactor y la cara permanezcan completamente negros
             ===================================================================== */}
         <mesh position={[0, 0.35, 0.04]}>
           <sphereGeometry args={[0.032, 16, 16]} />
-          <meshBasicMaterial color="#55F0FF" />
+          <meshBasicMaterial color="#060608" />
         </mesh>
-        <pointLight
-          position={[0, 0.35, 0.10]}
-          color="#55F0FF"
-          intensity={2.8}
-          distance={2.5}
-        />
       </group>
     </group>
   )
