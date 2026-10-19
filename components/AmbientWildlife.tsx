@@ -57,11 +57,20 @@ function HummingbirdEntity({
   // Clonación correcta para modelos con Armature/Esqueleto
   const sceneClone = useMemo(() => {
     const cloned = clone(gltf.scene)
-    // Asegurar sombras y visibilidad de materiales
+    // Asegurar sombras, visibilidad de materiales y colores sRGB
     cloned.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         child.castShadow = true
         child.frustumCulled = false
+        const mesh = child as THREE.Mesh
+        if (mesh.material) {
+          const mat = mesh.material as THREE.MeshStandardMaterial
+          if (mat.map) {
+            mat.map.colorSpace = THREE.SRGBColorSpace
+            mat.map.needsUpdate = true
+          }
+          mat.needsUpdate = true
+        }
       }
     })
     console.log('🐦 Colibrí instanciado con éxito')
@@ -186,6 +195,15 @@ function ButterflyEntity({
       if ((child as THREE.Mesh).isMesh) {
         child.castShadow = true
         child.frustumCulled = false
+        const mesh = child as THREE.Mesh
+        if (mesh.material) {
+          const mat = mesh.material as THREE.MeshStandardMaterial
+          if (mat.map) {
+            mat.map.colorSpace = THREE.SRGBColorSpace
+            mat.map.needsUpdate = true
+          }
+          mat.needsUpdate = true
+        }
       }
     })
     console.log('🦋 Mariposa instanciada con éxito')

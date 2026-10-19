@@ -33,6 +33,15 @@ export function useGameControls() {
         return
       }
 
+      // Truco acrobático de Iron Man con T o F (también disponible haciendo clic directo sobre él)
+      if (e.code === 'KeyT' || e.code === 'KeyF') {
+        e.preventDefault()
+        if (useGameStore.getState().selectedCharacter === 'iron_man') {
+          useGameStore.getState().toggleIronManFlip()
+        }
+        return
+      }
+
       // Evitar controles de vuelo si está pausado
       if (isPaused) return
 

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { ChunkManager } from '@/systems/ChunkManager'
+import type { CharacterId } from '@/types/characters'
 
 export interface GameState {
   // Posición de la abeja
@@ -46,7 +47,16 @@ export interface GameState {
   // Referencias al sistema de terreno
   terrainManager: ChunkManager | null
   
+  // Personaje activo y modal de especificaciones
+  selectedCharacter: CharacterId
+  isSpecsModalOpen: boolean
+  isIronManFlipped: boolean
+
   // Acciones
+  setSelectedCharacter: (character: CharacterId) => void
+  toggleIronManFlip: () => void
+  setIronManFlipped: (flipped: boolean) => void
+  setSpecsModalOpen: (open: boolean) => void
   setPosition: (position: [number, number, number]) => void
   setRotation: (rotation: [number, number, number]) => void
   setVelocity: (velocity: number) => void
@@ -95,10 +105,20 @@ const initialState = {
   audioEnabled: true,
   musicVolume: 0.65,
   sfxVolume: 0.7,
+  selectedCharacter: 'bee' as CharacterId,
+  isSpecsModalOpen: false,
+  isIronManFlipped: false,
 }
 
 export const useGameStore = create<GameState>((set) => ({
   ...initialState,
+  
+  setSelectedCharacter: (selectedCharacter) =>
+    set({ selectedCharacter, isIronManFlipped: false }),
+  toggleIronManFlip: () =>
+    set((state) => ({ isIronManFlipped: !state.isIronManFlipped })),
+  setIronManFlipped: (isIronManFlipped) => set({ isIronManFlipped }),
+  setSpecsModalOpen: (isSpecsModalOpen) => set({ isSpecsModalOpen }),
   
   setPosition: (position) => set({ position }),
   

@@ -49,24 +49,26 @@ const nextConfig = {
     return config;
   },
 
-  // Headers para CORS (necesario para algunos assets en servidor)
-  async headers() {
-    return [
-      {
-        source: '/models/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET' },
-        ],
-      },
-      {
-        source: '/audio/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-        ],
-      },
-    ];
-  },
+  // Headers para CORS (solo cuando no es export estático para evitar warning en GitHub Pages)
+  ...(isGithubPages ? {} : {
+    async headers() {
+      return [
+        {
+          source: '/models/:path*',
+          headers: [
+            { key: 'Access-Control-Allow-Origin', value: '*' },
+            { key: 'Access-Control-Allow-Methods', value: 'GET' },
+          ],
+        },
+        {
+          source: '/audio/:path*',
+          headers: [
+            { key: 'Access-Control-Allow-Origin', value: '*' },
+          ],
+        },
+      ];
+    },
+  }),
 
   // Optimizaciones de producción
   compress: true,

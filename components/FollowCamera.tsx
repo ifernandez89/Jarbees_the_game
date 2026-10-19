@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore } from '@/store/gameStore'
+import { CHARACTER_PROFILES } from '@/types/characters'
 
 export function FollowCamera() {
   const { camera, scene } = useThree()
@@ -20,11 +21,12 @@ export function FollowCamera() {
 
   const isFirstFrame = useRef(true)
   const isPaused = useGameStore((state) => state.isPaused)
+  const selectedCharacter = useGameStore((state) => state.selectedCharacter)
 
   useFrame((_, delta) => {
     if (isPaused) return
 
-    // Obtener y cachear referencia directa al nodo 3D de la abeja
+    // Obtener y cachear referencia directa al nodo 3D de la abeja / personaje
     // Esto elimina por completo el desfase de 1 a 2 frames provocado por el estado de React/Zustand
     if (!beeRef.current) {
       beeRef.current = scene.getObjectByName('beePlayer') || null
@@ -32,13 +34,15 @@ export function FollowCamera() {
     const bee = beeRef.current
     if (!bee) return
 
-    // Matriz de rotación horizontal de la abeja (Yaw)
+    // Matriz de rotación horizontal del personaje (Yaw)
     rotationMatrix.current.makeRotationY(bee.rotation.y)
 
-    // Offset de la cámara:
-    // +0.70m por encima en Y (ángulo cenital elevado)
-    // +1.80m por detrás en Z (viendo la espalda y alas hacia el horizonte)
-    cameraOffset.current.set(0, 0.70, 1.8)
+    // Perfil dinámico de cámara según personaje (macro para insectos vs gran escala para Iron Man)
+    const profile = CHARACTER_PROFILES[selectedCharacter] || CHARACTER_PROFILES.bee
+    const [cOffX, cOffY, cOffZ] = profile.camera.offset
+    const [lOffX, lOffY, lOffZ] = profile.camera.lookOffset
+
+    cameraOffset.current.set(cOffX, cOffY, cOffZ)
     cameraOffset.current.applyMatrix4(rotationMatrix.current)
 
     // Posición objetivo de la cámara
@@ -49,7 +53,7 @@ export function FollowCamera() {
     )
 
     // Punto focal (lookAt) hacia adelante (-Z), proyectado con la misma orientación
-    forwardLookOffset.current.set(0, 0.05, -1.2)
+    forwardLookOffset.current.set(lOffX, lOffY, lOffZ)
     forwardLookOffset.current.applyMatrix4(rotationMatrix.current)
     targetLookAt.current.set(
       bee.position.x + forwardLookOffset.current.x,

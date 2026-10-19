@@ -97,15 +97,21 @@ async function loadGameAudio(manager: AudioManager) {
 
     // 2. Efectos de sonido del juego (zumbido suavizado a 0.08 por defecto)
     await manager.loadSound('bee_buzz', getAssetPath('/audio/bee_buzz.wav'), { loop: true, volume: 0.08 })
+    await manager.loadSound('colibri_flutter', getAssetPath('/audio/colibri_flutter.wav'), { loop: true, volume: 0.0 })
+    await manager.loadSound('butterfly_flutter', getAssetPath('/audio/butterfly_flutter.wav'), { loop: true, volume: 0.0 })
+    await manager.loadSound('iron_man_thruster', getAssetPath('/audio/iron_man_thruster.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('wind', getAssetPath('/audio/wind_loop.wav'), { loop: true, volume: 0.25 })
     await manager.loadSound('crickets', getAssetPath('/audio/night_crickets.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('pause', getAssetPath('/audio/pause.wav'), { loop: false, volume: 0.4 })
 
     console.log('✅ Todos los audios de JarBees cargados con éxito')
 
-    // Iniciar bucles de ambiente y zumbido suave de abeja
+    // Iniciar bucles de ambiente y sonido de vuelo
     manager.playMusic('ambient', 2.5)
     manager.playLoop('bee_buzz', 0.08)
+    manager.playLoop('colibri_flutter', 0.0)
+    manager.playLoop('butterfly_flutter', 0.0)
+    manager.playLoop('iron_man_thruster', 0.0)
     manager.playLoop('wind', 0.25)
     manager.playLoop('crickets', 0.0)
   } catch (error) {

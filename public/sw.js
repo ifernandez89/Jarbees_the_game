@@ -11,7 +11,13 @@ const PRECACHE_ASSETS = [
   './icons/apple-touch-icon.png',
   './icons/jarbees_game_logo.png',
   './models/bee.jb3d',
+  './models/colibri.jb3d',
+  './models/butterfly.jb3d',
+  './models/iron_man.jb3d',
   './audio/bee_buzz.wav',
+  './audio/colibri_flutter.wav',
+  './audio/butterfly_flutter.wav',
+  './audio/iron_man_thruster.wav',
   './audio/ambient_music.wav',
   './audio/wind_loop.wav'
 ]

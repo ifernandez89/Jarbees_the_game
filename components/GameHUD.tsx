@@ -3,6 +3,7 @@
 import { useGameStore } from '@/store/gameStore'
 import { useEffect, useState } from 'react'
 import { useDayNightCycle } from '@/hooks/useDayNightCycle'
+import { CHARACTER_PROFILES } from '@/types/characters'
 
 export function GameHUD() {
   const isPaused = useGameStore((state) => state.isPaused)
@@ -11,9 +12,16 @@ export function GameHUD() {
   const altitude = useGameStore((state) => state.altitude)
   const dayNightEnabled = useGameStore((state) => state.dayNightEnabled)
   const audioEnabled = useGameStore((state) => state.audioEnabled)
-  
+
+  const selectedCharacter = useGameStore((state) => state.selectedCharacter)
+  const setSelectedCharacter = useGameStore((state) => state.setSelectedCharacter)
+  const isIronManFlipped = useGameStore((state) => state.isIronManFlipped)
+
   const [fps, setFps] = useState(60)
   const timeOfDay = useDayNightCycle(dayNightEnabled)
+
+  const currentProfile = CHARACTER_PROFILES[selectedCharacter] || CHARACTER_PROFILES.bee
+  const allCharacters = Object.values(CHARACTER_PROFILES)
 
   // Íconos según hora del día
   const timeIcons = {
@@ -31,13 +39,13 @@ export function GameHUD() {
     const measureFPS = () => {
       frameCount++
       const currentTime = performance.now()
-      
+
       if (currentTime >= lastTime + 1000) {
         setFps(frameCount)
         frameCount = 0
         lastTime = currentTime
       }
-      
+
       requestAnimationFrame(measureFPS)
     }
 
@@ -47,13 +55,48 @@ export function GameHUD() {
 
   return (
     <>
+      {/* Barra superior de Selección de Personaje */}
+      <div className="hud-character-bar">
+        {allCharacters.map((char) => {
+          const isActive = char.id === selectedCharacter
+          return (
+            <button
+              key={char.id}
+              onClick={() => setSelectedCharacter(char.id)}
+              className={`hud-char-btn ${isActive ? 'hud-char-btn-active' : ''}`}
+              style={{
+                background: isActive ? `${char.badgeColor}33` : 'transparent',
+                borderColor: isActive ? char.badgeColor : 'transparent',
+                color: isActive ? '#ffffff' : '#d1d5db',
+              }}
+              title={`${char.name} (${char.realMetrics.heightOrLength})`}
+            >
+              <span className="hud-char-icon">{char.icon}</span>
+              <span className="hud-char-label">{char.name.split(' ')[0]}</span>
+            </button>
+          )
+        })}
+      </div>
+
       {/* HUD superior izquierdo */}
       <div className="hud-card hud-panel-top-left">
-        <div className="hud-title">
-          🐝 JarBees: The Game
+        <div className="hud-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span>{currentProfile.icon}</span>
+          <span>{currentProfile.name}</span>
+        </div>
+        <div style={{ fontSize: '0.68rem', color: currentProfile.badgeColor, marginBottom: 2 }}>
+          {currentProfile.title} • {currentProfile.realMetrics.heightOrLength}
         </div>
         <div className="hud-status">
-          {isPaused ? '⏸ PAUSADO' : Math.abs(velocity) > 0.5 ? '▶ Volando' : '🌸 Suspendida'}
+          {isPaused
+            ? '⏸ PAUSADO'
+            : selectedCharacter === 'iron_man' && isIronManFlipped
+            ? Math.abs(velocity) > 0.5
+              ? '🔄 Supersónico Boca Arriba (Cielo)'
+              : '🔄 Mirando al Usuario'
+            : Math.abs(velocity) > 0.5
+            ? '▶ Volando'
+            : '🌸 Suspendido'}
         </div>
         {dayNightEnabled && (
           <div className="hud-clock">
@@ -78,7 +121,7 @@ export function GameHUD() {
         </button>
       </div>
 
-      {/* HUD de datos de vuelo (inferior derecho en PC / superior derecho compacto en Mobile) */}
+      {/* HUD de datos de vuelo */}
       <div className="hud-card hud-panel-flight-data">
         <div className="hud-flight-row">
           <span style={{ color: '#aaa' }}>Vel:</span>{' '}
@@ -97,9 +140,9 @@ export function GameHUD() {
         </div>
       </div>
 
-      {/* HUD inferior centro - Controles (se oculta automáticamente en mobile) */}
+      {/* HUD inferior centro - Controles */}
       <div className="hud-card hud-panel-controls">
-        ⬆️/W: Avanzar | ⬇️/S: Frenar | ⬅️➡️/A/D: Girar | ESPACIO: Subir | SHIFT: Bajar | ENTER: Pausa | M: Sonido
+        ⬆️/W: Avanzar | ⬇️/S: Frenar | ⬅️➡️/A/D: Girar | ESPACIO: Subir | SHIFT: Bajar{selectedCharacter === 'iron_man' ? ' | 🔄 Clic en Iron Man / T: Invertir Vista' : ''} | ENTER: Pausa | M: Sonido
       </div>
 
       {/* Pantalla de pausa */}
