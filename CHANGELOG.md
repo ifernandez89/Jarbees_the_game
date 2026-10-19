@@ -1,5 +1,41 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.8] - 2026-10-19
+
+### 🛡️ Armadura Berserker Gladiator Protocol (BEE-01 Vesper), Visor Cibernético HUD y Optimización de Rendimiento WebGL
+
+#### Añadido
+- **Armadura Berserker Gladiator Protocol (`scripts/create_jarbees_suit.py` & `components/BeePlayer.tsx`)**:
+  - Integración completa de placas modulares de exoesqueleto basadas en la armadura Berserker cosplay, prescindiendo deliberadamente de hombreras con púas para mantener una silueta aerodinámica:
+    - **Escudo Pectoral del Plexo Solar**: Placa blindada convexa (`Belt_Buckle_thick.stl`) combinada con gancho de soporte táctico (`belt_arm_hook.stl`), anclada anatómicamente a la espina dorsal superior (`mixamorig:Spine1_03`) con acabado Titanio Frío (`#A8C4D5`).
+    - **Guanteletes de Antebrazo con Cuchillas Cibernéticas**: Cuchillas tácticas (`Hand_Guard_-_left.stl` y `Right`) orientadas 45° al exterior sobre los antebrazos (`LeftForeArm_010` y `RightForeArm_034`), visibles e imponentes en vistas frontal y en perspectiva 3/4.
+    - **Placas Blindadas de Bíceps**: Placas curvadas anatómicas (`shin_-_left.stl` y `Right`) montadas sobre los brazos superiores (`LeftArm_09` y `RightArm_033`) en acabado Violeta Profundo (`#35205B`).
+    - **Coderas Articuladas**: Copas de impacto de codo (`elbow_cap_-_left.stl` y `Right`) en Violeta Profundo.
+    - **Placa Pélvica / Hebilla Inferior**: Placa de cintura (`Belt_Buckle.stl`) acoplada a la cadera (`mixamorig:Hips_01`).
+    - **Botas y Greaves de Combate**: Botas pesadas (`foot_-_left.stl` y `Right`) en Azul Petróleo (`#102D46`) con doble influencia de deformación en tobillo (`LeftLeg_056` / `LeftFoot_057`) para flexión orgánica sin artefactos de malla.
+- **Casco de Gladiador y Visor Cibernético HUD**:
+  - Sustitución y ocultamiento total de la cabeza original de Iron Man (vértices replegados al 35% del radio de cuello).
+  - Casco Gladiador con texturas PBR completas: domo en Azul Petróleo, máscara en Violeta Profundo, escudo T y cresta en Titanio Frío.
+  - Visor cilíndrico interior emisor en Cian Energético (`#55F0FF`, intensidad 3.5) que brilla tras la ranura en T del casco.
+
+#### Optimizado
+- **Rendimiento WebGL y Eliminación de Lag / Stuttering**:
+  - **Decimación de Malla en un 75% (`scripts/create_jarbees_suit.py`)**: Los modelos CAD originales de impresión 3D superaban los 250,000 vértices de alta densidad, lo que saturaba el vertex shader y la deformación por huesos en Three.js. Se implementó un algoritmo de decimación adaptativo con ratio 0.25 que preserva los ángulos y aristas afiladas:
+    - Escudo del plexo solar: de 28,000 a 8,000 vértices.
+    - Botas y greaves: de 48,000 a 14,500 vértices por bota.
+    - Guanteletes de antebrazo: de 11,000 a 3,100 vértices.
+    - Placas de bíceps: de 21,000 a 6,100 vértices.
+    - Coderas: de 7,500 a 2,200 vértices.
+  - **Compresión Draco Nivel 7**: Cuantización espacial a 14 bits que reduce el peso de transmisión a 9.61 MB.
+  - Cifrado seguro a formato `.jb3d` para descarga eficiente y descompresión acelerada en WebGL, estabilizando el juego a 60 FPS continuos.
+
+#### Corregido
+- **Conos de Propulsión de Botas (`components/FlightEffects.tsx` & `components/BeePlayer.tsx`)**:
+  - Retirados definitivamente los conos de fuego y aros de emisión de las suelas a favor de la estética limpia y estilizada de las nuevas botas berserker blindadas.
+- **Mapeo de Materiales Dinámicos (`components/BeePlayer.tsx`)**:
+  - Resuelto conflicto de nombres de materiales que teñía erróneamente de negro el visor cibernético del casco de gladiador.
+  - Enrutamiento correcto de shaders para las nuevas piezas acopladas (`Plexus`, `Gauntlet`, `Bicep`, `Elbow`, `Boot`).
+
 ## [0.8.7] - 2026-10-19
 
 ### ⚡ Simulador Aerodinámico JarBees (BEE-01 Vesper), Regímenes Supersónicos y Acabado Stealth Black

@@ -42,6 +42,30 @@ blender --background --python add_bee_wing_animation.py
 
 ---
 
+### 3. `create_jarbees_suit.py`
+
+Genera y ensambla la armadura completa y personalizada de **Vesper (BEE-01 Gladiator Protocol)**:
+- Encaste y ocultamiento anatómico de la cabeza original de Iron Man.
+- Integración de **Casco de Gladiador** con texturas PBR y visor HUD cibernético cian.
+- Accesorios exclusivos JarBees: **Hex-Core** en el pecho y **Aletas Dorsales**.
+- Placas de armadura berserker:
+  - **Escudo Pectoral del Plexo Solar** (`Belt_Buckle_thick.stl`) con gancho táctico (`belt_arm_hook.stl`).
+  - **Guanteletes y Cuchillas de Antebrazo** (`Hand_Guard`).
+  - **Placas de Bíceps** (`shin_-_left` / `right`).
+  - **Coderas Articuladas** (`elbow_cap`).
+  - **Placa Pélvica / Hebilla** (`Belt_Buckle.stl`).
+  - **Botas y Greaves Blindadas** (`foot_-_left` / `right`) con deformación suave bicomponente.
+- Rigging esquelético al armature de Mixamo con animaciones cinemáticas `hover` y `flight`.
+- Compresión Draco y exportación a `assets_source/models/jarbees_suit.glb`.
+
+**Uso:**
+```bash
+& 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe' -b -P scripts/create_jarbees_suit.py
+node scripts/protect-models.js
+```
+
+---
+
 ## 🚀 Workflow Recomendado
 
 ### Optimizar Modelo de Abeja

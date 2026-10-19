@@ -10,7 +10,6 @@ import { getAudioManager } from '@/hooks/useAudio'
 import { getAssetPath } from '@/utils/assetPath'
 import { CHARACTER_PROFILES, CharacterId } from '@/types/characters'
 import { FlightDynamics, flightRuntime } from '@/systems/FlightDynamics'
-import { SuitThrusterFlames } from '@/components/FlightEffects'
 import type { GLTF } from 'three-stdlib'
 
 type GLTFResult = GLTF & {
@@ -302,14 +301,22 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
             mat.map.needsUpdate = true
           }
 
-          // 1. CARA Y OJOS: Negro Obsidiana Polarizado (Elimina completamente la cara dorada y los ojos de Iron Man)
-          const isFaceOrEyes =
-            meshName.includes('JarBees_Helmet_Visor') ||
-            matName.includes('StealthBlack')
+          // 1. CASCO GLADIADOR JARBEES (Texturas PBR de alta fidelidad)
+          const isHelmet =
+            meshName.includes('JarBees_Gladiator_Helmet') ||
+            matName.includes('Helmet')
 
-          // 2. REACTOR DEL PECHO: Negro Carbón Stealth (Elimina el reactor circular y destellos de Iron Man)
-          const isChestReactor =
-            meshName.includes('JarBees_Chest_HexCore') ||
+          // 2. NÚCLEO HEXAGONAL JARBEES (Reactor central cian)
+          const isHexCore = meshName.includes('JarBees_Chest_HexCore')
+
+          // 3. CARA Y OJOS ANTIGUOS DE IRON MAN (Eliminados en Stealth Black)
+          const isOldIronManFace =
+            (meshName.includes('JarBees_Helmet_Visor') || matName.includes('StealthBlack')) &&
+            !meshName.includes('CyberVisor') &&
+            !matName.includes('Cyan')
+
+          // 4. ANTIGUO REACTOR CIRCULAR DE IRON MAN (Apagado en Carbón Stealth)
+          const isOldIronManReactor =
             meshName.includes('Object_10') ||
             meshName.includes('Object_11') ||
             meshName.includes('Object_20') ||
@@ -317,41 +324,71 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
             matName.includes('Glass') ||
             matName.includes('CarbonBlack')
 
-          if (isFaceOrEyes) {
-            // Visor táctico y máscara facial en Negro Obsidiana Polarizado puro
+          if (isHexCore || meshName.includes('CyberVisor') || matName.includes('Cyan')) {
+            // Núcleo hexagonal, visor cibernético y propulsores de plasma en Cian Energético
+            mat.color = new THREE.Color('#55F0FF')
+            mat.emissive = new THREE.Color('#55F0FF')
+            mat.emissiveIntensity = 3.5
+            mat.toneMapped = false
+          } else if (isHelmet) {
+            // El casco gladiador preserva sus texturas PBR calibradas
+            if (mat.map) {
+              mat.color = new THREE.Color('#ffffff')
+            }
+            if (matName.includes('Petroleum')) {
+              mat.roughness = 0.25
+              mat.metalness = 0.84
+            } else if (matName.includes('Violet')) {
+              mat.roughness = 0.22
+              mat.metalness = 0.80
+            } else if (matName.includes('Titanium')) {
+              mat.roughness = 0.16
+              mat.metalness = 0.90
+            }
+          } else if (isOldIronManFace) {
+            // Cara original de Iron Man en Negro Obsidiana Polarizado puro
             mat.color = new THREE.Color('#08080c')
             mat.emissive = new THREE.Color('#000000')
             mat.emissiveIntensity = 0
             mat.roughness = 0.12
             mat.metalness = 0.92
-          } else if (isChestReactor) {
-            // Reactor del pecho en Negro Carbón Stealth profundo
+          } else if (isOldIronManReactor) {
+            // Antiguo reactor circular apagado en Negro Carbón Stealth
             mat.color = new THREE.Color('#060608')
             mat.emissive = new THREE.Color('#000000')
             mat.emissiveIntensity = 0
             mat.roughness = 0.22
             mat.metalness = 0.85
-          } else if (matName.includes('Cyan')) {
-            // Acentos de energía cian en sensores y propulsores
-            mat.color = new THREE.Color('#55F0FF')
-            mat.emissive = new THREE.Color('#55F0FF')
-            mat.emissiveIntensity = 3.5
-            mat.toneMapped = false
-          } else if (matName.includes('Petroleum') || matName.includes('Red_Part')) {
-            // Azul Petróleo (#102D46, 60%) - Estructura y carrocería principal
+          } else if (
+            matName.includes('Titanium') ||
+            matName.includes('Silver_Part') ||
+            meshName.includes('Plexus') ||
+            meshName.includes('Gauntlet') ||
+            meshName.includes('Belt')
+          ) {
+            // Titanio Frío (#A8C4D5, 15%) - Escudo de plexo, guanteletes con cuchillas, hebilla y biseles
+            mat.color = new THREE.Color('#A8C4D5')
+            mat.roughness = 0.16
+            mat.metalness = 0.90
+          } else if (
+            matName.includes('Violet') ||
+            matName.includes('Gold_Part') ||
+            meshName.includes('Bicep') ||
+            meshName.includes('Elbow')
+          ) {
+            // Violeta Profundo (#35205B, 20%) - Placas de bíceps, coderas y hombros
+            mat.color = new THREE.Color('#35205B')
+            mat.roughness = 0.22
+            mat.metalness = 0.80
+          } else if (
+            matName.includes('Petroleum') ||
+            matName.includes('Red_Part') ||
+            meshName.includes('Boot')
+          ) {
+            // Azul Petróleo (#102D46, 60%) - Carrocería principal y greaves de botas
             mat.color = new THREE.Color('#102D46')
             mat.roughness = 0.26
             mat.metalness = 0.82
-          } else if (matName.includes('Violet') || matName.includes('Gold_Part')) {
-            // Violeta Profundo (#35205B, 20%) - Placas secundarias, hombros y antebrazos
-            mat.color = new THREE.Color('#35205B')
-            mat.roughness = 0.22
-            mat.metalness = 0.78
-          } else if (matName.includes('Titanium') || matName.includes('Silver_Part')) {
-            // Titanio Frío (#A8C4D5, 15%) - Biseles, articulaciones expuestas y exoesqueleto
-            mat.color = new THREE.Color('#A8C4D5')
-            mat.roughness = 0.18
-            mat.metalness = 0.88
           }
           mat.needsUpdate = true
         }
@@ -449,8 +486,6 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       <pointLight position={[0, -0.5, -2.2]} intensity={2.0} color="#55F0FF" distance={6} />
       <directionalLight position={[-2, 1.0, 1]} intensity={1.4} color="#A8C4D5" />
 
-      {/* Llamas de los propulsores de las botas (reaccionan al empuje y al postquemador) */}
-      <SuitThrusterFlames root={sceneClone} />
 
       {/* =====================================================================
           CÁPSULA HITBOX INVISIBLE: Permite capturar clics con total facilidad

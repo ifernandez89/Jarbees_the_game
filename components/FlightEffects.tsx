@@ -356,7 +356,11 @@ interface FlameUnit {
   phase: number
 }
 
-export function SuitThrusterFlames({ root }: { root: THREE.Object3D }) {
+export function SuitThrusterFlames(_props: { root?: THREE.Object3D }) {
+  return null
+}
+
+function _DisabledSuitThrusterFlames({ root }: { root: THREE.Object3D }) {
   const { scene } = useThree()
   const tmpPos = useRef(new THREE.Vector3())
   const tmpFoot = useRef(new THREE.Vector3())
