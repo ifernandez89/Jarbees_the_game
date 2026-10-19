@@ -41,6 +41,12 @@
   - Selector de modo de vuelo en pantalla `[G] ASIST / SIM`.
   - Controles móviles táctiles enriquecidos: botón dedicado `⚡TURBO` (Postquemador), botón central `🔄` en el D-pad para inversión de orientación 180° y botón superior de modo de vuelo.
 
+#### Corregido
+- **Llamas Repulsoras de Botas (`components/FlightEffects.tsx`)**:
+  - Rediseñada la geometría de los conos de propulsión de las botas (`SuitThrusterFlames`): diámetro de base reducido de 19 cm a 4.8 cm para que queden contenidos dentro de la planta del pie (~8 cm) sin sobresalir por los bordes.
+  - Anclaje anatómico exacto en el arco de la suela mediante interpolación entre el hueso del tobillo (`LeftFoot`/`RightFoot`) y la base de los dedos (`LeftToeBase`/`RightToeBase`), eliminando la intersección que atravesaba el calzado.
+  - Sombreador GLSL personalizado con atenuación de tobera (`rimSoft`) y desvanecimiento suave hacia la punta, eliminando cualquier aro plano o corte circular visible.
+
 #### Mejorado
 - **Identidad Propia JarBees (BEE-01 Vesper) (`components/BeePlayer.tsx` & `types/characters.ts`)**:
   - Rostro, visores ópticos y núcleo frontal transformados a acabado **Stealth Black mate** (`#0D0D11`), distanciando radicalmente el diseño de cualquier similitud visual con Iron Man y afianzando la personalidad propia del universo JarBees.

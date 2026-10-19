@@ -325,17 +325,41 @@ export function FlightEffects() {
 // ---------------------------------------------------------------------------
 // Llamas de los propulsores de las botas de la armadura
 // ---------------------------------------------------------------------------
+const flameVertex = /* glsl */ `
+  varying float vY;
+  void main() {
+    vY = position.y;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const flameFragment = /* glsl */ `
+  uniform float uOpacity;
+  uniform vec3 uColor;
+  varying float vY;
+  void main() {
+    // Atenuación suave hacia la punta y desvanecimiento en la base para no cortar la bota
+    float taper = 1.0 - smoothstep(0.0, 1.0, vY);
+    float rimSoft = smoothstep(0.0, 0.08, vY);
+    float a = uOpacity * taper * rimSoft;
+    gl_FragColor = vec4(uColor, a);
+  }
+`
+
 interface FlameUnit {
   group: THREE.Group
   core: THREE.Mesh
   outer: THREE.Mesh
   bone: THREE.Object3D
+  toe?: THREE.Object3D
   phase: number
 }
 
 export function SuitThrusterFlames({ root }: { root: THREE.Object3D }) {
   const { scene } = useThree()
   const tmpPos = useRef(new THREE.Vector3())
+  const tmpFoot = useRef(new THREE.Vector3())
+  const tmpToe = useRef(new THREE.Vector3())
   const tmpDir = useRef(new THREE.Vector3())
   const tmpBack = useRef(new THREE.Vector3())
   const down = useRef(new THREE.Vector3(0, -1, 0))
@@ -343,47 +367,66 @@ export function SuitThrusterFlames({ root }: { root: THREE.Object3D }) {
   const violet = useRef(new THREE.Color('#8a5cff'))
 
   const flames = useMemo<FlameUnit[]>(() => {
-    const bones: THREE.Object3D[] = []
+    let leftFoot: THREE.Object3D | null = null
+    let rightFoot: THREE.Object3D | null = null
+    let leftToe: THREE.Object3D | null = null
+    let rightToe: THREE.Object3D | null = null
+
     root.traverse((child) => {
       const n = child.name || ''
-      if (n.includes('LeftFoot') || n.includes('RightFoot')) bones.push(child)
+      if (n.includes('LeftFoot')) leftFoot = child
+      else if (n.includes('RightFoot')) rightFoot = child
+      else if (n.includes('LeftToe')) leftToe = child
+      else if (n.includes('RightToe')) rightToe = child
     })
 
-    return bones.map((bone, idx) => {
+    const pairs: Array<{ bone: THREE.Object3D; toe?: THREE.Object3D }> = []
+    if (leftFoot) pairs.push({ bone: leftFoot, toe: leftToe || undefined })
+    if (rightFoot) pairs.push({ bone: rightFoot, toe: rightToe || undefined })
+
+    return pairs.map(({ bone, toe }, idx) => {
       const group = new THREE.Group()
       group.visible = false
 
-      const coreGeo = new THREE.ConeGeometry(0.045, 1, 10, 1, true)
+      // Cono central intenso (radio 1.2 cm, diámetro 2.4 cm)
+      const coreGeo = new THREE.ConeGeometry(0.012, 1, 14, 1, true)
       coreGeo.translate(0, 0.5, 0) // base en el origen (tobera), punta hacia +Y
-      const coreMat = new THREE.MeshBasicMaterial({
-        color: '#e8fdff',
+      const coreMat = new THREE.ShaderMaterial({
+        uniforms: {
+          uOpacity: { value: 0.95 },
+          uColor: { value: new THREE.Color('#E8FDFF') },
+        },
+        vertexShader: flameVertex,
+        fragmentShader: flameFragment,
         transparent: true,
-        opacity: 0.95,
-        blending: THREE.AdditiveBlending,
         depthWrite: false,
         side: THREE.DoubleSide,
-        toneMapped: false,
+        blending: THREE.AdditiveBlending,
         fog: false,
       })
       const core = new THREE.Mesh(coreGeo, coreMat)
 
-      const outerGeo = new THREE.ConeGeometry(0.095, 1, 12, 1, true)
+      // Cono exterior de llama (radio 0.024 = 2.4 cm, diámetro 4.8 cm: más chico que la planta del pie de ~8 cm)
+      const outerGeo = new THREE.ConeGeometry(0.024, 1, 18, 1, true)
       outerGeo.translate(0, 0.5, 0)
-      const outerMat = new THREE.MeshBasicMaterial({
-        color: '#55F0FF',
+      const outerMat = new THREE.ShaderMaterial({
+        uniforms: {
+          uOpacity: { value: 0.65 },
+          uColor: { value: new THREE.Color('#55F0FF') },
+        },
+        vertexShader: flameVertex,
+        fragmentShader: flameFragment,
         transparent: true,
-        opacity: 0.5,
-        blending: THREE.AdditiveBlending,
         depthWrite: false,
         side: THREE.DoubleSide,
-        toneMapped: false,
+        blending: THREE.AdditiveBlending,
         fog: false,
       })
       const outer = new THREE.Mesh(outerGeo, outerMat)
 
       group.add(outer)
       group.add(core)
-      return { group, core, outer, bone, phase: idx * 1.7 }
+      return { group, core, outer, bone, toe, phase: idx * 1.7 }
     })
   }, [root])
 
@@ -420,19 +463,36 @@ export function SuitThrusterFlames({ root }: { root: THREE.Object3D }) {
       }
       tmpDir.current.normalize()
 
-      f.bone.getWorldPosition(tmpPos.current)
-      f.group.position.copy(tmpPos.current).addScaledVector(tmpDir.current, 0.05)
+      // Ubicación exacta en la planta del pie (arco plantar central, en la cara inferior de la suela)
+      if (f.toe) {
+        f.bone.getWorldPosition(tmpFoot.current)
+        f.toe.getWorldPosition(tmpToe.current)
+        tmpPos.current.copy(tmpFoot.current).lerp(tmpToe.current, 0.42)
+        tmpPos.current.addScaledVector(tmpDir.current, 0.03)
+      } else {
+        f.bone.getWorldPosition(tmpPos.current)
+        tmpPos.current.addScaledVector(tmpDir.current, 0.09)
+      }
+
+      f.group.position.copy(tmpPos.current)
       f.group.quaternion.setFromUnitVectors(UP, tmpDir.current)
 
       const flicker = 1 + 0.12 * Math.sin(t * 70 + f.phase) + 0.07 * Math.sin(t * 113 + f.phase * 2)
-      const length = (0.2 + rt.throttle * 0.5 + rt.afterburner * 2.1) * flicker
-      const widen = 1 + rt.afterburner * 0.9
-      f.core.scale.set(widen, length, widen)
-      f.outer.scale.set(widen, length * 1.12, widen)
+      const length = (0.18 + rt.throttle * 0.45 + rt.afterburner * 1.9) * flicker
+      // El ensanchamiento por postquemador es sutil para que nunca sobrepase el ancho del calzado
+      const widen = 1 + rt.afterburner * 0.25
+      f.core.scale.set(widen, length * 0.85, widen)
+      f.outer.scale.set(widen, length, widen)
 
-      const outerMat = f.outer.material as THREE.MeshBasicMaterial
-      outerMat.color.copy(cyan.current).lerp(violet.current, rt.afterburner * 0.75)
-      outerMat.opacity = 0.35 + 0.35 * Math.max(rt.throttle, rt.afterburner)
+      const outerMat = f.outer.material as THREE.ShaderMaterial
+      const coreMat = f.core.material as THREE.ShaderMaterial
+      if (outerMat.uniforms) {
+        outerMat.uniforms.uColor.value.copy(cyan.current).lerp(violet.current, rt.afterburner * 0.75)
+        outerMat.uniforms.uOpacity.value = 0.45 + 0.35 * Math.max(rt.throttle, rt.afterburner)
+      }
+      if (coreMat.uniforms) {
+        coreMat.uniforms.uOpacity.value = 0.8 + 0.2 * Math.max(rt.throttle, rt.afterburner)
+      }
       f.group.visible = true
     }
   })
