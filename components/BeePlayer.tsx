@@ -263,8 +263,25 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
   const gltf = useSecureGLTF(resolvedModelPath) as GLTFResult
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const currentActionRef = useRef<THREE.AnimationAction | null>(null)
-  const hoverActionRef = useRef<THREE.AnimationAction | null>(null)
-  const flightActionRef = useRef<THREE.AnimationAction | null>(null)
+  const actionsMapRef = useRef<Record<string, THREE.AnimationAction>>({})
+  const idleTimerRef = useRef(0)
+
+  // Estados de animación de Fase 2 (Peso, Impacto, Agacharse, Gestos)
+  const crouchStateRef = useRef<'idle' | 'crouching' | 'standing'>('idle')
+  const crouchStandTimerRef = useRef(0)
+
+  const jumpStateRef = useRef<'idle' | 'start' | 'loop' | 'land'>('idle')
+  const jumpTimerRef = useRef(0)
+
+  const impactStateRef = useRef<'none' | 'heavy_land' | 'recovery'>('none')
+  const impactTimerRef = useRef(0)
+  const touchdownTimerRef = useRef(0)
+
+  const prevAltitudeRef = useRef(10.0)
+  const prevWorldYRef = useRef(2.0)
+  const prevGroundedRef = useRef(false)
+  const maxFallSpeedRef = useRef(0)
+  const emoteTimerRef = useRef(0)
 
   // Referencia para la rotación acrobática del truco (180° sobre su eje longitudinal)
   const rotatingGroupRef = useRef<THREE.Group | null>(null)
@@ -399,30 +416,54 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
     return cloned
   }, [gltf.scene])
 
-  // Inicializar AnimationMixer con las animaciones horneadas en Blender ('hover' y 'flight')
+  // Inicializar AnimationMixer con el set completo de animaciones horneadas en Blender
   useEffect(() => {
     if (!gltf.animations || gltf.animations.length === 0) return
 
     const mixer = new THREE.AnimationMixer(sceneClone)
     mixerRef.current = mixer
 
-    const hoverClip =
-      gltf.animations.find((a) => a.name.toLowerCase().includes('hover')) || gltf.animations[0]
-    const flightClip =
-      gltf.animations.find((a) => a.name.toLowerCase().includes('flight'))
+    // Acciones de un solo ciclo (LoopOnce) con bloqueo en el último frame
+    const ONCE_ACTIONS = new Set([
+      'nexo_takeoff',
+      'nexo_landing',
+      'nexo_air_brake',
+      'nexo_jump_start',
+      'nexo_jump_land',
+      'nexo_heavy_land',
+      'nexo_recovery',
+      'nexo_crouch',
+      'nexo_crouch_stand',
+      'nexo_emote_salute',
+      'nexo_emote_thumbs_up',
+      'nexo_emote_point',
+      'nexo_emote_beckon',
+      'nexo_emote_cheer',
+    ])
 
-    if (hoverClip) {
-      const hoverAction = mixer.clipAction(hoverClip)
-      hoverAction.setLoop(THREE.LoopRepeat, Infinity)
-      hoverAction.play()
-      hoverActionRef.current = hoverAction
-      currentActionRef.current = hoverAction
-    }
+    const map: Record<string, THREE.AnimationAction> = {}
+    gltf.animations.forEach((clip) => {
+      const action = mixer.clipAction(clip)
+      if (ONCE_ACTIONS.has(clip.name)) {
+        action.setLoop(THREE.LoopOnce, 1)
+        action.clampWhenFinished = true
+      } else {
+        action.setLoop(THREE.LoopRepeat, Infinity)
+      }
+      map[clip.name] = action
+    })
+    actionsMapRef.current = map
 
-    if (flightClip) {
-      const flightAction = mixer.clipAction(flightClip)
-      flightAction.setLoop(THREE.LoopRepeat, Infinity)
-      flightActionRef.current = flightAction
+    // Postura inicial: 'nexo_idle' o 'nexo_hover'
+    const initialAction =
+      map['nexo_idle'] ||
+      map['nexo_hover'] ||
+      map['hover'] ||
+      (gltf.animations[0] ? mixer.clipAction(gltf.animations[0]) : null)
+
+    if (initialAction) {
+      initialAction.play()
+      currentActionRef.current = initialAction
     }
 
     return () => {
@@ -430,26 +471,256 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
     }
   }, [gltf.animations, sceneClone])
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const controls = useGameStore.getState().controls
     const velocity = useGameStore.getState().velocity
-    const isForward = controls.forward || velocity > 1.0
+    const terrainManager = useGameStore.getState().terrainManager
+    const activeEmote = useGameStore.getState().activeEmote
+    const triggerEmote = useGameStore.getState().triggerEmote
+    const playerObj = state.scene.getObjectByName('beePlayer')
 
-    if (mixerRef.current && hoverActionRef.current) {
-      const targetAction = isForward && flightActionRef.current ? flightActionRef.current : hoverActionRef.current
+    const actions = actionsMapRef.current
+    if (mixerRef.current && Object.keys(actions).length > 0) {
+      let isGrounded = false
+      let altAboveGround = 10.0
+
+      if (playerObj) {
+        const floorY = terrainManager
+          ? terrainManager.getHeightAt(playerObj.position.x, playerObj.position.z) + 1.4
+          : 0.8
+        altAboveGround = Math.max(0, playerObj.position.y - floorY)
+        isGrounded = altAboveGround <= 0.35
+      }
+
+      // Velocidad real del traje sincronizada a 60 Hz directamente desde FlightDynamics
+      const forwardSpeed = flightRuntime.forwardSpeed
+      const isFlyingForward = controls.forward || controls.boost || forwardSpeed > 1.8
+      const isInFlightMode = isFlyingForward || altAboveGround > 0.45
+
+      // Si el usuario presiona W, Boost o Salto, romper de inmediato cualquier impacto, agachado o aterrizaje previo
+      if (controls.forward || controls.boost || controls.jump) {
+        if (impactStateRef.current !== 'none') {
+          impactStateRef.current = 'none'
+          impactTimerRef.current = 0
+        }
+        if (jumpStateRef.current === 'land') {
+          jumpStateRef.current = 'idle'
+        }
+        touchdownTimerRef.current = 0
+      }
+
+      // Velocidad vertical REAL en el espacio del mundo (m/s) para detectar caídas auténticas
+      const currentWorldY = playerObj ? playerObj.position.y : 2.0
+      const worldVerticalSpeed = (currentWorldY - prevWorldYRef.current) / Math.max(delta, 0.001)
+      prevWorldYRef.current = currentWorldY
+
+      // Solo acumulamos velocidad de caída si NO estamos volando activamente hacia adelante
+      if (!isInFlightMode && !controls.up && !controls.boost && worldVerticalSpeed < -2.0) {
+        maxFallSpeedRef.current = Math.max(maxFallSpeedRef.current, Math.abs(worldVerticalSpeed))
+      }
+
+      // Detección de impacto contra el suelo: SOLO si cae verticalmente en modo tierra
+      const justLanded = isGrounded && !prevGroundedRef.current
+      if (justLanded && !isFlyingForward && !controls.boost) {
+        if (maxFallSpeedRef.current > 7.0) {
+          // Aterrizaje pesado de superhéroe ("Three-Point Strikedown")
+          impactStateRef.current = 'heavy_land'
+          impactTimerRef.current = 0.93 // Duración de nexo_heavy_land
+          jumpStateRef.current = 'idle'
+          crouchStateRef.current = 'idle'
+          touchdownTimerRef.current = 0
+        } else if (jumpStateRef.current === 'loop' || jumpStateRef.current === 'start') {
+          // Aterrizaje elástico de salto normal
+          jumpStateRef.current = 'land'
+          jumpTimerRef.current = 0.60
+          touchdownTimerRef.current = 0
+        } else if (controls.down || altAboveGround < 0.5) {
+          // Aterrizaje heroico original JarBees al tocar suelo en descenso voluntario
+          touchdownTimerRef.current = 1.20
+        }
+      }
+      if (isInFlightMode || isGrounded) {
+        maxFallSpeedRef.current = 0
+      }
+      prevGroundedRef.current = isGrounded
+
+      // Máquina de estados: Impacto Pesado y Recuperación
+      if (impactStateRef.current === 'heavy_land') {
+        impactTimerRef.current -= delta
+        if (impactTimerRef.current <= 0) {
+          impactStateRef.current = 'recovery'
+          impactTimerRef.current = 1.0 // Duración de nexo_recovery
+        }
+      } else if (impactStateRef.current === 'recovery') {
+        impactTimerRef.current -= delta
+        if (impactTimerRef.current <= 0) {
+          impactStateRef.current = 'none'
+        }
+      }
+
+      // Cuenta regresiva del aterrizaje heroico
+      if (touchdownTimerRef.current > 0) {
+        touchdownTimerRef.current -= delta
+        if (touchdownTimerRef.current <= 0) {
+          touchdownTimerRef.current = 0
+        }
+      }
+
+      // Máquina de estados: Salto (Jump Start -> Jump Loop -> Jump Land)
+      if (isGrounded && controls.jump && jumpStateRef.current === 'idle' && impactStateRef.current === 'none') {
+        jumpStateRef.current = 'start'
+        jumpTimerRef.current = 0.45
+      }
+      if (jumpStateRef.current === 'start') {
+        jumpTimerRef.current -= delta
+        if (jumpTimerRef.current <= 0) {
+          jumpStateRef.current = 'loop'
+        }
+      } else if (jumpStateRef.current === 'land') {
+        jumpTimerRef.current -= delta
+        if (jumpTimerRef.current <= 0) {
+          jumpStateRef.current = 'idle'
+        }
+      } else if (isGrounded && jumpStateRef.current === 'loop') {
+        jumpStateRef.current = 'land'
+        jumpTimerRef.current = 0.60
+      }
+
+      // Máquina de estados: Agacharse y Levantarse
+      if (isGrounded && controls.crouch && impactStateRef.current === 'none' && jumpStateRef.current === 'idle') {
+        crouchStateRef.current = 'crouching'
+      } else if (crouchStateRef.current === 'crouching' && !controls.crouch) {
+        crouchStateRef.current = 'standing'
+        crouchStandTimerRef.current = 0.66
+      }
+      if (crouchStateRef.current === 'standing') {
+        crouchStandTimerRef.current -= delta
+        if (crouchStandTimerRef.current <= 0) {
+          crouchStateRef.current = 'idle'
+        }
+      }
+
+      // Control de Emotes
+      const isMovingForward = controls.forward || forwardSpeed > 1.2
+      const isMovingBackward = controls.backward || forwardSpeed < -1.0
+      const isTurning = controls.left || controls.right
+
+      if (activeEmote) {
+        if (isMovingForward || controls.boost || controls.jump) {
+          triggerEmote(null)
+          emoteTimerRef.current = 0
+        } else {
+          emoteTimerRef.current += delta
+          if (emoteTimerRef.current >= 1.8) {
+            triggerEmote(null)
+            emoteTimerRef.current = 0
+          }
+        }
+      }
+
+      // Determinación de la animación objetivo según la jerarquía de estados
+      let targetName = 'nexo_idle'
+      let targetAnimSpeed = 1.0
+
+      if (impactStateRef.current === 'heavy_land') {
+        targetName = 'nexo_heavy_land'
+      } else if (impactStateRef.current === 'recovery') {
+        targetName = 'nexo_recovery'
+      } else if (touchdownTimerRef.current > 0) {
+        // Aterrizaje Heroico Original JarBees ("Kinetic Strikedown Touchdown")
+        targetName = 'nexo_landing'
+      } else if (jumpStateRef.current === 'start') {
+        targetName = 'nexo_jump_start'
+      } else if (jumpStateRef.current === 'loop') {
+        targetName = 'nexo_jump_loop'
+      } else if (jumpStateRef.current === 'land') {
+        targetName = 'nexo_jump_land'
+      } else if (!isGrounded && worldVerticalSpeed < -6.5 && !controls.up && !controls.boost && !isInFlightMode) {
+        targetName = 'nexo_heavy_fall'
+      } else if (crouchStateRef.current === 'crouching') {
+        targetName = 'nexo_crouch'
+      } else if (crouchStateRef.current === 'standing') {
+        targetName = 'nexo_crouch_stand'
+      } else if (activeEmote === 'salute') {
+        targetName = 'nexo_emote_salute'
+      } else if (activeEmote === 'thumbs_up') {
+        targetName = 'nexo_emote_thumbs_up'
+      } else if (activeEmote === 'point') {
+        targetName = 'nexo_emote_point'
+      } else if (activeEmote === 'beckon') {
+        targetName = 'nexo_emote_beckon'
+      } else if (activeEmote === 'cheer') {
+        targetName = 'nexo_emote_cheer'
+      } else if (isInFlightMode) {
+        // --- VUELO Y SUSPENSIÓN AÉREA (Flujo continuo sin retrocesos ni bloqueos) ---
+        idleTimerRef.current = 0
+        if (controls.backward) {
+          // Frenada reactiva agresiva con repulsores y piernas en cuña
+          targetName = 'nexo_air_brake'
+        } else if (altAboveGround < 1.0 && controls.down && !isFlyingForward) {
+          // Aterrizaje anticipatorio heroico al descender voluntariamente hacia tierra
+          targetName = 'nexo_landing'
+        } else if (isFlyingForward) {
+          if (controls.boost || forwardSpeed > 40.0) {
+            targetName = 'nexo_boost'
+          } else if (controls.left) {
+            targetName = 'nexo_bank_left'
+          } else if (controls.right) {
+            targetName = 'nexo_bank_right'
+          } else {
+            targetName = 'nexo_fly_forward'
+          }
+          targetAnimSpeed = 1.0 + Math.min(0.5, Math.abs(forwardSpeed) / 75.0)
+        } else {
+          // Suspensión vertical erguida con espalda recta y balanceo orgánico
+          targetName = 'nexo_hover'
+        }
+      } else {
+        // --- LOCOMOCIÓN EN TIERRA FIRME ---
+        if (controls.up && Math.abs(velocity) < 1.5) {
+          // Despegue desde reposo en tierra
+          targetName = 'nexo_takeoff'
+        } else if (isMovingForward) {
+          if (controls.boost || velocity > 7.0) {
+            targetName = 'nexo_run'
+            targetAnimSpeed = Math.max(0.8, Math.min(1.8, Math.abs(velocity) / 10.0))
+          } else {
+            targetName = 'nexo_walk'
+            targetAnimSpeed = Math.max(0.7, Math.min(1.6, Math.abs(velocity) / 4.0))
+          }
+          idleTimerRef.current = 0
+        } else if (isTurning && Math.abs(velocity) < 0.8) {
+          targetName = controls.left ? 'nexo_turn_left' : 'nexo_turn_right'
+          idleTimerRef.current = 0
+        } else {
+          // Reposo en tierra: alternar entre respiración nexo_idle y mirada al horizonte nexo_look_around
+          idleTimerRef.current += delta
+          if (idleTimerRef.current > 5.5 && idleTimerRef.current < 8.0 && actions['nexo_look_around']) {
+            targetName = 'nexo_look_around'
+          } else {
+            if (idleTimerRef.current >= 8.0) idleTimerRef.current = 0
+            targetName = 'nexo_idle'
+          }
+        }
+      }
+
+      // Fallback a hover/flight si algún clip no existe
+      let targetAction = actions[targetName]
+      if (!targetAction) {
+        if (isMovingForward) targetAction = actions['nexo_fly_forward'] || actions['flight']
+        else targetAction = actions['nexo_hover'] || actions['hover'] || actions['nexo_idle']
+      }
 
       if (targetAction && currentActionRef.current !== targetAction) {
         const prevAction = currentActionRef.current
         if (prevAction) {
-          prevAction.fadeOut(0.35)
+          prevAction.fadeOut(0.24)
         }
-        targetAction.reset().fadeIn(0.35).play()
+        targetAction.reset().fadeIn(0.24).play()
         currentActionRef.current = targetAction
       }
 
-      // Limitar el factor: a velocidades supersónicas el ciclo de animación no debe desbocarse
-      const animSpeed = isForward ? 1.0 + Math.min(1, Math.abs(velocity) / 64) * 0.4 : 1.0
-      mixerRef.current.update(delta * animSpeed)
+      mixerRef.current.update(delta * targetAnimSpeed)
     }
 
     // Suave giro acrobático de 180° sobre el eje longitudinal al hacer touch o clic sobre Iron Man:
@@ -767,14 +1038,15 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       modelAnchorRef.current.position.y = hoverBobbing + jitterY
 
       // Inclinación dinámica visual del modelo (Pitch al acelerar/frenar y Roll al virar)
-      // La armadura adopta una inclinación a -78° hacia adelante (vuelo horizontal "acostado" estilo torpedo)
-      // mientras empuja o conserva velocidad; con el aerofreno (S) se endereza como freno aerodinámico.
-      const isFlying = isIronMan ? controls.forward || flight.forwardSpeed > 12 : controls.forward
+      // En reposo/suspensión la espalda se mantiene 100% recta y erguida (0°).
+      // Al volar con W, la inclinación visual complementa el rig de Blender (-89° horizontal torpedo).
+      // Al pulsar S con aerofreno, se produce contragolpe reactivo hacia atrás (+22°).
+      const isFlying = isIronMan ? controls.forward || flight.forwardSpeed > 2.0 : controls.forward
       let baseTargetPitch = 0
       if (controls.backward) {
-        baseTargetPitch = isIronMan ? 0.22 : 0.12
+        baseTargetPitch = isIronMan ? 0.38 : 0.12 // Contragolpe hacia atrás al clavar el freno reactivo
       } else if (isFlying) {
-        baseTargetPitch = isIronMan ? -1.36 : -0.16
+        baseTargetPitch = isIronMan ? (controls.boost || flight.forwardSpeed > 35 ? -0.85 : -0.75) : -0.16
       }
 
       const targetPitch = baseTargetPitch * profile.renderConfig.pitchMultiplier
@@ -783,7 +1055,7 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       modelAnchorRef.current.rotation.x = THREE.MathUtils.lerp(
         modelAnchorRef.current.rotation.x,
         targetPitch,
-        delta * 5
+        delta * (controls.backward ? 8.0 : 6.0)
       )
       modelAnchorRef.current.rotation.z = THREE.MathUtils.lerp(
         modelAnchorRef.current.rotation.z,

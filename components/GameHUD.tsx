@@ -75,7 +75,7 @@ export function GameHUD() {
               title={`${char.name} (${char.realMetrics.heightOrLength})`}
             >
               <span className="hud-char-icon">{char.icon}</span>
-              <span className="hud-char-label">{char.id === 'iron_man' ? 'Vesper' : char.name.split(' ')[0]}</span>
+              <span className="hud-char-label">{char.id === 'iron_man' ? 'NEXO-01' : char.name.split(' ')[0]}</span>
             </button>
           )
         })}
@@ -252,7 +252,7 @@ export function GameHUD() {
       <div className="hud-card hud-panel-controls">
         {selectedCharacter === 'iron_man' ? (
           <>
-            ⬆️/W: Empuje | ⬇️/S: Freno/Aerofreno | ⬅️➡️/A/D: Rumbo | ESPACIO: Ascenso | SHIFT: Postquemador | Q: Descenso | G: Modo Vuelo | T/Clic: Invertir Vista | M: Audio
+            ⬆️/W: Empuje | ⬇️/S: Aerofreno Reactivo | ⬅️➡️/A/D: Rumbo | ESPACIO: Salto/Ascenso | C: Agacharse | 1-5: Emotes (1:Saludo 2:Pulgar 3:Señalar 4:Llamar 5:Victoria) | SHIFT: Postquemador | Q: Descenso | G: Vuelo | T/Clic: Invertir
           </>
         ) : (
           <>

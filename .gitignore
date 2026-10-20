@@ -51,8 +51,17 @@ Thumbs.db
 /temp
 /tmp
 .cache
+__pycache__/
+*.pyc
 
 # IDE Agent configs & skills
 .agents/
 .kiro/
 skills-lock.json
+
+# Temporary preview renders & experimental models
+/public/previews/
+/public/models/iron_man_cobalt_protocol.jb3d
+/public/models/colibri_pbr.jb3d
+/public/models/crude_gladiator_helmet.jb3d
+

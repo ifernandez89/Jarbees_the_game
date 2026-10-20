@@ -4,7 +4,7 @@ export interface CharacterProfile {
   id: CharacterId
   name: string
   title: string
-  category: 'Fauna Silvestre' | 'Vengador Acorazado' | 'Exoesqueleto Enjambre'
+  category: 'Fauna Silvestre' | 'Vengador Acorazado' | 'Exoesqueleto Enjambre' | 'Exoesqueleto NEXO'
   icon: string
   badge: string
   badgeColor: string
@@ -197,11 +197,11 @@ export const CHARACTER_PROFILES: Record<CharacterId, CharacterProfile> = {
 
   iron_man: {
     id: 'iron_man',
-    name: 'Armadura JarBees (BEE-01 Vesper)',
-    title: 'Protocolo Enjambre • Vanguardia Tecnológica',
-    category: 'Exoesqueleto Enjambre',
+    name: 'JarBees: NEXO-01',
+    title: 'Exoesqueleto Experimental • Protocolo NEXO-01',
+    category: 'Exoesqueleto NEXO',
     icon: '⬡',
-    badge: 'Tecnología JarBees',
+    badge: 'Protocolo NEXO-01',
     badgeColor: '#55F0FF',
     modelPath: '/models/jarbees_suit.jb3d',
     fallbackKind: 'iron_man',
@@ -212,7 +212,7 @@ export const CHARACTER_PROFILES: Record<CharacterId, CharacterProfile> = {
       scaleRatio: '1:1 (Escala Humana Completa)',
       propulsion: 'Microturbinas repulsoras en botas y palmas + Hex-Core de colmena',
       maxSpeedKmh: '230 km/h crucero (Supersónico x4) / Mach 3+ supersónico',
-      flightAcrobatics: 'Giro 180° acrobático por clic, estabilizadores dorsales dinámicos y vuelo supino',
+      flightAcrobatics: 'Giro 180° por touch directo en traje, estabilizadores dinámicos y vuelo supino',
     },
     renderConfig: {
       // Modelo optimizado en Blender a 1.85m exactos de altura

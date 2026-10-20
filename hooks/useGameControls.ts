@@ -54,7 +54,39 @@ export function useGameControls() {
       // Evitar controles de vuelo si está pausado
       if (isPaused) return
 
+      // Emotes del exoesqueleto (1: Saludo, 2: Pulgar arriba / Aprobación, 3: Señalar, 4: Llamar / "Ven aquí", 5: Celebración / Victoria)
+      if (e.code === 'Digit1' || e.code === 'Numpad1') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('salute')
+        return
+      }
+      if (e.code === 'Digit2' || e.code === 'Numpad2') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('thumbs_up')
+        return
+      }
+      if (e.code === 'Digit3' || e.code === 'Numpad3') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('point')
+        return
+      }
+      if (e.code === 'Digit4' || e.code === 'Numpad4') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('beckon')
+        return
+      }
+      if (e.code === 'Digit5' || e.code === 'Numpad5') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('cheer')
+        return
+      }
+
       switch (e.code) {
+        // AGACHARSE / MODO BAJO con C
+        case 'KeyC':
+          e.preventDefault()
+          setControls({ crouch: true })
+          break
         // AVANZAR HACIA EL HORIZONTE con Flecha Arriba o W
         case 'KeyW':
         case 'ArrowUp':
@@ -79,8 +111,11 @@ export function useGameControls() {
           e.preventDefault()
           setControls({ right: true })
           break
-        // SUBIR ALTITUD con ESPACIO, E o RePág
+        // SUBIR ALTITUD / SALTO con ESPACIO, E o RePág
         case 'Space':
+          e.preventDefault()
+          setControls({ up: true, jump: true })
+          break
         case 'KeyE':
         case 'PageUp':
           e.preventDefault()
@@ -123,7 +158,12 @@ export function useGameControls() {
         case 'ArrowRight':
           setControls({ right: false })
           break
+        case 'KeyC':
+          setControls({ crouch: false })
+          break
         case 'Space':
+          setControls({ up: false, jump: false })
+          break
         case 'KeyE':
         case 'PageUp':
           setControls({ up: false })

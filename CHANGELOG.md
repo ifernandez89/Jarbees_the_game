@@ -1,5 +1,40 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.10] - 2026-10-19
+
+### 🦾 Aterrizaje Heroico Original JarBees (Kinetic Strikedown), Emotes Tácticos Frontales y Estabilización Cinemática
+
+#### Añadido
+- **Aterrizaje Heroico Original JarBees ("Kinetic Strikedown Touchdown") (`scripts/generate_nexo_animations.py` & `components/BeePlayer.tsx`)**:
+  - Reemplazo total de la antigua sentadilla simétrica por una pose heroica y cinematográfica inspirada en el impacto de tres puntos:
+    - **Descenso Pélvico Real (-0.40 m)**: Corrección del factor de escala $36\times$ y permutación de ejes locales en Mixamo (`Local Y = World Z`, `Local Z = -World Y`).
+    - **Brazo Derecho (Impacto Cinético / Concussive Cushion)**: Hombro derecho descendido y guantelete cibernético proyectado hacia adelante y abajo, descargando una onda de choque contra el suelo.
+    - **Brazo Izquierdo (Alerón Estabilizador)**: Desplegado hacia atrás y arriba como estabilizador aerodinámico con silueta afilada.
+    - **Mirada al Horizonte**: Cabeza y cuello en contra-flexión hacia arriba ($-30^\circ$), manteniendo el visor HUD clavado firmemente en el horizonte.
+  - **Máquina de Estados de Aterrizaje Fluida**:
+    - Anticipación automática en aproximación a tierra ($< 1.0\text{ m}$) con tecla de descenso.
+    - Ventana de amortiguación cinematográfica de $1.20\text{ s}$ al tocar suelo (`justLanded`).
+    - Cancelación instantánea y reactiva (0 ms de lag) al presionar `W`, `Shift` (Boost) o `Espacio` (Salto).
+- **Emotes Tácticos y Militares con Orientación Frontal (Teclas 1 al 5)**:
+  - `1`: Saludo Militar de honor a la sien del visor.
+  - `2`: Aprobación táctica con pulgar al frente del pecho y asentimiento.
+  - `3`: Señalamiento directo de objetivo al horizonte.
+  - `4`: Gesto de llamada / beckon frente al torso.
+  - `5`: Celebración y puño en alto.
+  - Todos los movimientos corregidos para operar estrictamente por delante del cuerpo en el hemisferio frontal (`Y < 0`).
+- **Aerofreno Reactivo (`S`) con Codos Adelantados**:
+  - Codos proyectados hacia adelante y hacia afuera con separación $> 0.40\text{ m}$, eliminando el choque anatómico tras la espalda.
+- **Suspensión Vertical Erguida (`nexo_hover`)**:
+  - Columna vertebral y cadera fijadas a $0.0^\circ$ con postura militar recta.
+
+#### Corregido
+- **Eliminación del Bug de "Autofrenado" o "Tildado" al Acelerar**:
+  - Se desacopló la detección de caídas respecto al desnivel de colinas u ondulaciones del relieve, midiendo la velocidad vertical real en coordenadas de mundo y sincronizada a 60 Hz desde `flightRuntime`.
+
+#### Nota Técnica Registrada (Pendiente de Calibración)
+- **Sentido de Flexión en Rodillas (Anotado para revisión)**:
+  - Durante la compresión profunda de impacto en `build_landing` y `build_heavy_land`, las rodillas (`LeftLeg_056` y `RightLeg_061`) presentan flexión invertida respecto al plano anatómico humano. Queda registrado como prioridad de inicio para calibrar el eje/signo de rotación local en Mixamo.
+
 ## [0.8.9] - 2026-10-19
 
 ### 📱 Optimización de UI Móvil: Touch en Traje para Giro de Vesper, D-Pad Limpio y Retiro de Turbo

@@ -55,7 +55,13 @@ export interface GameState {
     up: boolean
     down: boolean
     boost: boolean
+    crouch: boolean
+    jump: boolean
   }
+  
+  // Emote activo del traje
+  activeEmote: 'salute' | 'thumbs_up' | 'point' | 'beckon' | 'cheer' | null
+  triggerEmote: (emote: 'salute' | 'thumbs_up' | 'point' | 'beckon' | 'cheer' | null) => void
   
   // Estado del juego
   isPaused: boolean
@@ -132,7 +138,10 @@ const initialState = {
     up: false,
     down: false,
     boost: false,
+    crouch: false,
+    jump: false,
   },
+  activeEmote: null as 'salute' | 'thumbs_up' | 'point' | 'beckon' | 'cheer' | null,
   isPaused: false,
   distanceTraveled: 0,
   altitude: 2,
@@ -158,6 +167,7 @@ const initialState = {
 export const useGameStore = create<GameState>((set) => ({
   ...initialState,
   
+  triggerEmote: (activeEmote) => set({ activeEmote }),
   setSelectedCharacter: (selectedCharacter) =>
     set({ selectedCharacter, isIronManFlipped: false, flight: INITIAL_FLIGHT_TELEMETRY }),
   setFlightMode: (flightMode) => set({ flightMode }),
