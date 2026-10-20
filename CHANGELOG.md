@@ -1,5 +1,25 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.12] - 2026-10-20
+
+### 🛡️ Pechera Medieval Reliquia de Auren (Nexo Viajero del Tiempo), Brazos Estilizados y Cifrado JB3D
+
+#### Añadido
+- **Integración de la Pechera Medieval Reliquia (`scripts/create_jarbees_suit.py`, `components/BeePlayer.tsx` & `public/models/jarbees_suit.jb3d`)**:
+  - Incorporación de la pechera histórica de acero forjado con relieve del ángel alado y remaches de bronce (`armor_plate.glb`), complementando el concepto narrativo de Nexo como viajero del tiempo que ensambla reliquias de diversas épocas en su traje sintético.
+  - Calibración volumétrica anatómica sobre el torso ($0.355\text{ m}$ ancho, $0.405\text{ m}$ alto, $0.220\text{ m}$ espesor, inclinación frontal de $9.5^\circ$), cubriendo el esternón y el antiguo reactor sin oclusiones ni interferencias esqueléticas.
+  - Rigging 100% integrado al hueso `mixamorig:Spine1_03` con deformación fluida a lo largo de todo el árbol de animaciones de combate, vuelo y emotes.
+  - Calibración de shader PBR en Three.js con reflectancia de acero pulido (`roughness: 0.28`, `metalness: 0.90`) y espacio de color `sRGB` para máxima fidelidad de textura.
+- **Herramientas de Inspección y Calibración 3D (`scripts/test_calibrate_cuirass.py`, `scripts/test_cuirass_scale.py`)**:
+  - Scripts de renderizado y ajuste en Blender headless para validación cinemática previa de piezas y ensamblado.
+
+#### Modificado / Optimizado
+- **Limpieza y Estilización Anatómica de Brazos (`scripts/create_jarbees_suit.py`)**:
+  - Eliminación de las placas facetadas orcas en bíceps (`shin_-_left/right`), coderas y hojas de guanteletes que sobrecargaban la silueta lateral.
+  - Retorno a la silueta limpia, aerodinámica y sintética de los brazos, resaltando el contraste entre la cerámica perlada, las líneas de titanio y la pechera central.
+- **Bóveda Criptográfica y Re-cifrado de Modelos (`scripts/protect-models.js`)**:
+  - Compilación y cifrado AES-256-CTR de `jarbees_suit.glb` a `public/models/jarbees_suit.jb3d` con compresión Draco v7 (22.46 MB).
+
 ## [0.8.11] - 2026-10-20
 
 ### 🥋 Retargeting Auténtico Mixamo Androide, Corrección Anatómica de Rodillas en Aterrizaje y Set de Emotes Tácticos con Articulación Manual

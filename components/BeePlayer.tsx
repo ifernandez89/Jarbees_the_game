@@ -363,6 +363,14 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
               mat.roughness = 0.16
               mat.metalness = 0.90
             }
+          } else if (meshName.includes('Cuirass') || meshName.includes('armor_plate')) {
+            // Pechera Medieval Reliquia de Auren (Acero forjado histórico)
+            if (mat.map) {
+              mat.map.colorSpace = THREE.SRGBColorSpace
+              mat.color = new THREE.Color('#ffffff')
+            }
+            mat.roughness = 0.28
+            mat.metalness = 0.90
           } else if (isOldIronManFace) {
             // Cara original de Iron Man en Negro Obsidiana Polarizado puro
             mat.color = new THREE.Color('#08080c')
