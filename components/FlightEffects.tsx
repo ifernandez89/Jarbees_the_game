@@ -137,26 +137,6 @@ export function FlightEffects() {
     })
   }, [])
 
-  // --- Envoltura de flujo Fase Aurelium (Halo ionizado) --------------------
-  const aureliumAura = useMemo(() => {
-    const geometry = new THREE.SphereGeometry(1.6, 24, 16)
-    geometry.scale(0.8, 1.9, 0.8)
-    const material = new THREE.MeshBasicMaterial({
-      color: '#d946ef',
-      wireframe: true,
-      transparent: true,
-      opacity: 0,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      fog: false,
-    })
-    const mesh = new THREE.Mesh(geometry, material)
-    mesh.frustumCulled = false
-    mesh.visible = false
-    mesh.renderOrder = 8
-    return { mesh, material }
-  }, [])
-
   // --- Polvo y perturbación rasante sobre el suelo (Ground Wake) -----------
   const DUST_COUNT = 90
   const dust = useMemo(() => {
@@ -189,13 +169,11 @@ export function FlightEffects() {
   useEffect(() => {
     scene.add(streaks.lines)
     scene.add(cone.mesh)
-    scene.add(aureliumAura.mesh)
     scene.add(dust.points)
     rings.forEach((r) => scene.add(r.mesh))
     return () => {
       scene.remove(streaks.lines)
       scene.remove(cone.mesh)
-      scene.remove(aureliumAura.mesh)
       scene.remove(dust.points)
       rings.forEach((r) => {
         scene.remove(r.mesh)
@@ -206,14 +184,12 @@ export function FlightEffects() {
       streaks.material.dispose()
       cone.geometry.dispose()
       cone.material.dispose()
-      aureliumAura.mesh.geometry.dispose()
-      aureliumAura.material.dispose()
       dust.geometry.dispose()
       dust.material.dispose()
       audioRef.current?.dispose()
       audioRef.current = null
     }
-  }, [scene, streaks, cone, rings, aureliumAura, dust])
+  }, [scene, streaks, cone, rings, dust])
 
   const spawnRing = (index: number, intensity: number, delay: number) => {
     const ring = rings[index]
@@ -260,7 +236,6 @@ export function FlightEffects() {
     if (!active || !player) {
       streaks.material.opacity = 0
       cone.mesh.visible = false
-      aureliumAura.mesh.visible = false
       dust.material.opacity = 0
       rings.forEach((r) => {
         if (!r.active) r.mesh.visible = false
@@ -344,19 +319,6 @@ export function FlightEffects() {
 
       tmpVel.current.set(dx, dy, dz)
 
-      // --- Envoltura de flujo Fase Aurelium --------------------------------
-      if (rt.aureliumPhase > 0.04) {
-        aureliumAura.mesh.visible = true
-        aureliumAura.mesh.position.set(px, py + 0.9, pz).addScaledVector(tmpVel.current, 0.3)
-        if (tmpVel.current.lengthSq() > 0.01) {
-          aureliumAura.mesh.quaternion.setFromUnitVectors(UP, tmpVel.current)
-        }
-        const pulse = 1 + 0.06 * Math.sin(Date.now() * 0.015)
-        aureliumAura.mesh.scale.set(0.85 * pulse, 2.0 * pulse, 0.85 * pulse)
-        aureliumAura.material.opacity = Math.min(0.7, rt.aureliumPhase * 0.6)
-      } else {
-        aureliumAura.mesh.visible = false
-      }
 
       // --- Cono de condensación / Mach ------------------------------------
       const m = rt.mach
