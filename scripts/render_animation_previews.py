@@ -5,7 +5,8 @@ import mathutils
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_GLB = os.path.join(BASE_DIR, 'assets_source', 'models', 'jarbees_suit.glb')
-OUT_DIR = r"C:\Users\xiphos-pc1\.gemini\antigravity-ide\brain\867d484e-abba-4579-b255-781ac6743d34"
+OUT_DIR = r"C:\Users\xiphos-pc1\.gemini\antigravity-ide\brain\f216bb5b-9a47-4c7d-8278-c3ef4e537832"
+os.makedirs(OUT_DIR, exist_ok=True)
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=SRC_GLB)
@@ -65,11 +66,13 @@ poses = [
     ('nexo_heavy_land', 16, (1.4, -2.2, -0.15), (0.0, -0.1, -0.38)),
     ('nexo_recovery', 15, (1.5, -2.4, -0.1), (0.0, 0.0, -0.1)),
     ('nexo_crouch', 24, (1.5, -2.3, -0.2), (0.0, 0.0, -0.15)),
-    ('nexo_emote_salute', 20, (1.2, -2.0, 0.2), (0.0, 0.0, 0.2)),
-    ('nexo_emote_thumbs_up', 20, (1.2, -2.0, 0.2), (0.0, 0.0, 0.2)),
-    ('nexo_emote_point', 20, (1.3, -2.2, 0.15), (0.0, 0.0, 0.15)),
-    ('nexo_emote_beckon', 20, (1.2, -2.0, 0.2), (0.0, 0.0, 0.2)),
-    ('nexo_emote_cheer', 22, (1.4, -2.4, 0.2), (0.0, 0.0, 0.2)),
+    ('nexo_emote_salute', 20, (0.0, -1.8, 0.35), (0.0, 0.0, 0.32)),
+    ('nexo_emote_thumbs_up', 20, (0.0, -1.8, 0.35), (0.0, 0.0, 0.32)),
+    ('nexo_emote_point', 20, (0.0, -1.8, 0.35), (0.0, 0.0, 0.32)),
+    ('nexo_emote_ok', 20, (0.0, -1.8, 0.35), (0.0, 0.0, 0.32)),
+    ('nexo_emote_beckon', 20, (0.0, -1.8, 0.35), (0.0, 0.0, 0.32)),
+    ('nexo_emote_cheer_windup', 8, (0.0, -1.8, 0.35), (0.0, 0.0, 0.32)),
+    ('nexo_emote_cheer', 22, (0.0, -2.1, 0.35), (0.0, 0.0, 0.32)),
     # Fase 3
     ('nexo_hover', 15, (1.4, -2.6, 0.1), (0.0, 0.0, -0.05)),
     ('nexo_fly_forward', 20, (1.6, -2.4, 0.2), (0.0, 0.0, 0.1)),
@@ -79,9 +82,10 @@ poses = [
 ]
 
 for act_name, frame, cam_pos, look_at in poses:
-    act = bpy.data.actions.get(act_name)
+    real_act_name = 'nexo_emote_cheer' if act_name == 'nexo_emote_cheer_windup' else act_name
+    act = bpy.data.actions.get(real_act_name)
     if not act:
-        print(f"⚠️ Acción {act_name} no encontrada")
+        print(f"⚠️ Acción {real_act_name} no encontrada")
         continue
 
     arm.animation_data.action = act

@@ -252,7 +252,7 @@ export function GameHUD() {
       <div className="hud-card hud-panel-controls">
         {selectedCharacter === 'iron_man' ? (
           <>
-            ⬆️/W: Empuje | ⬇️/S: Aerofreno Reactivo | ⬅️➡️/A/D: Rumbo | ESPACIO: Salto/Ascenso | C: Agacharse | 1-5: Emotes (1:Saludo 2:Pulgar 3:Señalar 4:Llamar 5:Victoria) | SHIFT: Postquemador | Q: Descenso | G: Vuelo | T/Clic: Invertir
+            ⬆️/W: Empuje | ⬇️/S: Aerofreno Reactivo | ⬅️➡️/A/D: Rumbo | ESPACIO: Salto/Ascenso | C: Agacharse | 1-5: Emotes (1:Saludo 2:Todo Bien 3:Señalar 4:Todo Bien 5:Victoria) | SHIFT: Postquemador | Q: Descenso | G: Vuelo | T/Clic: Invertir
           </>
         ) : (
           <>

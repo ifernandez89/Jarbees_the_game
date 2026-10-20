@@ -11,7 +11,8 @@ SRC_GLB = os.path.join(MODELS_DIR, 'iron_man.glb')
 SRC_HELMET = os.path.join(MODELS_DIR, 'crude_gladiator_helmet.glb')
 ARMOR_DIR = os.path.join(MODELS_DIR, 'berserker-orc-armor-cosplay')
 DST_GLB = os.path.join(MODELS_DIR, 'jarbees_suit.glb')
-ARTIFACT_DIR = r"C:\Users\xiphos-pc1\.gemini\antigravity-ide\brain\867d484e-abba-4579-b255-781ac6743d34"
+ARTIFACT_DIR = r"C:\Users\xiphos-pc1\.gemini\antigravity-ide\brain\f216bb5b-9a47-4c7d-8278-c3ef4e537832"
+os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
 # -------------------------------------------------------------
 # PALETA OFICIAL JARBEES (BEE-01 VESPER - EDICIÓN GLADIADOR)

@@ -1,5 +1,34 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.11] - 2026-10-20
+
+### 🥋 Retargeting Auténtico Mixamo Androide, Corrección Anatómica de Rodillas en Aterrizaje y Set de Emotes Tácticos con Articulación Manual
+
+#### Añadido
+- **Retargeting e Inyección de Animaciones Auténticas de Mixamo (`scripts/extract_android_motions.py`, `scripts/generate_nexo_animations.py` & `components/BeePlayer.tsx`)**:
+  - Extractor universal de movimientos Mixamo FBX a formato canónico JSON (`humanoid_motion_library.json`).
+  - Inyección de 6 animaciones de combate y locomoción con retargeting 1:1 sobre los 65 huesos estándar Mixamo del exoesqueleto NEXO-01:
+    - `nexo_walk` (37 frames): Ciclo bipedal natural y balanceado.
+    - `nexo_run` (22 frames): Carrera atlética con zancada dinámica.
+    - `nexo_attack` (44 frames): Golpe cuerpo a cuerpo y descarga de ataque cinético.
+    - `nexo_jump` (51 frames): Secuencia acrobática completa de salto vertical y recepción.
+    - `nexo_damage` (42 frames): Reacción de impacto recibido y recuperación de guardia.
+    - `nexo_dead` (110 frames): Colapso cinemático de derrota y desactivación de sistemas.
+  - Registro de las nuevas acciones (`nexo_attack`, `nexo_damage`, `nexo_dead`, `nexo_emote_ok`, `nexo_emote_welcome_thumbs`) en el controlador de animaciones de Three.js.
+- **Set de Emotes Tácticos con Articulación Manual Individual**:
+  - Gesto 4: Señal de OK táctico (`nexo_emote_ok`), con anillo índice-pulgar cerrado al frente y dedos medio, anular y meñique extendidos.
+  - Gesto 2: Pulgar arriba (`nexo_emote_thumbs_up`) refinado con flexión articulada en falanges de dedos 2 a 5.
+  - Gesto 5: Celebración victoria (`nexo_emote_cheer`) con fase de carga (windup) y elevación de puño cerrado.
+  - Asset táctico complementario `public/models/tactical_hands.jb3d`.
+- **Actualización de Telemetría HUD (`components/GameHUD.tsx`)**:
+  - Leyenda de controles y panel de ayuda actualizado con la asignación de los nuevos emotes (teclas 1 a 5).
+
+#### Corregido
+- **Corrección Anatómica de Rodillas en Aterrizaje Heroico y Heavy Land (`scripts/generate_nexo_animations.py`)**:
+  - Resuelto el bug de flexión invertida de rodillas registrado en v0.8.10:
+    - Inversión del signo angular (`-lk`, `-rk`) en los huesos `LeftLeg_056` y `RightLeg_061`, logrando una flexión humana hacia atrás anatómicamente perfecta.
+    - Calibración de apoyo cinemático: pierna izquierda firme como pilar delantero con suela plana contra el suelo (+52°, -92°, +40°) y pierna derecha arrodillada amortiguando el impacto (-18°, -90°, -15°).
+
 ## [0.8.10] - 2026-10-19
 
 ### 🦾 Aterrizaje Heroico Original JarBees (Kinetic Strikedown), Emotes Tácticos Frontales y Estabilización Cinemática

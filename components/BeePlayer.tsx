@@ -438,7 +438,12 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       'nexo_emote_thumbs_up',
       'nexo_emote_point',
       'nexo_emote_beckon',
+      'nexo_emote_ok',
       'nexo_emote_cheer',
+      'nexo_emote_welcome_thumbs',
+      'nexo_attack',
+      'nexo_damage',
+      'nexo_dead',
     ])
 
     const map: Record<string, THREE.AnimationAction> = {}
