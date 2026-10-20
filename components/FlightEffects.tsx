@@ -137,14 +137,66 @@ export function FlightEffects() {
     })
   }, [])
 
+  // --- Envoltura de flujo Fase Aurelium (Halo ionizado) --------------------
+  const aureliumAura = useMemo(() => {
+    const geometry = new THREE.SphereGeometry(1.6, 24, 16)
+    geometry.scale(0.8, 1.9, 0.8)
+    const material = new THREE.MeshBasicMaterial({
+      color: '#d946ef',
+      wireframe: true,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+    })
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.frustumCulled = false
+    mesh.visible = false
+    mesh.renderOrder = 8
+    return { mesh, material }
+  }, [])
+
+  // --- Polvo y perturbación rasante sobre el suelo (Ground Wake) -----------
+  const DUST_COUNT = 90
+  const dust = useMemo(() => {
+    const positions = new Float32Array(DUST_COUNT * 3)
+    const velocities = new Float32Array(DUST_COUNT * 3)
+    const ages = new Float32Array(DUST_COUNT)
+    const lives = new Float32Array(DUST_COUNT)
+    for (let i = 0; i < DUST_COUNT; i++) {
+      lives[i] = 0.5 + Math.random() * 0.8
+      ages[i] = lives[i] // empiezan expiradas
+    }
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    const material = new THREE.PointsMaterial({
+      color: '#cbb38a',
+      size: 2.2,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.NormalBlending,
+      depthWrite: false,
+      fog: true,
+    })
+    const points = new THREE.Points(geometry, material)
+    points.frustumCulled = false
+    points.renderOrder = 4
+    return { positions, velocities, ages, lives, geometry, material, points, nextIdx: 0 }
+  }, [])
+
   // Añadir a la escena y limpiar
   useEffect(() => {
     scene.add(streaks.lines)
     scene.add(cone.mesh)
+    scene.add(aureliumAura.mesh)
+    scene.add(dust.points)
     rings.forEach((r) => scene.add(r.mesh))
     return () => {
       scene.remove(streaks.lines)
       scene.remove(cone.mesh)
+      scene.remove(aureliumAura.mesh)
+      scene.remove(dust.points)
       rings.forEach((r) => {
         scene.remove(r.mesh)
         r.mesh.geometry.dispose()
@@ -154,10 +206,14 @@ export function FlightEffects() {
       streaks.material.dispose()
       cone.geometry.dispose()
       cone.material.dispose()
+      aureliumAura.mesh.geometry.dispose()
+      aureliumAura.material.dispose()
+      dust.geometry.dispose()
+      dust.material.dispose()
       audioRef.current?.dispose()
       audioRef.current = null
     }
-  }, [scene, streaks, cone, rings])
+  }, [scene, streaks, cone, rings, aureliumAura, dust])
 
   const spawnRing = (index: number, intensity: number, delay: number) => {
     const ring = rings[index]
@@ -204,6 +260,8 @@ export function FlightEffects() {
     if (!active || !player) {
       streaks.material.opacity = 0
       cone.mesh.visible = false
+      aureliumAura.mesh.visible = false
+      dust.material.opacity = 0
       rings.forEach((r) => {
         if (!r.active) r.mesh.visible = false
       })
@@ -225,7 +283,7 @@ export function FlightEffects() {
       }
     }
 
-    // --- Estelas de velocidad ---------------------------------------------
+    // --- Estelas de velocidad y dinámicas atmosféricas --------------------
     if (active && player) {
       const px = player.position.x
       const py = player.position.y
@@ -245,7 +303,7 @@ export function FlightEffects() {
       const dx = rt.vx * inv
       const dy = rt.vy * inv
       const dz = rt.vz * inv
-      const len = Math.min(18, Math.max(0.5, speed * 0.032))
+      const len = Math.min(22, Math.max(0.5, speed * 0.038))
       const pos = streaks.positions
       const boxY = STREAK_BOX * 0.6
 
@@ -276,14 +334,35 @@ export function FlightEffects() {
       }
       streaks.geometry.attributes.position.needsUpdate = true
       streaks.material.opacity = 0.5 * smoothstep(50, 260, speed)
-      streaks.material.color.set(rt.mach >= 1 ? '#bfe6ff' : '#e4f8ff')
 
-      // --- Cono de condensación / Mach ---
+      // Color de estelas: azul cian por defecto, transición a plasma ámbar/rojo con thermalGlow
+      if (rt.thermalGlow > 0.05) {
+        streaks.material.color.set(rt.thermalGlow > 0.5 ? '#ff4d00' : '#ff9933')
+      } else {
+        streaks.material.color.set(rt.mach >= 1 ? '#bfe6ff' : '#e4f8ff')
+      }
+
+      tmpVel.current.set(dx, dy, dz)
+
+      // --- Envoltura de flujo Fase Aurelium --------------------------------
+      if (rt.aureliumPhase > 0.04) {
+        aureliumAura.mesh.visible = true
+        aureliumAura.mesh.position.set(px, py + 0.9, pz).addScaledVector(tmpVel.current, 0.3)
+        if (tmpVel.current.lengthSq() > 0.01) {
+          aureliumAura.mesh.quaternion.setFromUnitVectors(UP, tmpVel.current)
+        }
+        const pulse = 1 + 0.06 * Math.sin(Date.now() * 0.015)
+        aureliumAura.mesh.scale.set(0.85 * pulse, 2.0 * pulse, 0.85 * pulse)
+        aureliumAura.material.opacity = Math.min(0.7, rt.aureliumPhase * 0.6)
+      } else {
+        aureliumAura.mesh.visible = false
+      }
+
+      // --- Cono de condensación / Mach ------------------------------------
       const m = rt.mach
       const vapor =
         0.3 * bump(m, 0.86, 0.99, 1.09) + 0.2 * smoothstep(1.0, 1.3, m) * (1 - 0.55 * smoothstep(1.8, 3.0, m))
       if (vapor > 0.01 && speed > 5) {
-        tmpVel.current.set(dx, dy, dz)
         const H = 8 + Math.min(6, m * 2)
         const tanMu = Math.min(1.2, Math.max(0.3, 1 / Math.sqrt(Math.max(m * m - 1, 0.3))))
         cone.mesh.visible = true
@@ -291,8 +370,65 @@ export function FlightEffects() {
         cone.mesh.quaternion.setFromUnitVectors(UP, tmpVel.current)
         cone.mesh.scale.set(H * tanMu, H, H * tanMu)
         cone.material.uniforms.uOpacity.value = Math.min(0.55, vapor)
+
+        if (rt.thermalGlow > 0.1) {
+          cone.material.uniforms.uColor.value.set('#ff7b3d')
+        } else {
+          cone.material.uniforms.uColor.value.set('#dff7ff')
+        }
       } else {
         cone.mesh.visible = false
+      }
+
+      // --- Perturbación rasante sobre el suelo (Ground Wake / Dust) ---------
+      if (rt.dustKick > 0.02) {
+        const groundY = Math.max(0, py - rt.groundAltitude)
+        const spawnCount = Math.ceil(rt.dustKick * 4)
+        const dPos = dust.positions
+        const dVel = dust.velocities
+        const dAge = dust.ages
+        const dLife = dust.lives
+
+        // Dirección perpendicular al vuelo para la estela cónica/V en el suelo
+        const perpX = -dz
+        const perpZ = dx
+
+        for (let s = 0; s < spawnCount; s++) {
+          const idx = dust.nextIdx
+          dust.nextIdx = (dust.nextIdx + 1) % DUST_COUNT
+
+          const side = (Math.random() - 0.5) * 2
+          const lateralOffset = side * (1.5 + Math.random() * 4.0)
+
+          dPos[idx * 3] = px - dx * 2.0 + perpX * lateralOffset
+          dPos[idx * 3 + 1] = groundY + 0.2 + Math.random() * 0.4
+          dPos[idx * 3 + 2] = pz - dz * 2.0 + perpZ * lateralOffset
+
+          // Vector de dispersión de la partícula
+          dVel[idx * 3] = perpX * side * (4 + Math.random() * 8) - dx * (speed * 0.15)
+          dVel[idx * 3 + 1] = 1.2 + Math.random() * 3.0
+          dVel[idx * 3 + 2] = perpZ * side * (4 + Math.random() * 8) - dz * (speed * 0.15)
+
+          dAge[idx] = 0
+          dLife[idx] = 0.5 + Math.random() * 0.7
+        }
+
+        // Actualizar partículas de polvo
+        for (let i = 0; i < DUST_COUNT; i++) {
+          if (dAge[i] < dLife[i]) {
+            dAge[i] += dt
+            dPos[i * 3] += dVel[i * 3] * dt
+            dPos[i * 3 + 1] += dVel[i * 3 + 1] * dt
+            dPos[i * 3 + 2] += dVel[i * 3 + 2] * dt
+            dVel[i * 3] *= 0.94
+            dVel[i * 3 + 1] *= 0.90
+            dVel[i * 3 + 2] *= 0.94
+          }
+        }
+        dust.geometry.attributes.position.needsUpdate = true
+        dust.material.opacity = Math.min(0.7, rt.dustKick * 0.9)
+      } else {
+        dust.material.opacity = 0
       }
     }
 

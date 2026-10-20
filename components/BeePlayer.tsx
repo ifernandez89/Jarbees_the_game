@@ -946,16 +946,18 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       const subDt = dt / steps
 
       for (let i = 0; i < steps; i++) {
-        const { yawDelta } = flight.step(subDt, input, player.rotation.y, player.position.y, mode)
+        const floorY = terrainManager
+          ? terrainManager.getHeightAt(player.position.x, player.position.z) + 1.4
+          : 0.8
+        const altAboveGround = Math.max(0, player.position.y - floorY)
+
+        const { yawDelta } = flight.step(subDt, input, player.rotation.y, player.position.y, mode, altAboveGround)
         player.rotation.y += yawDelta
         player.position.x += flight.vx * subDt
         player.position.y += flight.vy * subDt
         player.position.z += flight.vz * subDt
 
-        // Colisión continua con el terreno en cada subpaso
-        const floorY = terrainManager
-          ? terrainManager.getHeightAt(player.position.x, player.position.z) + 1.4
-          : 0.8
+        // Colisión continua con el suelo en cada subpaso
         if (player.position.y < floorY) {
           player.position.y = floorY
           if (flight.vy < 0) flight.vy = 0
@@ -1105,6 +1107,10 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
           lowEnergy: rt.lowEnergy,
           boomSeq: rt.boomSeq,
           boomIntensity: rt.boomIntensity,
+          aureliumPhase: rt.aureliumPhase > 0.3,
+          thermalGlow: rt.thermalGlow,
+          dustKick: rt.dustKick,
+          gcasActive: rt.gcasActive,
         })
       }
       if (accumulatedDistanceRef.current > 0) {

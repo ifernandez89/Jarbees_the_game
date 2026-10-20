@@ -225,9 +225,9 @@ export const CHARACTER_PROFILES: Record<CharacterId, CharacterProfile> = {
       hasThrusterFX: true,          // Repulsores emisivos con partículas y luces
     },
     camera: {
-      // Cámara cinematográfica en 3ra persona con encuadre heroico cercano para máxima apreciación de detalles
-      offset: [0, 0.80, 2.3],
-      lookOffset: [0, 0.15, -0.9],
+      // Cámara cinematográfica en 3ra persona con encuadre heroico cercano (acercado para apreciar pechera y armadura)
+      offset: [0, 0.68, 1.72],
+      lookOffset: [0, 0.14, -0.85],
     },
     audio: {
       soundKey: 'iron_man_thruster',

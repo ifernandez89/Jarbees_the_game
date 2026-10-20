@@ -1,5 +1,37 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.13] - 2026-10-20
+
+### 🚀 Sistema de Altas Velocidades, Física Transónica/Hipersónica, Fase Aurelium y Navegación Inteligente JarBees GCAS
+
+#### Añadido
+- **Física Atmosférica Compresible y Techo de Vuelo Realista (`systems/FlightDynamics.ts`)**:
+  - Implementación precisa de la atmósfera estándar ISA: velocidad del sonido $a(h) = 340.29 \sqrt{T(h)/288.15}$ y densidad $\rho(h)$.
+  - **Techo Atmosférico Natural**: El vuelo convencional alcanza su equilibrio físico natural a **Mach 0,83 (~1.017 km/h al nivel del mar y 882 km/h a 11.000 m)**. A partir del Mach crítico ($M_{cr} \approx 0,72$), la resistencia de onda $k_{onda}(M)$ se dispara contrarrestando el empuje normal sin requerir límites artificiales.
+  - **Soporte de Régimen Hipersónico (Mach 3 a Mach 5+)**: Incorporación del régimen `'hypersonic'` al orden canónico `FLIGHT_REGIME_ORDER`.
+- **Modo Dual de Vuelo: Fase Aurelium (`systems/FlightDynamics.ts`, `components/FlightEffects.tsx`)**:
+  - Creación de la envoltura de control de flujo ionizado Aurelium ($\phi_{aurelium}$):
+    - Se activa al sostener postquemador a partir de Mach 0,72 con reactor Hex-Core cargado.
+    - Colapsa el arrastre de onda hasta un 72%, permitiendo perforar la barrera del sonido y acelerar hacia Mach 1, 2 y regímenes hipersónicos.
+    - Penalizaciones balanceadas: consumo acelerado de energía del reactor ($+3.8\%/\text{s}$) y generación térmica.
+- **Inteligencia de Vuelo JarBees GCAS (Ground Collision Avoidance System) (`systems/FlightDynamics.ts`, `components/BeePlayer.tsx`)**:
+  - A 1.017 km/h Auren recorre 28 metros cada 100 ms (fuera del tiempo de reacción humano de 200 ms).
+  - En modo asistido, JarBees monitorea la altitud rasante ($h_{suelo}$) y el vector de descenso; si detecta impacto inminente a alta velocidad ($v_{aire} > 130 \text{ m/s}$, $h < 14 \text{ m}$, $v_y < -1.5 \text{ m/s}$), inyecta micro-sustentación vectorial compensatoria automática.
+- **Dinámicas Rasantes y Respuesta del Entorno (Ground Wake & Thermal Glow) (`components/FlightEffects.tsx`)**:
+  - **Polvo y Agitación Rasante**: Sistema GPU de 90 partículas de polvo en abanico cónico en "V" que se levantan cuando Auren vuela a ras de suelo ($<28\text{ m}$) a alta velocidad, con atenuación inversa cuadrática $(1 - h/28)^2$.
+  - **Halo de Fase Aurelium**: Envoltura electromagnética elipsoide translúcida en Three.js con pulso y blend aditivo que canaliza el flujo del traje.
+  - **Incandescencia Térmica de Plasma**: A Mach $>2,2$, el cono y las estelas de velocidad cambian su coloración de azul cian a fuego incandescente (ámbar a rojo fuego) representando el calor de estancamiento aerodinámico.
+- **Audio Procedural de Fase Aurelium (`systems/FlightAudio.ts`)**:
+  - Oscilador y filtro pasabanda resonante sintetizado en Web Audio API que produce un siseo electromagnético ionizado cuando el flujo Aurelium está activo.
+- **Telemetría e Indicadores en Pantalla (`components/GameHUD.tsx`, `store/gameStore.ts`)**:
+  - Insignia brillante `✨ AURELIUM` cuando la envoltura de flujo está activa.
+  - Indicador de alerta `🛡️ GCAS` cuando la IA de JarBees asiste en el rasante.
+  - Indicador de régimen `Hipersónico (M>3)` y aviso de plasma térmico en el núcleo.
+- **Encuadre Cinematográfico Cercano de Cámara (`types/characters.ts`)**:
+  - Acercamiento de la cámara en 3ra persona para el personaje NEXO-01 (`offset: [0, 0.68, 1.72]`, `lookOffset: [0, 0.14, -0.85]`), aumentando la cercanía e inmersión en un ~25% para apreciar con mayor fidelidad la pechera medieval, el visor stealth y los detalles mecánicos del exoesqueleto.
+- **Documentación Técnica y Lore (`AUREN_HIGH_SPEED_FLIGHT_SYSTEM.md`)**:
+  - Especificación exhaustiva con ecuaciones aerodinámicas, tablas comparativas de altitudes y explicación de los dos modos de vuelo.
+
 ## [0.8.12] - 2026-10-20
 
 ### 🛡️ Pechera Medieval Reliquia de Auren (Nexo Viajero del Tiempo), Brazos Estilizados y Cifrado JB3D

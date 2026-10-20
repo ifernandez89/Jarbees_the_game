@@ -18,6 +18,10 @@ export interface FlightTelemetry {
   lowEnergy: boolean
   boomSeq: number
   boomIntensity: number
+  aureliumPhase: boolean
+  thermalGlow: number
+  dustKick: number
+  gcasActive: boolean
 }
 
 export const INITIAL_FLIGHT_TELEMETRY: FlightTelemetry = {
@@ -34,6 +38,10 @@ export const INITIAL_FLIGHT_TELEMETRY: FlightTelemetry = {
   lowEnergy: false,
   boomSeq: 0,
   boomIntensity: 0,
+  aureliumPhase: false,
+  thermalGlow: 0,
+  dustKick: 0,
+  gcasActive: false,
 }
 
 export interface GameState {

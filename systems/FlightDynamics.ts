@@ -22,9 +22,16 @@
  */
 
 export type FlightMode = 'assist' | 'sim'
-export type FlightRegime = 'hover' | 'cruise' | 'high' | 'transonic' | 'supersonic'
+export type FlightRegime = 'hover' | 'cruise' | 'high' | 'transonic' | 'supersonic' | 'hypersonic'
 
-export const FLIGHT_REGIME_ORDER: FlightRegime[] = ['hover', 'cruise', 'high', 'transonic', 'supersonic']
+export const FLIGHT_REGIME_ORDER: FlightRegime[] = [
+  'hover',
+  'cruise',
+  'high',
+  'transonic',
+  'supersonic',
+  'hypersonic',
+]
 
 /** Entradas del piloto para un paso de simulación */
 export interface FlightInput {
@@ -37,7 +44,7 @@ export interface FlightInput {
   boost: boolean
 }
 
-/** Estado compartido de solo lectura para efectos 60 Hz (cámara, audio, partículas) */
+/** Estado compartido de solo lectura para efectos 60 Hz (cámara, audio, partículas, HUD) */
 export interface FlightRuntime {
   active: boolean
   /** Velocidad aerodinámica total (m/s) */
@@ -75,6 +82,16 @@ export interface FlightRuntime {
   boomIntensity: number
   /** 0..100 empuje efectivo mostrado en HUD */
   thrustPct: number
+  /** 0..1 intensidad de la envoltura de control de flujo Fase Aurelium */
+  aureliumPhase: number
+  /** 0..1 incandescencia en bordes de ataque por calentamiento aerodinámico (Mach > 2.2) */
+  thermalGlow: number
+  /** 0..1 perturbación rasante sobre el suelo (polvo y agitación de vegetación) */
+  dustKick: number
+  /** Altitud sobre el terreno actual (m) */
+  groundAltitude: number
+  /** Indica si el sistema inteligente GCAS de JarBees está interviniendo de emergencia */
+  gcasActive: boolean
 }
 
 export const flightRuntime: FlightRuntime = {
@@ -101,6 +118,11 @@ export const flightRuntime: FlightRuntime = {
   boomSeq: 0,
   boomIntensity: 0,
   thrustPct: 0,
+  aureliumPhase: 0,
+  thermalGlow: 0,
+  dustKick: 0,
+  groundAltitude: 10,
+  gcasActive: false,
 }
 
 // ---------------------------------------------------------------------------
@@ -112,14 +134,14 @@ const MASS = 92 // kg (Aleación Titanio Frío / Polímeros de Colmena)
 // manteniendo intactas las velocidades terminales (que dependen sólo de empuje/resistencia).
 const INERTIA = 1.6
 const EFFECTIVE_MASS = MASS * INERTIA
-const CDA = 0.06 // m² · C_D efectivo (cuerpo "acostado" tipo torpedo)
-const RHO0 = 1.225 // kg/m³ a nivel del mar
-const THRUST_NORMAL = 3600 // N — empuje máximo sin postquemador
-const THRUST_AB_BASE = 8000 // N — postquemador a baja velocidad
-const THRUST_AB_GAIN = 2.6 // multiplicador adicional a partir de Mach 0.6 → 1.4
-const REVERSE_THRUST = 3200 // N — empuje inverso con aerofreno
+const CDA = 0.058 // m² · C_D efectivo (cuerpo "acostado" tipo torpedo)
+const RHO0 = 1.225 // kg/m³ a nivel del mar (15 °C)
+const THRUST_NORMAL = 3800 // N — empuje máximo sin postquemador (límite subsónico Mach ~0.83)
+const THRUST_AB_BASE = 9000 // N — postquemador a baja velocidad
+const THRUST_AB_GAIN = 3.2 // multiplicador adicional en régimen transónico y supersónico
+const REVERSE_THRUST = 3400 // N — empuje inverso con aerofreno
 const REVERSE_MAX_SPEED = 16 // m/s máxima marcha atrás
-const VERTICAL_MAX = 30.8 // m/s ascenso (≈ 2.2 × 14 m/s)
+const VERTICAL_MAX = 32 // m/s ascenso
 const ENERGY_MIN_FOR_AB = 2
 
 /** Límites de régimen en km/h (hover < 30 < crucero < 250 < alta < 800 < transónico < Mach 1) */
@@ -157,28 +179,38 @@ export function airDensity(altitude: number): number {
 export function speedOfSound(altitude: number): number {
   const h = Math.max(0, altitude)
   const temp = 288.15 - 0.0065 * h
-  return 340.29 * Math.sqrt(temp / 288.15)
+  return 340.29 * Math.sqrt(Math.max(0.4, temp / 288.15))
 }
 
-/** Resistencia de onda: pico cerca de Mach 1.05 y decaimiento supersónico */
-export function waveDragMultiplier(mach: number): number {
+/**
+ * Resistencia de onda:
+ * En vuelo puramente atmosférico sube agresivamente a partir de Mach 0.75 (Mach crítico Mcr),
+ * formando una barrera natural alrededor de Mach 0.83 - 0.85 con empuje normal.
+ * La Fase Aurelium colapsa el arrastre de onda hasta un 72% al crear la envoltura de flujo ionizado.
+ */
+export function waveDragMultiplier(mach: number, aureliumPhase = 0): number {
   if (mach < 0.75) return 1
+  let wave = 1
   if (mach < 1.05) {
     const t = (mach - 0.75) / 0.3
-    return 1 + 1.4 * (t * t * (3 - 2 * t))
+    wave = 1 + 2.2 * (t * t * (3 - 2 * t))
+  } else {
+    wave = 1.35 + 1.8 * Math.exp(-(mach - 1.05) * 1.4)
   }
-  return 1.15 + 1.25 * Math.exp(-(mach - 1.05) * 1.6)
+  return 1 + (wave - 1) * (1 - 0.72 * aureliumPhase)
 }
 
-/** Empuje disponible (N) según Mach y postquemador */
-export function availableThrust(mach: number, afterburner: number, throttle: number): number {
-  const abThrust = THRUST_AB_BASE * (1 + THRUST_AB_GAIN * smoothstep(0.6, 1.4, mach))
-  return THRUST_NORMAL * throttle * (1 - afterburner) + abThrust * afterburner
+/** Empuje disponible (N) según Mach, postquemador y Fase Aurelium */
+export function availableThrust(mach: number, afterburner: number, throttle: number, aureliumPhase = 0): number {
+  const abThrust = THRUST_AB_BASE * (1 + THRUST_AB_GAIN * smoothstep(0.65, 1.4, mach))
+  const aureliumBoost = 1 + 0.35 * aureliumPhase
+  return (THRUST_NORMAL * throttle * (1 - afterburner) + abThrust * afterburner) * aureliumBoost
 }
 
 export function getRegime(speedKmh: number, mach: number): FlightRegime {
+  if (mach >= 3) return 'hypersonic'
   if (mach >= 1) return 'supersonic'
-  if (speedKmh >= REGIME_LIMITS_KMH.high) return 'transonic'
+  if (mach >= 0.75 || speedKmh >= REGIME_LIMITS_KMH.high) return 'transonic'
   if (speedKmh >= REGIME_LIMITS_KMH.cruise) return 'high'
   if (speedKmh >= REGIME_LIMITS_KMH.hover) return 'cruise'
   return 'hover'
@@ -214,6 +246,13 @@ export class FlightDynamics {
   boomSeq = 0
   boomIntensity = 0
 
+  // Sistemas avanzados de alta velocidad y entorno
+  aureliumPhase = 0
+  thermalGlow = 0
+  dustKick = 0
+  groundAltitude = 10
+  gcasActive = false
+
   private supersonicLatch = false
   private boomCooldown = 0
   private carpetTimer = 0
@@ -236,6 +275,11 @@ export class FlightDynamics {
     this.forwardSpeed = 0
     this.regime = 'hover'
     this.shake = 0
+    this.aureliumPhase = 0
+    this.thermalGlow = 0
+    this.dustKick = 0
+    this.groundAltitude = 10
+    this.gcasActive = false
     this.supersonicLatch = false
     this.boomCooldown = 0
     this.carpetTimer = 0
@@ -245,12 +289,23 @@ export class FlightDynamics {
 
   /**
    * Avanza la simulación `dt` segundos.
-   * @param heading  Rumbo (rotación Y del jugador, rad). Adelante = (-sin, 0, -cos)
-   * @param altitude Altitud actual en metros (densidad y velocidad del sonido)
+   * @param heading        Rumbo (rotación Y del jugador, rad). Adelante = (-sin, 0, -cos)
+   * @param altitude       Altitud absoluta actual en metros (determina densidad y velocidad del sonido ISA)
+   * @param mode           Modo de control ('assist' con JarBees GCAS o 'sim' manual)
+   * @param groundAltitude Altitud relativa sobre el terreno (m) para efecto suelo y GCAS
    * @returns yawDelta: variación de rumbo (rad) que el llamador debe aplicar
    */
-  step(dt: number, input: FlightInput, heading: number, altitude: number, mode: FlightMode): { yawDelta: number } {
+  step(
+    dt: number,
+    input: FlightInput,
+    heading: number,
+    altitude: number,
+    mode: FlightMode,
+    groundAltitude?: number
+  ): { yawDelta: number } {
     const assist = mode === 'assist'
+    const groundAlt = groundAltitude !== undefined ? Math.max(0, groundAltitude) : Math.max(0, altitude)
+    this.groundAltitude = groundAlt
 
     // Descomposición de la velocidad horizontal respecto del rumbo
     const fx = -Math.sin(heading)
@@ -281,15 +336,27 @@ export class FlightDynamics {
 
     this.brake = approach(this.brake, input.backward ? 1 : 0, 4 * dt)
 
+    // --- Envoltura de flujo Fase Aurelium ---------------------------------
+    // Se activa con Boost sostenido a partir de la zona transónica (Mach >= 0.72)
+    // canalizando un campo electromagnético/energético que colapsa la onda de choque
+    const aureliumTarget =
+      abAllowed && this.afterburner > 0.4 && this.energy > 8 && (mach >= 0.72 || this.forwardSpeed > 230) ? 1 : 0
+    this.aureliumPhase = approach(
+      this.aureliumPhase,
+      aureliumTarget,
+      (aureliumTarget > this.aureliumPhase ? 1.5 : 3.0) * dt
+    )
+
     // --- Empuje -----------------------------------------------------------
-    let thrust = availableThrust(mach, this.afterburner, this.throttle)
+    let thrust = availableThrust(mach, this.afterburner, this.throttle, this.aureliumPhase)
     if (noEnergy) thrust *= 0.3
     if (this.overheated) thrust *= 0.55
     if (!assist) thrust *= 1 - 0.35 * smoothstep(85, 100, this.heat)
 
-    // --- Resistencia aerodinámica -----------------------------------------
+    // --- Resistencia aerodinámica y de onda -------------------------------
     const brakeMul = 1 + 1.6 * this.brake
-    const dragN = 0.5 * rho * airspeed * airspeed * CDA * waveDragMultiplier(mach) * brakeMul
+    const dragN =
+      0.5 * rho * airspeed * airspeed * CDA * waveDragMultiplier(mach, this.aureliumPhase) * brakeMul
     const dragAccel = dragN / EFFECTIVE_MASS
 
     const vfBefore = vf
@@ -299,7 +366,7 @@ export class FlightDynamics {
     // aceleración NETA, de modo que nunca altera la velocidad terminal (donde la neta es ≈ 0).
     let aForward = thrust / EFFECTIVE_MASS
     if (vf > -REVERSE_MAX_SPEED) aForward -= (REVERSE_THRUST * this.brake) / EFFECTIVE_MASS
-    const accelCap = (assist ? 8 : 12) * G
+    const accelCap = (assist ? 9 : 14) * G
     const decelCap = (assist ? 6 : 10) * G
     const aNetForward = clamp(aForward - dragAccel * (vf / safeAir), -decelCap, accelCap)
 
@@ -325,14 +392,26 @@ export class FlightDynamics {
 
     vf = Math.max(vf, -REVERSE_MAX_SPEED)
 
-    // --- Vertical ---------------------------------------------------------
-    const climbMul = 1 + 0.8 * this.afterburner
+    // --- Vertical y Asistencia Inteligente JarBees (GCAS) -----------------
+    const climbMul = 1 + 0.8 * this.afterburner + 0.25 * this.aureliumPhase
     let vyTarget = 0
     if (input.up) vyTarget += VERTICAL_MAX * climbMul
     if (input.down) vyTarget -= VERTICAL_MAX * 0.85 * climbMul
     if (!input.up && !input.down && noEnergy) vyTarget = -9 // sin energía: la sustentación asistida falla
     if (input.up && noEnergy) vyTarget *= 0.3
     this.vy += (vyTarget - this.vy) * (1 - Math.exp(-(assist ? 4.0 : 2.2) * dt))
+
+    // JarBees GCAS (Ground Collision Avoidance System):
+    // A 1.000+ km/h (280 m/s), 100 ms representan 28 metros. Si el piloto desciende velozmente
+    // en vuelo rasante contra el relieve, JarBees interviene con micro-empuje vectorial compensatorio.
+    if (assist && airspeed > 130 && groundAlt < 14 && this.vy < -1.5) {
+      const gcasAuthority = clamp((14 - groundAlt) / 14, 0, 1)
+      const liftForce = (30 * gcasAuthority + Math.abs(this.vy) * 2.8) * dt
+      this.vy += Math.min(28 * dt, liftForce)
+      this.gcasActive = true
+    } else {
+      this.gcasActive = false
+    }
 
     // --- Guiñada con autoridad dependiente de la velocidad ----------------
     const sp = Math.hypot(vf, vl)
@@ -349,18 +428,36 @@ export class FlightDynamics {
     this.forwardSpeed = vf
 
     // --- Energía ----------------------------------------------------------
+    const aureliumDrain = this.aureliumPhase * 3.8
     const drain =
       0.5 * this.throttle +
       3.8 * this.afterburner +
+      aureliumDrain +
       (input.up || input.down ? 0.5 : 0) +
       (assist ? 0 : 0.2)
     const regen = this.throttle < 0.15 && this.afterburner < 0.05 ? (assist ? 4 : 3) : 0
     this.energy = clamp(this.energy + (regen - drain) * dt, 0, 100)
 
-    // --- Temperatura del núcleo -------------------------------------------
-    const heatIn = 1.0 * mach * mach * mach * (rho / RHO0) + 0.6 * this.throttle + 6 * this.afterburner
+    // --- Temperatura del núcleo y calentamiento aerodinámico --------------
+    // A Mach < 0.83 el aire casi no calienta. A Mach 2.5 - 5 el calentamiento por estancamiento
+    // de plasma es brutal, aunque la Fase Aurelium disipa hasta un 45% del choque térmico.
+    const ramHeat =
+      mach > 1.4 ? 0.38 * Math.pow(mach, 3.2) * (rho / RHO0) * (1 - 0.45 * this.aureliumPhase) : 0
+    const heatIn =
+      ramHeat + 0.6 * this.throttle + 6.2 * this.afterburner + 2.4 * this.aureliumPhase
     const cooling = 2.0 + 0.012 * airspeed + (this.throttle < 0.05 ? 1.5 : 0)
     this.heat = clamp(this.heat + (heatIn - cooling) * dt, 10, 100)
+
+    // Incandescencia térmica en bordes de ataque (Mach > 2.2 a Mach 5)
+    this.thermalGlow = clamp((mach - 2.0) / 2.5, 0, 1)
+
+    // Perturbación rasante sobre el suelo (polvo y agitación con atenuación inversa)
+    if (groundAlt < 28 && airspeed > 30) {
+      const prox = clamp(1 - groundAlt / 28, 0, 1)
+      this.dustKick = prox * prox * smoothstep(30, 280, airspeed) * (1 + 0.35 * this.afterburner)
+    } else {
+      this.dustKick = 0
+    }
 
     // --- Carga G ----------------------------------------------------------
     const aNet = dt > 0 ? (vf - vfBefore) / dt : 0
@@ -401,8 +498,8 @@ export class FlightDynamics {
     this.boomImpulse *= Math.exp(-dt / 0.7)
 
     // --- Respuesta de cámara/vibración ------------------------------------
-    const buffet = 0.5 * bump(this.mach, 0.7, 0.88, 1.02) // buffet transónico (se calma al cruzar Mach 1)
-    const supersonicHum = 0.1 * smoothstep(1.15, 2.5, this.mach)
+    const buffet = 0.5 * bump(this.mach, 0.72, 0.88, 1.02) * (1 - 0.5 * this.aureliumPhase)
+    const supersonicHum = 0.1 * smoothstep(1.15, 3.5, this.mach)
     this.shake = clamp(
       (buffet + supersonicHum + 0.08 * this.afterburner) * (assist ? 0.7 : 1) + 0.8 * this.boomImpulse,
       0,
@@ -433,15 +530,22 @@ export class FlightDynamics {
     rt.overheated = this.overheated
     rt.lowEnergy = this.energy <= 15
     rt.shake = this.shake
-    rt.camPull = smoothstep(20, 340, this.speed)
+    rt.camPull = smoothstep(20, 420, this.speed)
     rt.fovBoost = clamp(
-      3 + 14 * smoothstep(30, 300, this.speed) + 8 * smoothstep(1.0, 2.0, this.mach) + 10 * this.boomImpulse,
+      3 + 14 * smoothstep(30, 300, this.speed) + 10 * smoothstep(1.0, 3.0, this.mach) + 10 * this.boomImpulse,
       0,
-      32
+      34
     )
     rt.boomSeq = this.boomSeq
     rt.boomIntensity = this.boomIntensity
-    rt.thrustPct = Math.round((this.throttle * (1 - this.afterburner) * 0.4 + this.afterburner) * 100)
+    rt.thrustPct = Math.round(
+      (this.throttle * (1 - this.afterburner) * 0.4 + this.afterburner * (0.8 + 0.2 * this.aureliumPhase)) * 100
+    )
+    rt.aureliumPhase = this.aureliumPhase
+    rt.thermalGlow = this.thermalGlow
+    rt.dustKick = this.dustKick
+    rt.groundAltitude = this.groundAltitude
+    rt.gcasActive = this.gcasActive
     rt.active = true
   }
 }
@@ -462,4 +566,9 @@ export function resetFlightRuntime(): void {
   flightRuntime.shake = 0
   flightRuntime.camPull = 0
   flightRuntime.fovBoost = 0
+  flightRuntime.aureliumPhase = 0
+  flightRuntime.thermalGlow = 0
+  flightRuntime.dustKick = 0
+  flightRuntime.groundAltitude = 10
+  flightRuntime.gcasActive = false
 }

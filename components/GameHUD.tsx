@@ -129,32 +129,83 @@ export function GameHUD() {
         {selectedCharacter === 'iron_man' ? (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-              <span style={{ color: flight.mach >= 1 ? '#FF4444' : flight.mach >= 0.75 ? '#FFAA33' : '#38BDF8', fontWeight: 'bold' }}>
+              <span
+                style={{
+                  color:
+                    flight.mach >= 3
+                      ? '#E040FB'
+                      : flight.mach >= 1
+                      ? '#FF4444'
+                      : flight.mach >= 0.75
+                      ? '#FFAA33'
+                      : '#38BDF8',
+                  fontWeight: 'bold',
+                }}
+              >
                 MACH {flight.mach.toFixed(2)}
               </span>
               <strong style={{ fontSize: '0.95rem' }}>{flight.speedKmh.toFixed(0)} km/h</strong>
             </div>
 
-            <div style={{ fontSize: '0.66rem', marginBottom: 4, textAlign: 'right' }}>
+            <div style={{ fontSize: '0.66rem', marginBottom: 4, textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+              {flight.aureliumPhase && (
+                <span
+                  style={{
+                    padding: '1px 6px',
+                    borderRadius: '3px',
+                    background: 'rgba(217, 70, 239, 0.25)',
+                    border: '1px solid #D946EF',
+                    color: '#F0ABFC',
+                    fontWeight: 700,
+                    letterSpacing: '0.5px',
+                    animation: 'pulse 1.2s infinite',
+                  }}
+                  title="Envoltura de control de flujo activada: resistencia de onda colapsada"
+                >
+                  ✨ AURELIUM
+                </span>
+              )}
+              {flight.gcasActive && (
+                <span
+                  style={{
+                    padding: '1px 6px',
+                    borderRadius: '3px',
+                    background: 'rgba(245, 158, 11, 0.3)',
+                    border: '1px solid #F59E0B',
+                    color: '#FDE68A',
+                    fontWeight: 700,
+                    letterSpacing: '0.5px',
+                  }}
+                  title="JarBees GCAS: evasión reactiva de relieve rasante activa"
+                >
+                  🛡️ GCAS
+                </span>
+              )}
               <span
                 style={{
                   padding: '1px 6px',
                   borderRadius: '3px',
                   background:
-                    flight.regime === 'supersonic'
+                    flight.regime === 'hypersonic'
+                      ? 'rgba(224, 64, 251, 0.25)'
+                      : flight.regime === 'supersonic'
                       ? 'rgba(255, 68, 68, 0.25)'
                       : flight.regime === 'transonic'
                       ? 'rgba(255, 170, 51, 0.25)'
                       : 'rgba(56, 189, 248, 0.15)',
                   border: `1px solid ${
-                    flight.regime === 'supersonic'
+                    flight.regime === 'hypersonic'
+                      ? '#E040FB'
+                      : flight.regime === 'supersonic'
                       ? '#FF4444'
                       : flight.regime === 'transonic'
                       ? '#FFAA33'
                       : '#38BDF8'
                   }`,
                   color:
-                    flight.regime === 'supersonic'
+                    flight.regime === 'hypersonic'
+                      ? '#F5D0FE'
+                      : flight.regime === 'supersonic'
                       ? '#FFAAAA'
                       : flight.regime === 'transonic'
                       ? '#FFDDAA'
@@ -169,6 +220,7 @@ export function GameHUD() {
                 {flight.regime === 'high' && 'Alta Velocidad'}
                 {flight.regime === 'transonic' && 'Transónico'}
                 {flight.regime === 'supersonic' && 'Supersónico (M>1)'}
+                {flight.regime === 'hypersonic' && 'Hipersónico (M>3)'}
               </span>
             </div>
 
@@ -193,6 +245,11 @@ export function GameHUD() {
               <span style={{ color: '#aaa' }}>Núcleo:</span>
               <span style={{ color: flight.overheated ? '#FF4444' : flight.heat > 60 ? '#FFAA33' : '#aaa' }}>
                 <strong>{flight.heat.toFixed(0)}°C</strong>
+                {flight.thermalGlow > 0.1 && (
+                  <span style={{ color: '#FF5500', marginLeft: 4 }} title="Incandescencia por plasma aerodinámico">
+                    🔥Plasma
+                  </span>
+                )}
                 {flight.overheated && ' 🔥'}
               </span>
             </div>

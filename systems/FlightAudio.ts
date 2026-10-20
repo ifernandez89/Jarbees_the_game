@@ -48,6 +48,10 @@ export class FlightAudio {
   private buffetGain: GainNode
   private buffetLfoGain: GainNode
 
+  private aureliumGain: GainNode
+  private aureliumFilter: BiquadFilterNode
+  private aureliumOsc: OscillatorNode
+
   private whiteBuffer: AudioBuffer
   private brownBuffer: AudioBuffer
   private sources: AudioScheduledSourceNode[] = []
@@ -119,6 +123,21 @@ export class FlightAudio {
     this.sources.push(lfo)
     this.loopNoise(this.brownBuffer).connect(buffetFilter)
     buffetFilter.connect(this.buffetGain).connect(this.master)
+
+    // Resonancia de Fase Aurelium (zumbido futurista ionizado)
+    this.aureliumFilter = ctx.createBiquadFilter()
+    this.aureliumFilter.type = 'bandpass'
+    this.aureliumFilter.frequency.value = 520
+    this.aureliumFilter.Q.value = 2.5
+    this.aureliumGain = ctx.createGain()
+    this.aureliumGain.gain.value = 0
+    this.aureliumOsc = ctx.createOscillator()
+    this.aureliumOsc.type = 'sine'
+    this.aureliumOsc.frequency.value = 520
+    this.aureliumOsc.connect(this.aureliumFilter)
+    this.aureliumFilter.connect(this.aureliumGain).connect(this.master)
+    this.aureliumOsc.start()
+    this.sources.push(this.aureliumOsc)
   }
 
   private loopNoise(buffer: AudioBuffer): AudioBufferSourceNode {
@@ -165,9 +184,15 @@ export class FlightAudio {
     this.ramp(this.abGain.gain, rt.afterburner * 0.7)
 
     // Buffet transónico
-    const trans = Math.max(0, 1 - Math.abs(rt.mach - 0.9) / 0.22)
+    const trans = Math.max(0, 1 - Math.abs(rt.mach - 0.9) / 0.22) * (1 - 0.5 * rt.aureliumPhase)
     this.ramp(this.buffetGain.gain, 0.12 * trans)
     this.ramp(this.buffetLfoGain.gain, 0.5 * trans)
+
+    // Fase Aurelium (resonancia de flujo electromagnético)
+    const aureliumVol = rt.aureliumPhase * 0.22
+    this.ramp(this.aureliumGain.gain, aureliumVol)
+    this.ramp(this.aureliumOsc.frequency, 460 + rt.mach * 90 + rt.aureliumPhase * 110)
+    this.ramp(this.aureliumFilter.frequency, 520 + rt.mach * 100)
 
     // Estampido sónico
     if (rt.boomSeq !== this.lastBoomSeq) {
