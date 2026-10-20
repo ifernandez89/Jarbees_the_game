@@ -19,6 +19,7 @@ export function GameHUD() {
   const flight = useGameStore((state) => state.flight)
   const flightMode = useGameStore((state) => state.flightMode)
   const toggleFlightMode = useGameStore((state) => state.toggleFlightMode)
+  const isGrounded = useGameStore((state) => state.isGrounded)
 
   const [fps, setFps] = useState(60)
   const timeOfDay = useDayNightCycle(dayNightEnabled)
@@ -97,6 +98,10 @@ export function GameHUD() {
             ? Math.abs(velocity) > 0.5
               ? '🔄 Boca Arriba (Cielo)'
               : '🔄 Mirando al Usuario'
+            : selectedCharacter === 'iron_man' && isGrounded
+            ? Math.abs(velocity) > 0.3
+              ? '🚶 Caminando'
+              : '🧍 En Tierra (Modo Walk)'
             : Math.abs(velocity) > 0.5
             ? '▶ Volando'
             : '🌸 Suspendido'}
@@ -308,9 +313,15 @@ export function GameHUD() {
       {/* HUD inferior centro - Controles */}
       <div className="hud-card hud-panel-controls">
         {selectedCharacter === 'iron_man' ? (
-          <>
-            ⬆️/W: Empuje | ⬇️/S: Aerofreno Reactivo | ⬅️➡️/A/D: Rumbo | ESPACIO: Salto/Ascenso | C: Agacharse | 1-5: Emotes (1:Saludo 2:Todo Bien 3:Señalar 4:Todo Bien 5:Victoria) | SHIFT: Postquemador | Q: Descenso | G: Vuelo | T/Clic: Invertir
-          </>
+          isGrounded ? (
+            <>
+              ⬆️/W: Caminar | ⬇️/S: Retroceso | ⬅️➡️/A/D: Girar | ESPACIO: Salto / Despegar a Vuelo | C: Agacharse | 1-5: Emotes | T/Clic: Invertir
+            </>
+          ) : (
+            <>
+              ⬆️/W: Empuje | ⬇️/S: Aerofreno Reactivo | ⬅️➡️/A/D: Rumbo | ESPACIO: Salto/Ascenso | C: Agacharse | 1-5: Emotes | SHIFT: Postquemador | Q: Descenso (tocar piso para caminar) | G: Vuelo | T/Clic: Invertir
+            </>
+          )
         ) : (
           <>
             ⬆️/W: Avanzar | ⬇️/S: Frenar | ⬅️➡️/A/D: Girar | ESPACIO: Subir | SHIFT/Q: Bajar | ENTER: Pausa | M: Sonido

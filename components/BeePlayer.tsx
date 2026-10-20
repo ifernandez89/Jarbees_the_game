@@ -494,6 +494,7 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
 
     const actions = actionsMapRef.current
     if (mixerRef.current && Object.keys(actions).length > 0) {
+      const isGroundedFromStore = useGameStore.getState().isGrounded
       let isGrounded = false
       let altAboveGround = 10.0
 
@@ -502,16 +503,16 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
           ? terrainManager.getHeightAt(playerObj.position.x, playerObj.position.z) + 1.4
           : 0.8
         altAboveGround = Math.max(0, playerObj.position.y - floorY)
-        isGrounded = altAboveGround <= 0.35
+        isGrounded = isGroundedFromStore || altAboveGround <= 0.15
       }
 
       // Velocidad real del traje sincronizada a 60 Hz directamente desde FlightDynamics
       const forwardSpeed = flightRuntime.forwardSpeed
-      const isFlyingForward = controls.forward || controls.boost || forwardSpeed > 1.8
-      const isInFlightMode = isFlyingForward || altAboveGround > 0.45
+      const isInFlightMode = !isGrounded && altAboveGround > 0.35
+      const isFlyingForward = isInFlightMode && (controls.forward || controls.boost || forwardSpeed > 1.8)
 
-      // Si el usuario presiona W, Boost o Salto, romper de inmediato cualquier impacto, agachado o aterrizaje previo
-      if (controls.forward || controls.boost || controls.jump) {
+      // Si el usuario presiona W, S, Boost o Salto, romper de inmediato cualquier impacto, agachado o aterrizaje previo
+      if (controls.forward || controls.backward || controls.boost || controls.jump) {
         if (impactStateRef.current !== 'none') {
           impactStateRef.current = 'none'
           impactTimerRef.current = 0
@@ -690,19 +691,22 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
         }
       } else {
         // --- LOCOMOCIÓN EN TIERRA FIRME ---
-        if (controls.up && Math.abs(velocity) < 1.5) {
-          // Despegue desde reposo en tierra
-          targetName = 'nexo_takeoff'
-        } else if (isMovingForward) {
-          if (controls.boost || velocity > 7.0) {
-            targetName = 'nexo_run'
-            targetAnimSpeed = Math.max(0.8, Math.min(1.8, Math.abs(velocity) / 10.0))
+        const isMoving = controls.forward || controls.backward || Math.abs(velocity) > 0.25
+        const isTurning = (controls.left || controls.right) && !isMoving
+
+        if (controls.jump || controls.up) {
+          // Despegue / salto desde reposo en tierra
+          targetName = actions['nexo_takeoff'] ? 'nexo_takeoff' : 'nexo_jump_start'
+        } else if (isMoving) {
+          if (controls.boost || Math.abs(velocity) > 5.0) {
+            targetName = actions['nexo_run'] ? 'nexo_run' : 'nexo_walk'
+            targetAnimSpeed = Math.max(0.8, Math.min(1.8, Math.abs(velocity) / 6.0))
           } else {
             targetName = 'nexo_walk'
-            targetAnimSpeed = Math.max(0.7, Math.min(1.6, Math.abs(velocity) / 4.0))
+            targetAnimSpeed = Math.max(0.8, Math.min(1.6, Math.abs(velocity) / 3.5))
           }
           idleTimerRef.current = 0
-        } else if (isTurning && Math.abs(velocity) < 0.8) {
+        } else if (isTurning) {
           targetName = controls.left ? 'nexo_turn_left' : 'nexo_turn_right'
           idleTimerRef.current = 0
         } else {
@@ -898,6 +902,7 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
   // JARBEES FLIGHT SYSTEM: motor de vuelo de la armadura
   const flightRef = useRef(new FlightDynamics())
   const flightWasActiveRef = useRef(false)
+  const isGroundedRef = useRef(false)
 
   // Estado del juego
   const controls = useGameStore((state) => state.controls)
@@ -910,6 +915,13 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
   const setVelocity = useGameStore((state) => state.setVelocity)
   const terrainManager = useGameStore((state) => state.terrainManager)
   const setFlightTelemetry = useGameStore((state) => state.setFlightTelemetry)
+  const setGrounded = useGameStore((state) => state.setGrounded)
+
+  // Reiniciar estado de suelo al cambiar de personaje
+  useEffect(() => {
+    isGroundedRef.current = false
+    setGrounded(false)
+  }, [selectedCharacter, setGrounded])
 
   // Loop de actualización de vuelo
   useFrame((state, delta) => {
@@ -925,10 +937,7 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
 
     if (isIronMan) {
       // =====================================================================
-      // JARBEES FLIGHT SYSTEM — vuelo con física para la armadura:
-      // empuje vectorial, resistencia cuadrática con onda transónica, postquemador,
-      // energía, temperatura y carga G. La simulación se integra en SUBPASOS para
-      // no atravesar el terreno a velocidades supersónicas.
+      // JARBEES FLIGHT SYSTEM — vuelo con física para la armadura y modo caminar:
       // =====================================================================
       const mode = useGameStore.getState().flightMode
       const input = {
@@ -941,37 +950,114 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
         boost: controls.boost,
       }
       const dt = Math.min(delta, 0.05)
-      const speedEstimate = Math.hypot(flight.vx, flight.vz) + Math.abs(flight.vy)
-      const steps = Math.min(12, Math.max(1, Math.ceil((speedEstimate * dt) / 5)))
-      const subDt = dt / steps
 
-      for (let i = 0; i < steps; i++) {
-        const floorY = terrainManager
-          ? terrainManager.getHeightAt(player.position.x, player.position.z) + 1.4
-          : 0.8
-        const altAboveGround = Math.max(0, player.position.y - floorY)
+      const floorY = terrainManager
+        ? terrainManager.getHeightAt(player.position.x, player.position.z) + 1.4
+        : 0.8
 
-        const { yawDelta } = flight.step(subDt, input, player.rotation.y, player.position.y, mode, altAboveGround)
-        player.rotation.y += yawDelta
-        player.position.x += flight.vx * subDt
-        player.position.y += flight.vy * subDt
-        player.position.z += flight.vz * subDt
-
-        // Colisión continua con el suelo en cada subpaso
-        if (player.position.y < floorY) {
+      if (isGroundedRef.current) {
+        // --- MODO WALK (En tierra firme) ---
+        // Al presionar ESPACIO (jump o up), salta ligeramente y reactiva los mandos de vuelo
+        if (controls.jump || controls.up) {
+          isGroundedRef.current = false
+          setGrounded(false)
+          flight.vy = 6.4 // Ligero salto / impulso vertical de despegue
+          player.position.y = floorY + 0.3
+          flight.forwardSpeed = 0
+        } else {
+          // Mantener al personaje firme sobre la superficie del relieve
           player.position.y = floorY
-          if (flight.vy < 0) flight.vy = 0
-        }
-        if (player.position.y > SUIT_CEILING) {
-          player.position.y = SUIT_CEILING
-          if (flight.vy > 0) flight.vy = 0
-        }
-      }
+          flight.vy = 0
+          flight.vx = 0
+          flight.vz = 0
+          flight.forwardSpeed = 0
+          flight.throttle = 0
+          flight.afterburner = 0
 
-      accumulatedDistanceRef.current += Math.hypot(flight.vx, flight.vz) * dt
-      currentVelocity = flight.forwardSpeed
-      velocityRef.current = currentVelocity
-      flightWasActiveRef.current = true
+          // Giro de orientación en tierra con A y D
+          if (controls.left) {
+            player.rotation.y += rotationSpeed
+          }
+          if (controls.right) {
+            player.rotation.y -= rotationSpeed
+          }
+
+          // Locomoción a pie con W (adelante) y S (retroceso)
+          const walkSpeed = controls.boost ? 6.5 : 3.6
+          let moveDir = 0
+          if (controls.forward) moveDir += 1
+          if (controls.backward) moveDir -= 0.65
+
+          if (moveDir !== 0) {
+            const step = moveDir * walkSpeed * dt
+            const fx = -Math.sin(player.rotation.y)
+            const fz = -Math.cos(player.rotation.y)
+            player.position.x += fx * step
+            player.position.z += fz * step
+            currentVelocity = moveDir * walkSpeed
+            accumulatedDistanceRef.current += Math.abs(step)
+          } else {
+            currentVelocity = 0
+          }
+          velocityRef.current = currentVelocity
+
+          // Mantener telemetría de vuelo apagada en tierra
+          flightRuntime.active = false
+          flightRuntime.speed = 0
+          flightRuntime.speedKmh = Math.abs(currentVelocity) * 3.6
+          flightRuntime.mach = 0
+          flightRuntime.regime = 'hover'
+          flightRuntime.thrustPct = 0
+          flightRuntime.afterburner = 0
+          flightRuntime.throttle = 0
+          flightRuntime.dustKick = 0
+          flightRuntime.aureliumPhase = 0
+          flightRuntime.groundAltitude = 0
+        }
+      } else {
+        // --- MODO VUELO (Simulación de vuelo y física vectorial) ---
+        const speedEstimate = Math.hypot(flight.vx, flight.vz) + Math.abs(flight.vy)
+        const steps = Math.min(12, Math.max(1, Math.ceil((speedEstimate * dt) / 5)))
+        const subDt = dt / steps
+
+        for (let i = 0; i < steps; i++) {
+          const subFloorY = terrainManager
+            ? terrainManager.getHeightAt(player.position.x, player.position.z) + 1.4
+            : 0.8
+          const subAlt = Math.max(0, player.position.y - subFloorY)
+
+          const { yawDelta } = flight.step(subDt, input, player.rotation.y, player.position.y, mode, subAlt)
+          player.rotation.y += yawDelta
+          player.position.x += flight.vx * subDt
+          player.position.y += flight.vy * subDt
+          player.position.z += flight.vz * subDt
+
+          // Detección de suelo: al bajar con Q (controls.down) o tocar el suelo en descenso
+          if (player.position.y <= subFloorY + 0.08) {
+            player.position.y = subFloorY
+            if (controls.down || flight.vy <= 0) {
+              isGroundedRef.current = true
+              setGrounded(true)
+              flight.vy = 0
+              flight.vx = 0
+              flight.vz = 0
+              flight.forwardSpeed = 0
+              flight.throttle = 0
+              flight.afterburner = 0
+              break
+            }
+          }
+          if (player.position.y > SUIT_CEILING) {
+            player.position.y = SUIT_CEILING
+            if (flight.vy > 0) flight.vy = 0
+          }
+        }
+
+        accumulatedDistanceRef.current += Math.hypot(flight.vx, flight.vz) * dt
+        currentVelocity = flight.forwardSpeed
+        velocityRef.current = currentVelocity
+        flightWasActiveRef.current = true
+      }
     } else {
       if (flightWasActiveRef.current) {
         flight.reset()
@@ -1027,9 +1113,11 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       player.position.y = Math.max(minHeight, Math.min(player.position.y, 82))
     }
 
-    // Leve efecto de viento permanente y flotabilidad natural
+    const isGrounded = isIronMan && isGroundedRef.current
+
+    // Leve efecto de viento permanente y flotabilidad natural (solo en vuelo)
     const wind = useGameStore.getState().wind
-    if (wind && wind.speed > 0) {
+    if (wind && wind.speed > 0 && !isGrounded) {
       const windTime = state.clock.getElapsedTime()
       const breezeOsc = Math.sin(windTime * 1.5) * 0.3 + 0.7
       const windDriftX = wind.direction[0] * wind.speed * 0.09 * breezeOsc * delta
@@ -1041,36 +1129,38 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
     // Balanceo suave en suspensión, brisa e inclinación aerodinámica de vuelo
     if (modelAnchorRef.current) {
       const t = state.clock.getElapsedTime()
-      const hoverAmp = profile.renderConfig.hoverBobbingAmplitude
+      const hoverAmp = isGrounded ? 0 : profile.renderConfig.hoverBobbingAmplitude
       const hoverBobbing = Math.sin(t * 3.2) * hoverAmp
-      const windSway = Math.cos(t * 1.6) * 0.02
+      const windSway = isGrounded ? 0 : Math.cos(t * 1.6) * 0.02
 
       // Vibración estructural del traje (buffet transónico, postquemador y estampido sónico)
-      const shake = isIronMan ? flightRuntime.shake : 0
+      const shake = (isIronMan && !isGrounded) ? flightRuntime.shake : 0
       const jitterX = (Math.sin(t * 61) + Math.sin(t * 37 + 1.3)) * 0.5 * 0.03 * shake
       const jitterY = (Math.sin(t * 53 + 0.7) + Math.sin(t * 29)) * 0.5 * 0.03 * shake
       modelAnchorRef.current.position.x = jitterX
       modelAnchorRef.current.position.y = hoverBobbing + jitterY
 
       // Inclinación dinámica visual del modelo (Pitch al acelerar/frenar y Roll al virar)
-      // En reposo/suspensión la espalda se mantiene 100% recta y erguida (0°).
-      // Al volar con W, la inclinación visual complementa el rig de Blender (-89° horizontal torpedo).
-      // Al pulsar S con aerofreno, se produce contragolpe reactivo hacia atrás (+22°).
-      const isFlying = isIronMan ? controls.forward || flight.forwardSpeed > 2.0 : controls.forward
+      // En reposo/suspensión o en tierra, la espalda se mantiene 100% recta y erguida (0°).
       let baseTargetPitch = 0
-      if (controls.backward) {
-        baseTargetPitch = isIronMan ? 0.38 : 0.12 // Contragolpe hacia atrás al clavar el freno reactivo
-      } else if (isFlying) {
-        baseTargetPitch = isIronMan ? (controls.boost || flight.forwardSpeed > 35 ? -0.85 : -0.75) : -0.16
+      if (!isGrounded) {
+        const isFlying = isIronMan ? controls.forward || flight.forwardSpeed > 2.0 : controls.forward
+        if (controls.backward) {
+          baseTargetPitch = isIronMan ? 0.38 : 0.12 // Contragolpe hacia atrás al clavar el freno reactivo
+        } else if (isFlying) {
+          baseTargetPitch = isIronMan ? (controls.boost || flight.forwardSpeed > 35 ? -0.85 : -0.75) : -0.16
+        }
       }
 
       const targetPitch = baseTargetPitch * profile.renderConfig.pitchMultiplier
-      const targetRoll = (controls.left ? 0.38 : (controls.right ? -0.38 : 0)) * profile.renderConfig.rollMultiplier
+      const targetRoll = isGrounded
+        ? 0
+        : (controls.left ? 0.38 : (controls.right ? -0.38 : 0)) * profile.renderConfig.rollMultiplier
 
       modelAnchorRef.current.rotation.x = THREE.MathUtils.lerp(
         modelAnchorRef.current.rotation.x,
         targetPitch,
-        delta * (controls.backward ? 8.0 : 6.0)
+        delta * (controls.backward && !isGrounded ? 8.0 : 6.0)
       )
       modelAnchorRef.current.rotation.z = THREE.MathUtils.lerp(
         modelAnchorRef.current.rotation.z,
@@ -1139,16 +1229,22 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
         }
       }
 
-      // Modular sonido del personaje activo (la armadura normaliza contra 300 m/s para que el tono no se desboque)
-      const maxSpeedRef = isIronMan ? 300.0 : 16.0
-      const speedNorm = Math.min(1, Math.abs(currentVelocity) / maxSpeedRef)
-      const pitch = basePitch + speedNorm * pitchRange + (isManeuvering ? 0.04 : 0.0)
-      const currentVol = isMoving
-        ? baseVolume + speedNorm * (maxVolume - baseVolume)
-        : baseVolume
+      // Modular sonido del personaje activo
+      if (isIronMan && isGrounded) {
+        // En tierra los reactores están en standby silencioso
+        audio.setSoundVolume(soundKey, 0.015)
+        audio.setSoundPitch(soundKey, 0.75)
+      } else {
+        const maxSpeedRef = isIronMan ? 300.0 : 16.0
+        const speedNorm = Math.min(1, Math.abs(currentVelocity) / maxSpeedRef)
+        const pitch = basePitch + speedNorm * pitchRange + (isManeuvering ? 0.04 : 0.0)
+        const currentVol = isMoving
+          ? baseVolume + speedNorm * (maxVolume - baseVolume)
+          : baseVolume
 
-      audio.setSoundPitch(soundKey, pitch)
-      audio.setSoundVolume(soundKey, currentVol)
+        audio.setSoundPitch(soundKey, pitch)
+        audio.setSoundVolume(soundKey, currentVol)
+      }
     }
   })
 

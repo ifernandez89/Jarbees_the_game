@@ -1,5 +1,29 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.14] - 2026-10-20
+
+### 🚶 Modo Tierra (Walk) con Reconocimiento de Terreno, Transición Vuelo/Suelo y Limpieza Visual de Aurelium
+
+#### Añadido
+- **Reconocimiento Dinámico del Suelo y Conmutación a Modo Caminata (`components/BeePlayer.tsx`, `store/gameStore.ts`)**:
+  - Al descender con **`Q`** o descender voluntariamente hacia el relieve, el exoesqueleto NEXO-01 detecta la cota de contacto con el terreno (`player.position.y <= floorY + 0.08`) y conmuta de inmediato al **Modo Walk** (`isGrounded = true`).
+  - La posición vertical se ancla fielmente a las curvas y elevaciones del relieve sin hundimientos ni flotabilidad artificial.
+- **Locomoción Terrestre Completa en Tierra Firme (`components/BeePlayer.tsx`)**:
+  - **`W` / `S`**: Desplazamiento a pie hacia adelante y retroceso activando el ciclo auténtico de caminata pesada **`nexo_walk`** (o **`nexo_run`** al activar aceleración con Shift).
+  - **`A` / `D`**: Giro sobre el terreno ejecutando animaciones de giro sobre el suelo (**`nexo_turn_left`** / **`nexo_turn_right`**).
+  - **Reposo en Tierra**: Postura firme y vertical con respiración biomecánica en reposo (**`nexo_idle`**), desactivando balanceos aéreos, inclinación de torpedo y derivas de viento.
+- **Despegue y Transición Instantánea a Vuelo con Barra Espaciadora (`components/BeePlayer.tsx`)**:
+  - Al presionar **`SPACE BAR`** en tierra firme, el exoesqueleto ejecuta un salto/impulso elástico hacia arriba (`nexo_takeoff` / impulso vertical $v_y \approx 6.4\text{ m/s}$).
+  - Sale instantáneamente del modo tierra (`isGrounded = false`), devolviendo de inmediato los mandos de **`WASD`** a los micro-reactores vectoriales y físicas completas de vuelo.
+- **Respuesta Audiovisual y Telemetría Adaptativa (`components/GameHUD.tsx`, `components/BeePlayer.tsx`)**:
+  - **HUD Inteligente**: Muestra el estado en tiempo real (`🚶 Caminando` / `🧍 En Tierra (Modo Walk)` vs `▶ Volando`).
+  - **Panel de Controles Contextual**: Actualiza las leyendas de ayuda en la parte inferior de la pantalla para reflejar los controles de caminata o vuelo según corresponda.
+  - **Gestión Acústica de Propulsores**: En tierra los reactores se silencian a un zumbido de espera imperceptible ($0.015$ volumen), apagando el rugido de turbina hasta el nuevo despegue.
+
+#### Modificado / Optimizado
+- **Limpieza de Geometría Visual de Fase Aurelium (`components/FlightEffects.tsx`)**:
+  - Eliminación de la malla esférica *wireframe* magenta que envolvía la cámara durante la aceleración supersónica, despejando la visión periférica y conservando intactos el cono de vapor Mach, las estelas cinemáticas y los anillos de onda de choque.
+
 ## [0.8.13] - 2026-10-20
 
 ### 🚀 Sistema de Altas Velocidades, Física Transónica/Hipersónica, Fase Aurelium y Navegación Inteligente JarBees GCAS

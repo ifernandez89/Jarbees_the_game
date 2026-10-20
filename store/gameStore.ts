@@ -105,6 +105,10 @@ export interface GameState {
   flightMode: FlightMode
   flight: FlightTelemetry
 
+  // Modo en tierra (caminar) vs vuelo
+  isGrounded: boolean
+  setGrounded: (grounded: boolean) => void
+
   // Acciones
   setFlightMode: (mode: FlightMode) => void
   toggleFlightMode: () => void
@@ -168,6 +172,7 @@ const initialState = {
   selectedCharacter: 'bee' as CharacterId,
   isSpecsModalOpen: false,
   isIronManFlipped: false,
+  isGrounded: false,
   flightMode: 'assist' as FlightMode,
   flight: INITIAL_FLIGHT_TELEMETRY,
 }
@@ -177,7 +182,8 @@ export const useGameStore = create<GameState>((set) => ({
   
   triggerEmote: (activeEmote) => set({ activeEmote }),
   setSelectedCharacter: (selectedCharacter) =>
-    set({ selectedCharacter, isIronManFlipped: false, flight: INITIAL_FLIGHT_TELEMETRY }),
+    set({ selectedCharacter, isIronManFlipped: false, isGrounded: false, flight: INITIAL_FLIGHT_TELEMETRY }),
+  setGrounded: (isGrounded) => set({ isGrounded }),
   setFlightMode: (flightMode) => set({ flightMode }),
   toggleFlightMode: () =>
     set((state) => ({ flightMode: state.flightMode === 'assist' ? 'sim' : 'assist' })),
