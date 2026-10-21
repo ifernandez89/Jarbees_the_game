@@ -97,10 +97,11 @@ async function loadGameAudio(manager: AudioManager) {
     // 1. Música ambiental orquestal de fondo
     await manager.loadMusic('ambient', getAssetPath('/audio/ambient_music.wav'))
 
-    // 2. Efectos de sonido del juego (zumbido suavizado a 0.08 por defecto)
+    // 2. Efectos de sonido del juego (vuelo y fauna)
     await manager.loadSound('bee_buzz', getAssetPath('/audio/bee_buzz.wav'), { loop: true, volume: 0.08 })
     await manager.loadSound('colibri_flutter', getAssetPath('/audio/colibri_flutter.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('butterfly_flutter', getAssetPath('/audio/butterfly_flutter.wav'), { loop: true, volume: 0.0 })
+    await manager.loadSound('auren_flight', getAssetPath('/audio/auren_flight.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('iron_man_thruster', getAssetPath('/audio/iron_man_thruster.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('wind', getAssetPath('/audio/wind_loop.wav'), { loop: true, volume: 0.25 })
     await manager.loadSound('crickets', getAssetPath('/audio/night_crickets.wav'), { loop: true, volume: 0.0 })
@@ -122,6 +123,7 @@ async function loadGameAudio(manager: AudioManager) {
     manager.playLoop('bee_buzz', 0.08)
     manager.playLoop('colibri_flutter', 0.0)
     manager.playLoop('butterfly_flutter', 0.0)
+    manager.playLoop('auren_flight', 0.0)
     manager.playLoop('iron_man_thruster', 0.0)
     manager.playLoop('wind', 0.25)
     manager.playLoop('crickets', 0.0)

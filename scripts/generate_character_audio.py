@@ -32,44 +32,45 @@ def make_seamless_loop(samples, crossfade_samples=8820):
     result[cf:] = samples[cf:length - cf]
     return result
 
-def generate_iron_man_thruster(output_path, duration=4.0):
+def generate_iron_man_thruster(output_path, duration=6.0):
     """
-    Iconic Iron Man repulsor / thruster sound:
-    - High-frequency turbine whistle (480 Hz with harmonics and FM)
-    - Low-frequency rumbling plasma exhaust (60-120 Hz)
-    - Filtered turbulent air/plasma rush
+    Original Auren (JarBees NEXO-01) quantum flight propulsion:
+    - Deep sub-bass Hex-Core resonance (58 Hz + 116 Hz)
+    - Velvety low-pass aerodynamic ion stream (~420 Hz cutoff)
+    - Ethereal quantum chord shimmer (F3 - C4 pure tones, 174 & 261 Hz)
+    - Zero harsh high-frequency buzzes or whines
     """
     t = np.linspace(0, duration, int(SAMPLE_RATE * duration), endpoint=False)
     
-    # 1. Jet turbine core (high tech whine)
-    core_freq = 420.0
-    fm = 1.0 + 0.015 * np.sin(2 * np.pi * 7.5 * t) + 0.008 * np.sin(2 * np.pi * 19.0 * t)
-    phase_core = 2 * np.pi * core_freq * np.cumsum(fm) / SAMPLE_RATE
-    turbine = (
-        0.35 * np.sin(phase_core) +
-        0.22 * np.sin(phase_core * 2.0) +
-        0.12 * np.sin(phase_core * 3.0) +
-        0.08 * np.sin(phase_core * 4.0)
-    )
+    # 1. Warm sub-bass Hex-Core
+    f_sub = 58.0
+    sub_1 = 0.40 * np.sin(2 * np.pi * f_sub * t)
+    sub_2 = 0.22 * np.sin(2 * np.pi * (f_sub * 2.0) * t)
+    sub_deep = 0.18 * np.sin(2 * np.pi * (f_sub * 0.5) * t)
+    core_layer = sub_1 + sub_2 + sub_deep
     
-    # 2. Sub-bass plasma rumble
-    sub_phase = 2 * np.pi * 68.0 * t
-    sub_rumble = 0.45 * np.sin(sub_phase) + 0.25 * np.sin(sub_phase * 1.5)
+    # 2. Celestial energy shimmer (F3 / C4 pure intervals with soft chorus)
+    chorus_lfo = 0.003 * np.sin(2 * np.pi * 0.25 * t)
+    phase_f3 = 2 * np.pi * 174.0 * (t + chorus_lfo)
+    phase_c4 = 2 * np.pi * 261.0 * (t - chorus_lfo)
+    ether_f3 = 0.12 * np.sin(phase_f3)
+    ether_c4 = 0.08 * np.sin(phase_c4)
+    ether_layer = ether_f3 + ether_c4
     
-    # 3. Plasma jet noise (white noise filtered)
-    noise = np.random.normal(0, 1.0, len(t))
-    # Bandpass filter around 200-800 Hz via moving average
-    box1 = np.ones(25) / 25
-    box2 = np.ones(120) / 120
-    sm_fast = np.convolve(noise, box1, mode='same')
-    sm_slow = np.convolve(noise, box2, mode='same')
-    plasma_noise = (sm_fast - sm_slow) * 1.6
+    # 3. Velvety ion airflow (double lowpass filtered noise, no high-frequency hiss)
+    raw_noise = np.random.normal(0, 1.0, len(t))
+    kernel = np.hamming(90)
+    kernel /= kernel.sum()
+    smooth_noise = np.convolve(raw_noise, kernel, mode='same')
+    kernel2 = np.hamming(45)
+    kernel2 /= kernel2.sum()
+    velvet_air = np.convolve(smooth_noise, kernel2, mode='same') * 1.8
     
-    # Slight micro-surge / pulse
-    surge = 0.9 + 0.1 * np.sin(2 * np.pi * 2.2 * t)
+    # 4. Gentle dynamic breathing
+    breathing = 0.88 + 0.12 * np.sin(2 * np.pi * 0.33 * t)
     
-    sound = (turbine * 0.45 + sub_rumble * 0.35 + plasma_noise * 0.5) * surge * 0.7
-    seamless = make_seamless_loop(sound)
+    full_mix = (core_layer * 0.48 + velvet_air * 0.38 + ether_layer * 0.22) * breathing * 0.72
+    seamless = make_seamless_loop(full_mix, crossfade_samples=SAMPLE_RATE // 2)
     save_wav(output_path, seamless)
 
 def generate_colibri_flutter(output_path, duration=3.0):
@@ -121,5 +122,6 @@ def generate_butterfly_flutter(output_path, duration=4.0):
 if __name__ == '__main__':
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'public', 'audio')
     generate_iron_man_thruster(os.path.join(base_dir, 'iron_man_thruster.wav'))
+    generate_iron_man_thruster(os.path.join(base_dir, 'auren_flight.wav'))
     generate_colibri_flutter(os.path.join(base_dir, 'colibri_flutter.wav'))
     generate_butterfly_flutter(os.path.join(base_dir, 'butterfly_flutter.wav'))

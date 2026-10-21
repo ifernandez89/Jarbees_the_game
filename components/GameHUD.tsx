@@ -407,13 +407,13 @@ export function GameHUD() {
           </div>
           {showTactical && selectedCharacter === 'iron_man' && (
             <div className="hud-controls-subrow">
-              <span onClick={() => triggerEmote('flinch_torso')} style={{ cursor: 'pointer' }} title="Probar impacto en torso">
+              <span onClick={() => triggerEmote('flinch_torso')} style={{ cursor: 'pointer' }} title="Reacción cinética en torso">
                 <kbd className="hud-kbd">6</kbd> Flinch Torso
               </span>
-              <span onClick={() => triggerEmote('flinch_head')} style={{ cursor: 'pointer' }} title="Probar impacto en cabeza">
+              <span onClick={() => triggerEmote('flinch_head')} style={{ cursor: 'pointer' }} title="Reacción cinética en casco">
                 <kbd className="hud-kbd">7</kbd> Flinch Casco
               </span>
-              <span onClick={() => triggerEmote('tactical_interact')} style={{ cursor: 'pointer' }} title="Interacción guantelete">
+              <span onClick={() => triggerEmote('tactical_interact')} style={{ cursor: 'pointer' }} title="Interacción táctica de guantelete">
                 <kbd className="hud-kbd">8</kbd> Interacción
               </span>
               <span onClick={() => triggerEmote('death_forward')} style={{ cursor: 'pointer' }} title="Colapso inercial">

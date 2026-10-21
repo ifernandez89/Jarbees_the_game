@@ -37,22 +37,24 @@ En la versión inicial, al presionar `Ctrl` el personaje permanecía completamen
 
 ---
 
-## 3. Integración del Banco de Audio Valve (Left 4 Dead SFX)
+## 3. Paisaje Sonoro Original de Auren y Ajustes Tácticos
 
-Se extrajeron e integraron archivos originales de audio en `public/audio/`:
-
-1. **`nexo_landing_heavy.wav`** (`sound/player/jumplanding.wav`):  
+1. **`auren_flight.wav`** (Audio Original JarBees Hex-Core):
+   Sustituye completamente el antiguo zumbido estridente (420 Hz FM) por un paisaje acústico original, aterciopelado y de alta gama:
+   - Resonancia profunda Hex-Core (58 Hz sub-bass y 116 Hz cálido).
+   - Flujo aerodinámico ionizado con doble filtro pasa-bajos (sin siseos agudos ni zumbidos).
+   - Resonancia cuántica celestial (acorde puro en quinta justa 174 Hz / 261 Hz con chorus lento).
+2. **`nexo_landing_heavy.wav`** (`sound/player/jumplanding.wav`):  
    Se dispara al caer desde gran altura (>7.0 m/s), al ejecutar `nexo_hunter_pounce` (`J`) o al realizar un aterrizaje heroico forzado.
-2. **`nexo_armor_impact.wav`** (`sound/physics/metal/metal_box_impact_bullet1.wav`):  
-   Impacto metálico balístico contra el blindaje exterior de Auren al activarse flinches (`6`, `7`) o el tambaleo `stumble` (`G`).
 3. **`nexo_impact_heavy.wav`** (`sound/physics/metal/metal_barrel_impact_hard1.wav`):  
    Golpe seco y violento de alta masa asociado al empuje repulsor `melee_shove` (`F`).
 4. **`nexo_heartbeat_loop.wav`** (`sound/player/HeartbeatLoop.wav`):  
    Latido de tensión fisiológica/mecánica para estados críticos de sobrepresión transónica.
 5. **`nexo_warning_denied.wav`** (`sound/player/suit_denydevice.WAV`):  
-   Alerta sónica de sobrecarga o restricción del reactor Hex-Core.
-6. **`nexo_heal_nanites.wav`** (`sound/player/survivor/heal/bandaging_1.wav`):  
-   Presurización y sellado hermético durante la interacción táctica (`8`).
+   Alerta sónica de sobrecarga o restricción del reactor Hex-Core en marcha herido (`H`).
+6. **Desactivación de impactos y curación en movimientos:**
+   - **Sonido de curación (L4D `bandaging_1.wav`) retirado** de la tecla `8` (`tactical_interact`).
+   - **Sonidos de impactos balísticos retirados** de las animaciones `flinch_torso` (`6`), `flinch_head` (`7`) y `stumble` (`G`), dado que en modo exploración no hay agresores externos atacando a Auren.
 
 ---
 

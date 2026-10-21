@@ -77,18 +77,18 @@ export class FlightAudio {
     this.loopNoise(this.whiteBuffer).connect(this.windFilter)
     this.windFilter.connect(this.windGain).connect(this.master)
 
-    // Turbina
+    // Turbina (propulsión suave sin zumbidos estridentes)
     this.engineFilter = ctx.createBiquadFilter()
     this.engineFilter.type = 'lowpass'
-    this.engineFilter.frequency.value = 500
+    this.engineFilter.frequency.value = 350
     this.engineGain = ctx.createGain()
     this.engineGain.gain.value = 0
     this.osc1 = ctx.createOscillator()
-    this.osc1.type = 'sawtooth'
-    this.osc1.frequency.value = 80
+    this.osc1.type = 'triangle'
+    this.osc1.frequency.value = 65
     this.osc2 = ctx.createOscillator()
-    this.osc2.type = 'triangle'
-    this.osc2.frequency.value = 121
+    this.osc2.type = 'sine'
+    this.osc2.frequency.value = 130
     this.osc1.connect(this.engineFilter)
     this.osc2.connect(this.engineFilter)
     this.engineFilter.connect(this.engineGain).connect(this.master)
@@ -99,7 +99,7 @@ export class FlightAudio {
     // Postquemador
     this.abFilter = ctx.createBiquadFilter()
     this.abFilter.type = 'lowpass'
-    this.abFilter.frequency.value = 900
+    this.abFilter.frequency.value = 800
     this.abGain = ctx.createGain()
     this.abGain.gain.value = 0
     this.loopNoise(this.brownBuffer).connect(this.abFilter)
@@ -124,16 +124,15 @@ export class FlightAudio {
     this.loopNoise(this.brownBuffer).connect(buffetFilter)
     buffetFilter.connect(this.buffetGain).connect(this.master)
 
-    // Resonancia de Fase Aurelium (zumbido futurista ionizado)
+    // Resonancia de Fase Aurelium (campo cuántico suave y etéreo, sin zumbido)
     this.aureliumFilter = ctx.createBiquadFilter()
-    this.aureliumFilter.type = 'bandpass'
-    this.aureliumFilter.frequency.value = 520
-    this.aureliumFilter.Q.value = 2.5
+    this.aureliumFilter.type = 'lowpass'
+    this.aureliumFilter.frequency.value = 260
     this.aureliumGain = ctx.createGain()
     this.aureliumGain.gain.value = 0
     this.aureliumOsc = ctx.createOscillator()
     this.aureliumOsc.type = 'sine'
-    this.aureliumOsc.frequency.value = 520
+    this.aureliumOsc.frequency.value = 174
     this.aureliumOsc.connect(this.aureliumFilter)
     this.aureliumFilter.connect(this.aureliumGain).connect(this.master)
     this.aureliumOsc.start()
@@ -172,27 +171,27 @@ export class FlightAudio {
     this.ramp(this.windFilter.frequency, (320 + speedNorm * 2600) * (rt.mach > 1 ? 0.55 : 1))
     this.ramp(this.windFilter.Q, 0.7 - 0.35 * speedNorm)
 
-    // Turbina
-    const base = 70 + rt.throttle * 55 + rt.afterburner * 45
+    // Turbina (propulsión suave sin agudos estridentes)
+    const base = 58 + rt.throttle * 30 + rt.afterburner * 25
     this.ramp(this.osc1.frequency, base, 0.12)
-    this.ramp(this.osc2.frequency, base * 1.51, 0.12)
-    this.ramp(this.engineFilter.frequency, 380 + rt.throttle * 900 + rt.afterburner * 1500)
-    this.ramp(this.engineGain.gain, 0.025 + rt.throttle * 0.06 + rt.afterburner * 0.04)
+    this.ramp(this.osc2.frequency, base * 2.0, 0.12)
+    this.ramp(this.engineFilter.frequency, 250 + rt.throttle * 300 + rt.afterburner * 450)
+    this.ramp(this.engineGain.gain, 0.02 + rt.throttle * 0.05 + rt.afterburner * 0.035)
 
     // Postquemador
-    this.ramp(this.abFilter.frequency, 700 + rt.afterburner * 1300)
-    this.ramp(this.abGain.gain, rt.afterburner * 0.7)
+    this.ramp(this.abFilter.frequency, 550 + rt.afterburner * 650)
+    this.ramp(this.abGain.gain, rt.afterburner * 0.5)
 
     // Buffet transónico
     const trans = Math.max(0, 1 - Math.abs(rt.mach - 0.9) / 0.22) * (1 - 0.5 * rt.aureliumPhase)
-    this.ramp(this.buffetGain.gain, 0.12 * trans)
-    this.ramp(this.buffetLfoGain.gain, 0.5 * trans)
+    this.ramp(this.buffetGain.gain, 0.10 * trans)
+    this.ramp(this.buffetLfoGain.gain, 0.45 * trans)
 
-    // Fase Aurelium (resonancia de flujo electromagnético)
-    const aureliumVol = rt.aureliumPhase * 0.22
+    // Fase Aurelium (resonancia de flujo cuántico aterciopelado)
+    const aureliumVol = rt.aureliumPhase * 0.09
     this.ramp(this.aureliumGain.gain, aureliumVol)
-    this.ramp(this.aureliumOsc.frequency, 460 + rt.mach * 90 + rt.aureliumPhase * 110)
-    this.ramp(this.aureliumFilter.frequency, 520 + rt.mach * 100)
+    this.ramp(this.aureliumOsc.frequency, 174 + rt.mach * 20 + rt.aureliumPhase * 15)
+    this.ramp(this.aureliumFilter.frequency, 260 + rt.mach * 35)
 
     // Estampido sónico
     if (rt.boomSeq !== this.lastBoomSeq) {

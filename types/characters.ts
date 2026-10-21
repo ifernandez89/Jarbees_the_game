@@ -41,7 +41,7 @@ export interface CharacterProfile {
 
   // Audio específico
   audio: {
-    soundKey: 'bee_buzz' | 'colibri_flutter' | 'butterfly_flutter' | 'iron_man_thruster'
+    soundKey: 'bee_buzz' | 'colibri_flutter' | 'butterfly_flutter' | 'iron_man_thruster' | 'auren_flight'
     baseVolume: number
     maxVolume: number
     basePitch: number
@@ -230,16 +230,16 @@ export const CHARACTER_PROFILES: Record<CharacterId, CharacterProfile> = {
       lookOffset: [0, 0.14, -0.85],
     },
     audio: {
-      soundKey: 'iron_man_thruster',
-      baseVolume: 0.12,
-      maxVolume: 0.38,
-      basePitch: 0.92,
-      pitchRange: 0.55,
+      soundKey: 'auren_flight',
+      baseVolume: 0.09,
+      maxVolume: 0.30,
+      basePitch: 1.0,
+      pitchRange: 0.35,
     },
     description: 'Armadura de combate y exploración diseñada para proteger lo que importa. Inspirada en la ingeniería avanzada y la naturaleza colaborativa de las abejas, JarBees combina poder, precisión y evolución constante.',
     highlights: [
       'Máscara y visor en Stealth Black mate eliminando reminiscencias de Iron Man',
-      'Reactor hexagonal de colmena (Hex-Core) con telemetría de energía y disipación térmica',
+      'Reactor hexagonal de colmena (Hex-Core) con telemetría de energía y propulsión acústica original',
       'Simulador aerodinámico JarBees: regímenes de vuelo subsónico a Mach 2.5+ con atmósfera ISA',
       'Audio procedural Web Audio API: viento supersónico, buffet transónico y estampido sónico',
       'Efectos audiovisuales: estelas hipersónicas, cono de vapor Mach y ondas de choque',

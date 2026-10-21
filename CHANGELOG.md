@@ -1,5 +1,30 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.18] - 2026-10-21
+
+### 🎵 Paisaje Acústico Original de Auren y Depuración de Sonidos Tácticos
+
+#### Modificado & Mejorado
+- **Diseño Acústico Original para Auren (`auren_flight.wav` y `iron_man_thruster.wav`)**:
+  - Se eliminó por completo el zumbido penetrante y estridente de 420 Hz FM que emulaba insectos/avispas.
+  - Se sintetizó un sonido cinematográfico y relajante para el reactor Hex-Core de la armadura:
+    - Sub-grave cálido y profundo (fundamental de 58 Hz + 116 Hz) que brinda sensación de masa e ingeniería avanzada.
+    - Flujo aerodinámico ionizado con doble filtro pasa-bajos convolucional (~420 Hz cutoff) sin siseos ni frecuencias agudas.
+    - Resonancia cuántica en intervalo de quinta justa (174 Hz y 261 Hz) con modulación suave de fase ultra-lenta (0.25 Hz).
+- **Osciladores en Tiempo Real de `FlightAudio.ts`**:
+  - Se sustituyó el oscilador `sawtooth` por ondas triangulares y senoidales suaves, reduciendo las frecuencias de corte de turbina para un sonido aterciopelado.
+  - La resonancia de Fase Aurelium pasó de un zumbido agudo en paso banda a 520 Hz a un acorde armónico suave a 174 Hz con atenuación dinámica.
+
+#### Corregido & Limpiado
+- **Eliminación de Sonidos de Curación (Left 4 Dead)**:
+  - Se retiró el sonido de vendaje y curación (`nexo_heal_nanites.wav` / `bandaging_1.wav`) del movimiento táctico `[8] Interacción` (`tactical_interact`).
+- **Eliminación de Sonidos de Impacto en Animaciones de Daño**:
+  - Se retiraron los sonidos balísticos de impacto (`nexo_armor_impact.wav`) al ejecutar las animaciones `[6] Flinch Torso`, `[7] Flinch Casco` y `[G] Stumble`, adaptando las reacciones cinéticas al contexto de exploración sin agresores externos.
+- **Actualización de Tooltips en HUD**:
+  - Se ajustaron las descripciones en `GameHUD.tsx` para reflejar reacciones cinéticas en lugar de pruebas de impacto/daño recibido.
+
+---
+
 ## [0.8.17] - 2026-10-21
 
 ### 🧟‍♂️ Integración Táctica Source Engine / Left 4 Dead y Corrección de Agachado

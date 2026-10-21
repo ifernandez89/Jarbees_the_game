@@ -634,11 +634,9 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
         const audio = getAudioManager()
         if (audio) {
           if (activeEmote === 'melee_shove') audio.playSound('nexo_impact_heavy', 0.65)
-          else if (activeEmote === 'stumble') audio.playSound('nexo_armor_impact', 0.60)
           else if (activeEmote === 'hunter_pounce') audio.playSound('nexo_landing_heavy', 0.85)
-          else if (activeEmote === 'flinch_torso' || activeEmote === 'flinch_head') audio.playSound('nexo_armor_impact', 0.50)
-          else if (activeEmote === 'tactical_interact') audio.playSound('nexo_heal_nanites', 0.55)
           else if (activeEmote === 'limp_walk') audio.playSound('nexo_warning_denied', 0.45)
+          // Se removieron sonidos de curación (L4D) y de impactos balísticos al recibir daño (flinch/stumble)
         }
       }
       prevEmoteRef.current = activeEmote
@@ -1292,11 +1290,12 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       const { soundKey, baseVolume, maxVolume, basePitch, pitchRange } = profile.audio
 
       // Silenciar sonidos de los personajes inactivos
-      const allSoundKeys: Array<'bee_buzz' | 'colibri_flutter' | 'butterfly_flutter' | 'iron_man_thruster'> = [
+      const allSoundKeys: Array<'bee_buzz' | 'colibri_flutter' | 'butterfly_flutter' | 'iron_man_thruster' | 'auren_flight'> = [
         'bee_buzz',
         'colibri_flutter',
         'butterfly_flutter',
         'iron_man_thruster',
+        'auren_flight',
       ]
       for (const key of allSoundKeys) {
         if (key !== soundKey) {

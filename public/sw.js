@@ -1,5 +1,5 @@
 // JarBees: The Game - Service Worker
-const CACHE_NAME = 'jarbees-game-v1'
+const CACHE_NAME = 'jarbees-game-v2'
 
 const PRECACHE_ASSETS = [
   './',
@@ -18,6 +18,7 @@ const PRECACHE_ASSETS = [
   './audio/colibri_flutter.wav',
   './audio/butterfly_flutter.wav',
   './audio/iron_man_thruster.wav',
+  './audio/auren_flight.wav',
   './audio/ambient_music.wav',
   './audio/wind_loop.wav'
 ]
