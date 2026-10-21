@@ -108,6 +108,28 @@ export function useGameControls() {
         return
       }
 
+      // ACCIONES TÁCTICAS LEFT 4 DEAD (SOURCE ENGINE)
+      if (e.code === 'KeyF') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('melee_shove')
+        return
+      }
+      if (e.code === 'KeyG') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('stumble')
+        return
+      }
+      if (e.code === 'KeyH') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('limp_walk')
+        return
+      }
+      if (e.code === 'KeyJ') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('hunter_pounce')
+        return
+      }
+
       switch (e.code) {
         // AGACHARSE / MODO BAJO con CTRL o C
         case 'ControlLeft':

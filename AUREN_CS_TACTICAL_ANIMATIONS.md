@@ -10,7 +10,8 @@
 
 Las animaciones del motor **GoldSrc (Half-Life 1 / Counter-Strike 1.6)** son reconocidas mundialmente por su **inmediatez cinética, silueta limpia y economía de fotogramas**: comunican impacto físico, inercia y disciplina táctica de manera instantánea.
 
-En esta actualización, Auren incorpora un set de 9 animaciones adaptadas desde los modelos originales (`player.mdl`, `hostage.mdl`, `v_c4.mdl`) hacia la jerarquía esquelética Mixamo de la armadura JarBees.
+En esta actualización, Auren incorpora un set de 9 animaciones adaptadas desde los modelos originales (`player.mdl`, `hostage.mdl`, `v_c4.mdl`) hacia la jerarquía esquelética Mixamo de la armadura JarBees.  
+*(Véase también [AUREN_SOURCE_L4D_SYSTEM.md](file:///c:/Projects/Jarbees_the_game/AUREN_SOURCE_L4D_SYSTEM.md) para el set cinético y acústico Source Engine / Left 4 Dead).*
 
 ---
 

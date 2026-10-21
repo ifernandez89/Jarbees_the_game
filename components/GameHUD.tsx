@@ -20,6 +20,7 @@ export function GameHUD() {
   const flightMode = useGameStore((state) => state.flightMode)
   const toggleFlightMode = useGameStore((state) => state.toggleFlightMode)
   const isGrounded = useGameStore((state) => state.isGrounded)
+  const triggerEmote = useGameStore((state) => state.triggerEmote)
 
   const [fps, setFps] = useState(60)
   const [showTactical, setShowTactical] = useState(false)
@@ -342,10 +343,10 @@ export function GameHUD() {
                   <button
                     className={`hud-kbd-toggle ${showTactical ? 'active' : ''}`}
                     onClick={() => setShowTactical(!showTactical)}
-                    title="Alternar acciones tácticas CS 1.6"
+                    title="Alternar acciones tácticas CS 1.6 & Left 4 Dead"
                   >
-                    <kbd className="hud-kbd">6-0</kbd>
-                    <span>Táctico CS {showTactical ? '▲' : '▼'}</span>
+                    <kbd className="hud-kbd">6-0 / F-J</kbd>
+                    <span>Táctico Source {showTactical ? '▲' : '▼'}</span>
                   </button>
                 </>
               ) : (
@@ -378,10 +379,10 @@ export function GameHUD() {
                   <button
                     className={`hud-kbd-toggle ${showTactical ? 'active' : ''}`}
                     onClick={() => setShowTactical(!showTactical)}
-                    title="Alternar acciones tácticas CS 1.6"
+                    title="Alternar acciones tácticas CS 1.6 & Left 4 Dead"
                   >
-                    <kbd className="hud-kbd">6-0</kbd>
-                    <span>Táctico CS {showTactical ? '▲' : '▼'}</span>
+                    <kbd className="hud-kbd">6-0 / F-J</kbd>
+                    <span>Táctico Source {showTactical ? '▲' : '▼'}</span>
                   </button>
                 </>
               )
@@ -406,11 +407,33 @@ export function GameHUD() {
           </div>
           {showTactical && selectedCharacter === 'iron_man' && (
             <div className="hud-controls-subrow">
-              <span><kbd className="hud-kbd">6</kbd> Flinch Torso</span>
-              <span><kbd className="hud-kbd">7</kbd> Flinch Cabeza</span>
-              <span><kbd className="hud-kbd">8</kbd> Interacción (C4)</span>
-              <span><kbd className="hud-kbd">9</kbd> Colapso Inercial</span>
-              <span><kbd className="hud-kbd">0</kbd> Mirada Alerta</span>
+              <span onClick={() => triggerEmote('flinch_torso')} style={{ cursor: 'pointer' }} title="Probar impacto en torso">
+                <kbd className="hud-kbd">6</kbd> Flinch Torso
+              </span>
+              <span onClick={() => triggerEmote('flinch_head')} style={{ cursor: 'pointer' }} title="Probar impacto en cabeza">
+                <kbd className="hud-kbd">7</kbd> Flinch Casco
+              </span>
+              <span onClick={() => triggerEmote('tactical_interact')} style={{ cursor: 'pointer' }} title="Interacción guantelete">
+                <kbd className="hud-kbd">8</kbd> Interacción
+              </span>
+              <span onClick={() => triggerEmote('death_forward')} style={{ cursor: 'pointer' }} title="Colapso inercial">
+                <kbd className="hud-kbd">9</kbd> Colapso
+              </span>
+              <span onClick={() => triggerEmote('quicklook')} style={{ cursor: 'pointer' }} title="Barrido perimetral de alerta">
+                <kbd className="hud-kbd">0</kbd> Alerta
+              </span>
+              <span onClick={() => triggerEmote('melee_shove')} style={{ cursor: 'pointer', color: '#55F0FF' }} title="Empuje repulsor Left 4 Dead">
+                <kbd className="hud-kbd">F</kbd> Shove Repulsor
+              </span>
+              <span onClick={() => triggerEmote('stumble')} style={{ cursor: 'pointer', color: '#55F0FF' }} title="Tambaleo inercial Left 4 Dead">
+                <kbd className="hud-kbd">G</kbd> Stumble L4D
+              </span>
+              <span onClick={() => triggerEmote('limp_walk')} style={{ cursor: 'pointer', color: '#FFB855' }} title="Marcha herido daño crítico Left 4 Dead">
+                <kbd className="hud-kbd">H</kbd> Marcha Herido
+              </span>
+              <span onClick={() => triggerEmote('hunter_pounce')} style={{ cursor: 'pointer', color: '#55FF88' }} title="Superhero Landing Hunter Pounce Left 4 Dead">
+                <kbd className="hud-kbd">J</kbd> Hunter Landing
+              </span>
             </div>
           )}
         </div>

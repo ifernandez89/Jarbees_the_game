@@ -5,7 +5,7 @@ import { useFrame } from '@react-three/fiber'
 import { useSecureGLTF } from '@/utils/useSecureGLTF'
 import * as THREE from 'three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js'
-import { useGameStore } from '@/store/gameStore'
+import { useGameStore, type SuitActionEmote } from '@/store/gameStore'
 import { getAudioManager } from '@/hooks/useAudio'
 import { getAssetPath } from '@/utils/assetPath'
 import { CHARACTER_PROFILES, CharacterId } from '@/types/characters'
@@ -282,6 +282,7 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
   const prevGroundedRef = useRef(false)
   const maxFallSpeedRef = useRef(0)
   const emoteTimerRef = useRef(0)
+  const prevEmoteRef = useRef<SuitActionEmote>(null)
 
   // Referencia para la rotación acrobática del truco (180° sobre su eje longitudinal)
   const rotatingGroupRef = useRef<THREE.Group | null>(null)
@@ -450,6 +451,9 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       'nexo_death_right',
       'nexo_tactical_interact',
       'nexo_quicklook',
+      'nexo_melee_shove',
+      'nexo_stumble_recovery',
+      'nexo_hunter_pounce',
       'nexo_emote_salute',
       'nexo_emote_thumbs_up',
       'nexo_emote_point',
@@ -551,14 +555,17 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
           jumpStateRef.current = 'idle'
           crouchStateRef.current = 'idle'
           touchdownTimerRef.current = 0
+          getAudioManager()?.playSound('nexo_landing_heavy', 0.85)
         } else if (jumpStateRef.current === 'loop' || jumpStateRef.current === 'start') {
           // Aterrizaje elástico de salto normal
           jumpStateRef.current = 'land'
           jumpTimerRef.current = 0.60
           touchdownTimerRef.current = 0
+          getAudioManager()?.playSound('nexo_landing_heavy', 0.45)
         } else if (controls.down || altAboveGround < 0.5) {
           // Aterrizaje heroico original JarBees al tocar suelo en descenso voluntario
           touchdownTimerRef.current = 1.20
+          getAudioManager()?.playSound('nexo_landing_heavy', 0.65)
         }
       }
       if (isInFlightMode || isGrounded) {
@@ -622,6 +629,20 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
         }
       }
 
+      // Disparo de audio reactivo en el instante de inicio de un emote
+      if (activeEmote && prevEmoteRef.current !== activeEmote) {
+        const audio = getAudioManager()
+        if (audio) {
+          if (activeEmote === 'melee_shove') audio.playSound('nexo_impact_heavy', 0.65)
+          else if (activeEmote === 'stumble') audio.playSound('nexo_armor_impact', 0.60)
+          else if (activeEmote === 'hunter_pounce') audio.playSound('nexo_landing_heavy', 0.85)
+          else if (activeEmote === 'flinch_torso' || activeEmote === 'flinch_head') audio.playSound('nexo_armor_impact', 0.50)
+          else if (activeEmote === 'tactical_interact') audio.playSound('nexo_heal_nanites', 0.55)
+          else if (activeEmote === 'limp_walk') audio.playSound('nexo_warning_denied', 0.45)
+        }
+      }
+      prevEmoteRef.current = activeEmote
+
       // Control de Emotes
       const isMovingForward = controls.forward || forwardSpeed > 1.2
       const isMovingBackward = controls.backward || forwardSpeed < -1.0
@@ -636,11 +657,19 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
           const duration =
             activeEmote === 'flinch_torso' || activeEmote === 'flinch_head'
               ? 0.53
+              : activeEmote === 'melee_shove'
+              ? 0.93
               : activeEmote === 'quicklook' || activeEmote === 'tactical_interact'
               ? 1.06
+              : activeEmote === 'hunter_pounce'
+              ? 1.20
               : activeEmote === 'death_forward'
               ? 1.35
-              : 1.8
+              : activeEmote === 'stumble'
+              ? 1.40
+              : activeEmote === 'limp_walk'
+              ? 3.60
+              : 1.80
           if (emoteTimerRef.current >= duration) {
             triggerEmote(null)
             emoteTimerRef.current = 0
@@ -697,6 +726,14 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
         targetName = actions['nexo_death_forward'] ? 'nexo_death_forward' : 'nexo_dead'
       } else if (activeEmote === 'quicklook') {
         targetName = actions['nexo_quicklook'] ? 'nexo_quicklook' : 'nexo_look_around'
+      } else if (activeEmote === 'melee_shove') {
+        targetName = 'nexo_melee_shove'
+      } else if (activeEmote === 'stumble') {
+        targetName = 'nexo_stumble_recovery'
+      } else if (activeEmote === 'limp_walk') {
+        targetName = 'nexo_limp_walk'
+      } else if (activeEmote === 'hunter_pounce') {
+        targetName = 'nexo_hunter_pounce'
       } else if (isInFlightMode) {
         // --- VUELO Y SUSPENSIÓN AÉREA (Flujo continuo sin retrocesos ni bloqueos) ---
         idleTimerRef.current = 0

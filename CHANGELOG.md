@@ -1,5 +1,29 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.17] - 2026-10-21
+
+### 🧟‍♂️ Integración Táctica Source Engine / Left 4 Dead y Corrección de Agachado
+
+#### Corregido
+- **Corrección de la Animación de Agacharse (`nexo_crouch` y `nexo_crouch_walk`)**:
+  - Se corrigió el mapeo de traslación pélvica de `mixamorig:Hips_01`: anteriormente se aplicaba sobre el eje Z con valor ínfimo (4 mm) sin alterar la altura, dejando al personaje de pie mirando a sus pies. Ahora desciende -13.5 unidades en el eje vertical Local Y (-0.38 m reales) con flexión profunda de rodillas (-112°), torso inclinado +18° y cabeza a -14° manteniendo la mirada al horizonte.
+  - Sincronización de cámara en `FollowCamera.tsx`: al agacharse en tierra, la cámara desciende suavemente -0.35m ofreciendo una perspectiva táctica auténtica de perfil bajo.
+
+#### Añadido
+- **Set de Acciones Tácticas Source / Left 4 Dead (`scripts/generate_nexo_animations.py`, `public/models/jarbees_suit.jb3d`)**:
+  - `nexo_melee_shove` (Tecla `F`): Empuje cinético repulsor frontal para despejar enemigos cuerpo a cuerpo (con sonido `nexo_impact_heavy.wav`).
+  - `nexo_stumble_recovery` (Tecla `G`): Tambaleo y desbalanceo inercial hacia atrás tras onda de choque o impacto masivo (con sonido `nexo_armor_impact.wav`).
+  - `nexo_limp_walk` (Tecla `H`): Marcha asimétrica renqueante por integridad crítica (<25%), mano izquierda protegiendo el reactor Hex-Core.
+  - `nexo_hunter_pounce` (Tecla `J`): Aterrizaje depredador en 3 puntos / Superhero Landing estilo Hunter de Left 4 Dead (con sonido `nexo_landing_heavy.wav`).
+- **Banco de Sonidos Físicos Valve / Left 4 Dead (`public/audio/`)**:
+  - Incorporación de `nexo_landing_heavy.wav` (impacto de caída pesada), `nexo_armor_impact.wav` (impacto balístico), `nexo_impact_heavy.wav` (golpe contundente), `nexo_heartbeat_loop.wav` (latido fisiológico en tensión), `nexo_warning_denied.wav` (alerta de servos), `nexo_heal_nanites.wav` (presurización/nanoreparación).
+- **Dock Táctico Interactivo en HUD (`components/GameHUD.tsx`)**:
+  - Menú `Táctico Source [6-0 / F-J]` con botones táctiles interactivos clicables para detonar cada acción táctica y emote directamente con el ratón o teclado.
+- **Documentación Técnica Dedicada**:
+  - Creación de `AUREN_SOURCE_L4D_SYSTEM.md`.
+
+---
+
 ## [0.8.16] - 2026-10-21
 
 ### 🎖️ Integración de Animaciones Tácticas CS 1.6 & Cybernetic Controls Dock

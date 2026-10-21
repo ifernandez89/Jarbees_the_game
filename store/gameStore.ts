@@ -55,6 +55,10 @@ export type SuitActionEmote =
   | 'tactical_interact'
   | 'death_forward'
   | 'quicklook'
+  | 'melee_shove'
+  | 'stumble'
+  | 'limp_walk'
+  | 'hunter_pounce'
   | null
 
 export interface GameState {

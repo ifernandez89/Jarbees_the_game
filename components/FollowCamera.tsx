@@ -31,6 +31,7 @@ export function FollowCamera() {
   const isFirstFrame = useRef(true)
   const isPaused = useGameStore((state) => state.isPaused)
   const selectedCharacter = useGameStore((state) => state.selectedCharacter)
+  const controls = useGameStore((state) => state.controls)
 
   useFrame((_, delta) => {
     if (isPaused) return
@@ -47,6 +48,11 @@ export function FollowCamera() {
     const useRelative = selectedCharacter === 'iron_man' && rt.active
     const camPull = useRelative ? rt.camPull : 0
 
+    // Si Auren está agachado en tierra, descender suavemente la perspectiva de cámara
+    const isCrouching = selectedCharacter === 'iron_man' && controls.crouch && !rt.active
+    const crouchCamDrop = isCrouching ? 0.35 : 0.0
+    const crouchLookDrop = isCrouching ? 0.25 : 0.0
+
     // Matriz de rotación horizontal del personaje (Yaw)
     rotationMatrix.current.makeRotationY(bee.rotation.y)
 
@@ -56,7 +62,7 @@ export function FollowCamera() {
     const [lOffX, lOffY, lOffZ] = profile.camera.lookOffset
 
     // A mayor velocidad la cámara se aleja y se eleva ligeramente (sensación de velocidad)
-    cameraOffset.current.set(cOffX, cOffY + 0.28 * camPull, cOffZ * (1 + 0.55 * camPull))
+    cameraOffset.current.set(cOffX, cOffY - crouchCamDrop + 0.28 * camPull, cOffZ * (1 + 0.55 * camPull))
     cameraOffset.current.applyMatrix4(rotationMatrix.current)
 
     // Posición objetivo de la cámara
