@@ -54,7 +54,9 @@ export function useGameControls() {
       // Evitar controles de vuelo si está pausado
       if (isPaused) return
 
-      // Emotes del exoesqueleto (1: Saludo, 2: Pulgar arriba / Aprobación, 3: Señalar, 4: Llamar / "Ven aquí", 5: Celebración / Victoria)
+      // Emotes del exoesqueleto y acciones tácticas CS 1.6:
+      // 1: Saludo, 2: Pulgar arriba, 3: Señalar, 4: Llamar ("Ven"), 5: Victoria
+      // 6: Flinch Torso, 7: Flinch Cabeza, 8: Interacción Táctica (C4), 9: Desplome / Caída, 0: Mirada Alerta
       if (e.code === 'Digit1' || e.code === 'Numpad1') {
         e.preventDefault()
         useGameStore.getState().triggerEmote('salute')
@@ -80,9 +82,36 @@ export function useGameControls() {
         useGameStore.getState().triggerEmote('cheer')
         return
       }
+      if (e.code === 'Digit6' || e.code === 'Numpad6') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('flinch_torso')
+        return
+      }
+      if (e.code === 'Digit7' || e.code === 'Numpad7') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('flinch_head')
+        return
+      }
+      if (e.code === 'Digit8' || e.code === 'Numpad8') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('tactical_interact')
+        return
+      }
+      if (e.code === 'Digit9' || e.code === 'Numpad9') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('death_forward')
+        return
+      }
+      if (e.code === 'Digit0' || e.code === 'Numpad0') {
+        e.preventDefault()
+        useGameStore.getState().triggerEmote('quicklook')
+        return
+      }
 
       switch (e.code) {
-        // AGACHARSE / MODO BAJO con C
+        // AGACHARSE / MODO BAJO con CTRL o C
+        case 'ControlLeft':
+        case 'ControlRight':
         case 'KeyC':
           e.preventDefault()
           setControls({ crouch: true })
@@ -158,6 +187,8 @@ export function useGameControls() {
         case 'ArrowRight':
           setControls({ right: false })
           break
+        case 'ControlLeft':
+        case 'ControlRight':
         case 'KeyC':
           setControls({ crouch: false })
           break

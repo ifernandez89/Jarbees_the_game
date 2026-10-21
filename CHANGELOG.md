@@ -1,5 +1,30 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.16] - 2026-10-21
+
+### 🎖️ Integración de Animaciones Tácticas CS 1.6 & Cybernetic Controls Dock
+
+#### Añadido
+- **Set de 9 Animaciones Tácticas Inspiradas en CS 1.6 / GoldSrc (`scripts/generate_nexo_animations.py`, `public/models/jarbees_suit.jb3d`)**:
+  - `nexo_crouch_walk` (crouchrun): Locomoción sigilosa en perfil bajo con cadera a -0.16m, rodillas continuas entre -45° y -75° y brazos compactos al frente.
+  - `nexo_flinch_torso` (gut_flinch): Sacudida reactiva instantánea (16 frames) con repliegue de torso (+24°) y protección del reactor Hex-Core.
+  - `nexo_flinch_head` (head_flinch): Latigazo cefálico hacia atrás (-28°) por impacto o sobrepresión transónica.
+  - `nexo_death_forward`, `nexo_death_back`, `nexo_death_left`, `nexo_death_right`: Colapsos inerciales direccionales de caída/muerte.
+  - `nexo_tactical_interact`: Interacción y tecleo holográfico en el panel del guantelete (inspirado en `v_c4`).
+  - `nexo_quicklook`: Barrido perimétrico rápido de vigilancia (inspirado en `hostage.mdl`).
+- **Cybernetic Controls Dock (`components/GameHUD.tsx`, `app/globals.css`)**:
+  - Reemplazo del bloque plano de texto amontonado por una cápsula flotante estilizada con glassmorphism oscuro y micro-etiquetas `<kbd>`.
+  - Muestra contextualmente `[WASD] Mover`, `[Ctrl] Agachar (+WASD Sigilo)`, `[Espacio] Salto/Vuelo`, `[1-5] Emotes`.
+  - Botón micro desplegable `[6-0] Táctico CS` para probar las nuevas acciones tácticas.
+- **Soporte de Entrada para Agachado y Sigilo (`hooks/useGameControls.ts`)**:
+  - Mapeo nativo de `ControlLeft` y `ControlRight` además de `KeyC`.
+  - Combinación fluida `Ctrl` + `WASD` que transiciona automáticamente a `nexo_crouch_walk`.
+  - Mapeo de teclas numéricas 6..0 para detonar flinches, interacción y colapso.
+- **Documentación Técnica Dedicada**:
+  - Creación de `AUREN_CS_TACTICAL_ANIMATIONS.md` con tablas de retargeting esquelético `Bip01` -> `mixamorig`.
+
+---
+
 ## [0.8.15] - 2026-10-20
 
 ### 🚶 Postura de Vuelo Aerodinámica Horizontal ("Acostado") y Locomoción Terrestre Táctica Natural

@@ -44,6 +44,19 @@ export const INITIAL_FLIGHT_TELEMETRY: FlightTelemetry = {
   gcasActive: false,
 }
 
+export type SuitActionEmote =
+  | 'salute'
+  | 'thumbs_up'
+  | 'point'
+  | 'beckon'
+  | 'cheer'
+  | 'flinch_torso'
+  | 'flinch_head'
+  | 'tactical_interact'
+  | 'death_forward'
+  | 'quicklook'
+  | null
+
 export interface GameState {
   // Posición de la abeja
   position: [number, number, number]
@@ -67,9 +80,9 @@ export interface GameState {
     jump: boolean
   }
   
-  // Emote activo del traje
-  activeEmote: 'salute' | 'thumbs_up' | 'point' | 'beckon' | 'cheer' | null
-  triggerEmote: (emote: 'salute' | 'thumbs_up' | 'point' | 'beckon' | 'cheer' | null) => void
+  // Emote o acción activa del traje
+  activeEmote: SuitActionEmote
+  triggerEmote: (emote: SuitActionEmote) => void
   
   // Estado del juego
   isPaused: boolean
@@ -153,7 +166,7 @@ const initialState = {
     crouch: false,
     jump: false,
   },
-  activeEmote: null as 'salute' | 'thumbs_up' | 'point' | 'beckon' | 'cheer' | null,
+  activeEmote: null as SuitActionEmote,
   isPaused: false,
   distanceTraveled: 0,
   altitude: 2,

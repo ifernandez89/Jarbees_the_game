@@ -22,6 +22,7 @@ export function GameHUD() {
   const isGrounded = useGameStore((state) => state.isGrounded)
 
   const [fps, setFps] = useState(60)
+  const [showTactical, setShowTactical] = useState(false)
   const timeOfDay = useDayNightCycle(dayNightEnabled)
 
   const currentProfile = CHARACTER_PROFILES[selectedCharacter] || CHARACTER_PROFILES.bee
@@ -310,23 +311,109 @@ export function GameHUD() {
         </div>
       </div>
 
-      {/* HUD inferior centro - Controles */}
+      {/* HUD inferior centro - Cybernetic Controls Dock */}
       <div className="hud-card hud-panel-controls">
-        {selectedCharacter === 'iron_man' ? (
-          isGrounded ? (
-            <>
-              ⬆️/W: Caminar | ⬇️/S: Retroceso | ⬅️➡️/A/D: Girar | ESPACIO: Salto / Despegar a Vuelo | C: Agacharse | 1-5: Emotes | T/Clic: Invertir
-            </>
-          ) : (
-            <>
-              ⬆️/W: Empuje | ⬇️/S: Aerofreno Reactivo | ⬅️➡️/A/D: Rumbo | ESPACIO: Salto/Ascenso | C: Agacharse | 1-5: Emotes | SHIFT: Postquemador | Q: Descenso (tocar piso para caminar) | G: Vuelo | T/Clic: Invertir
-            </>
-          )
-        ) : (
-          <>
-            ⬆️/W: Avanzar | ⬇️/S: Frenar | ⬅️➡️/A/D: Girar | ESPACIO: Subir | SHIFT/Q: Bajar | ENTER: Pausa | M: Sonido
-          </>
-        )}
+        <div className="hud-controls-dock">
+          <div className="hud-controls-row">
+            {selectedCharacter === 'iron_man' ? (
+              isGrounded ? (
+                <>
+                  <span className="hud-kbd-group">
+                    <kbd className="hud-kbd">WASD</kbd>
+                    <span className="hud-kbd-label">Mover</span>
+                  </span>
+                  <span className="hud-kbd-divider" />
+                  <span className="hud-kbd-group">
+                    <kbd className="hud-kbd">Ctrl</kbd>
+                    <span className="hud-kbd-label">Agachar</span>
+                    <span className="hud-kbd-combo">(+WASD Sigilo)</span>
+                  </span>
+                  <span className="hud-kbd-divider" />
+                  <span className="hud-kbd-group">
+                    <kbd className="hud-kbd">Espacio</kbd>
+                    <span className="hud-kbd-label">Salto / Despegar</span>
+                  </span>
+                  <span className="hud-kbd-divider" />
+                  <span className="hud-kbd-group">
+                    <kbd className="hud-kbd">1-5</kbd>
+                    <span className="hud-kbd-label">Emotes</span>
+                  </span>
+                  <span className="hud-kbd-divider" />
+                  <button
+                    className={`hud-kbd-toggle ${showTactical ? 'active' : ''}`}
+                    onClick={() => setShowTactical(!showTactical)}
+                    title="Alternar acciones tácticas CS 1.6"
+                  >
+                    <kbd className="hud-kbd">6-0</kbd>
+                    <span>Táctico CS {showTactical ? '▲' : '▼'}</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="hud-kbd-group">
+                    <kbd className="hud-kbd">W/S</kbd>
+                    <span className="hud-kbd-label">Empuje/Freno</span>
+                  </span>
+                  <span className="hud-kbd-divider" />
+                  <span className="hud-kbd-group">
+                    <kbd className="hud-kbd">A/D</kbd>
+                    <span className="hud-kbd-label">Rumbo</span>
+                  </span>
+                  <span className="hud-kbd-divider" />
+                  <span className="hud-kbd-group">
+                    <kbd className="hud-kbd">Shift</kbd>
+                    <span className="hud-kbd-label">⚡AB</span>
+                  </span>
+                  <span className="hud-kbd-divider" />
+                  <span className="hud-kbd-group">
+                    <kbd className="hud-kbd">Esp/Q</kbd>
+                    <span className="hud-kbd-label">Altitud</span>
+                  </span>
+                  <span className="hud-kbd-divider" />
+                  <span className="hud-kbd-group">
+                    <kbd className="hud-kbd">1-5</kbd>
+                    <span className="hud-kbd-label">Emotes</span>
+                  </span>
+                  <span className="hud-kbd-divider" />
+                  <button
+                    className={`hud-kbd-toggle ${showTactical ? 'active' : ''}`}
+                    onClick={() => setShowTactical(!showTactical)}
+                    title="Alternar acciones tácticas CS 1.6"
+                  >
+                    <kbd className="hud-kbd">6-0</kbd>
+                    <span>Táctico CS {showTactical ? '▲' : '▼'}</span>
+                  </button>
+                </>
+              )
+            ) : (
+              <>
+                <span className="hud-kbd-group">
+                  <kbd className="hud-kbd">WASD</kbd>
+                  <span className="hud-kbd-label">Mover</span>
+                </span>
+                <span className="hud-kbd-divider" />
+                <span className="hud-kbd-group">
+                  <kbd className="hud-kbd">Espacio / Shift</kbd>
+                  <span className="hud-kbd-label">Subir / Bajar</span>
+                </span>
+                <span className="hud-kbd-divider" />
+                <span className="hud-kbd-group">
+                  <kbd className="hud-kbd">M</kbd>
+                  <span className="hud-kbd-label">Audio</span>
+                </span>
+              </>
+            )}
+          </div>
+          {showTactical && selectedCharacter === 'iron_man' && (
+            <div className="hud-controls-subrow">
+              <span><kbd className="hud-kbd">6</kbd> Flinch Torso</span>
+              <span><kbd className="hud-kbd">7</kbd> Flinch Cabeza</span>
+              <span><kbd className="hud-kbd">8</kbd> Interacción (C4)</span>
+              <span><kbd className="hud-kbd">9</kbd> Colapso Inercial</span>
+              <span><kbd className="hud-kbd">0</kbd> Mirada Alerta</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Pantalla de pausa */}

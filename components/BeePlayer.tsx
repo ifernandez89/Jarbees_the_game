@@ -442,6 +442,14 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       'nexo_recovery',
       'nexo_crouch',
       'nexo_crouch_stand',
+      'nexo_flinch_torso',
+      'nexo_flinch_head',
+      'nexo_death_forward',
+      'nexo_death_back',
+      'nexo_death_left',
+      'nexo_death_right',
+      'nexo_tactical_interact',
+      'nexo_quicklook',
       'nexo_emote_salute',
       'nexo_emote_thumbs_up',
       'nexo_emote_point',
@@ -625,7 +633,15 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
           emoteTimerRef.current = 0
         } else {
           emoteTimerRef.current += delta
-          if (emoteTimerRef.current >= 1.8) {
+          const duration =
+            activeEmote === 'flinch_torso' || activeEmote === 'flinch_head'
+              ? 0.53
+              : activeEmote === 'quicklook' || activeEmote === 'tactical_interact'
+              ? 1.06
+              : activeEmote === 'death_forward'
+              ? 1.35
+              : 1.8
+          if (emoteTimerRef.current >= duration) {
             triggerEmote(null)
             emoteTimerRef.current = 0
           }
@@ -652,7 +668,13 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       } else if (!isGrounded && worldVerticalSpeed < -6.5 && !controls.up && !controls.boost && !isInFlightMode) {
         targetName = 'nexo_heavy_fall'
       } else if (crouchStateRef.current === 'crouching') {
-        targetName = 'nexo_crouch'
+        const isCrouchMoving = controls.forward || controls.backward || controls.left || controls.right || Math.abs(velocity) > 0.15
+        if (isCrouchMoving && actions['nexo_crouch_walk']) {
+          targetName = 'nexo_crouch_walk'
+          targetAnimSpeed = Math.max(0.8, Math.min(1.4, Math.abs(velocity) / 3.0))
+        } else {
+          targetName = 'nexo_crouch'
+        }
       } else if (crouchStateRef.current === 'standing') {
         targetName = 'nexo_crouch_stand'
       } else if (activeEmote === 'salute') {
@@ -665,6 +687,16 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
         targetName = 'nexo_emote_beckon'
       } else if (activeEmote === 'cheer') {
         targetName = 'nexo_emote_cheer'
+      } else if (activeEmote === 'flinch_torso') {
+        targetName = actions['nexo_flinch_torso'] ? 'nexo_flinch_torso' : 'nexo_damage'
+      } else if (activeEmote === 'flinch_head') {
+        targetName = actions['nexo_flinch_head'] ? 'nexo_flinch_head' : 'nexo_damage'
+      } else if (activeEmote === 'tactical_interact') {
+        targetName = 'nexo_tactical_interact'
+      } else if (activeEmote === 'death_forward') {
+        targetName = actions['nexo_death_forward'] ? 'nexo_death_forward' : 'nexo_dead'
+      } else if (activeEmote === 'quicklook') {
+        targetName = actions['nexo_quicklook'] ? 'nexo_quicklook' : 'nexo_look_around'
       } else if (isInFlightMode) {
         // --- VUELO Y SUSPENSIÓN AÉREA (Flujo continuo sin retrocesos ni bloqueos) ---
         idleTimerRef.current = 0

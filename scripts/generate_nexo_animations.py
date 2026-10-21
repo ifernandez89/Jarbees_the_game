@@ -706,6 +706,321 @@ def build_crouch_stand(arm):
         if l_arm: key_bone_rot(l_arm, 4.0, 0, -6.0, f)
         if r_arm: key_bone_rot(r_arm, 4.0, 0, 6.0, f)
 
+# =============================================================================
+# SET TÁCTICO INSPIRADO EN COUNTER-STRIKE 1.6 / GOLDSRC
+# =============================================================================
+
+def build_crouch_walk(arm):
+    """
+    nexo_crouch_walk (32 frames / 1.06s a 30 FPS) — Inspirado en 'crouchrun' de CS 1.6:
+    Locomoción sigilosa en perfil bajo con cadera descendida (-0.16m), inclinación de torso (+16°),
+    rodillas flexionadas de forma biomecánica continua (-45° a -75°), pasos rítmicos alternados,
+    brazos compactos al frente en guardia y balanceo lateral estabilizado.
+    """
+    create_action(arm, 'nexo_crouch_walk', 0, 32)
+    b = arm.pose.bones
+    hips = b.get('mixamorig:Hips_01')
+    spine = b.get('mixamorig:Spine_02')
+    spine1 = b.get('mixamorig:Spine1_03')
+    head = b.get('mixamorig:Head_06')
+    l_upleg = b.get('mixamorig:LeftUpLeg_00')
+    r_upleg = b.get('mixamorig:RightUpLeg_060')
+    l_leg = b.get('mixamorig:LeftLeg_056')
+    r_leg = b.get('mixamorig:RightLeg_061')
+    l_foot = b.get('mixamorig:LeftFoot_057')
+    r_foot = b.get('mixamorig:RightFoot_062')
+    l_arm = b.get('mixamorig:LeftArm_09')
+    r_arm = b.get('mixamorig:RightArm_033')
+    l_fore = b.get('mixamorig:LeftForeArm_010')
+    r_fore = b.get('mixamorig:RightForeArm_034')
+
+    for f in range(0, 33, 4):
+        phase = (f / 32.0) * math.pi * 2.0
+        step_l = math.sin(phase)
+        step_r = -step_l
+        bob = math.cos(phase * 2.0) * 0.015
+
+        if hips:
+            key_bone_loc(hips, step_l * 0.02, 0, -0.16 + bob, f)
+            key_bone_rot(hips, 16.0, step_l * 3.0, -step_l * 2.0, f)
+        if spine:
+            key_bone_rot(spine, -6.0, -step_l * 2.0, 0, f)
+        if spine1:
+            key_bone_rot(spine1, -4.0, -step_l * 1.5, 0, f)
+        if head:
+            key_bone_rot(head, 10.0, step_l * 1.0, 0, f)
+
+        l_knee = 58.0 + step_l * 20.0
+        r_knee = 58.0 + step_r * 20.0
+        if l_upleg:
+            key_bone_rot(l_upleg, 32.0 + step_l * 22.0, 0, -5.0, f)
+        if r_upleg:
+            key_bone_rot(r_upleg, 32.0 + step_r * 22.0, 0, 5.0, f)
+        if l_leg:
+            key_bone_rot(l_leg, -l_knee, 0, 0, f)
+        if r_leg:
+            key_bone_rot(r_leg, -r_knee, 0, 0, f)
+        if l_foot:
+            key_bone_rot(l_foot, 22.0 - step_l * 12.0, 0, 0, f)
+        if r_foot:
+            key_bone_rot(r_foot, 22.0 - step_r * 12.0, 0, 0, f)
+
+        if l_arm:
+            key_bone_rot(l_arm, 18.0 - step_l * 6.0, 0, -16.0, f)
+        if r_arm:
+            key_bone_rot(r_arm, 18.0 - step_r * 6.0, 0, 16.0, f)
+        if l_fore:
+            key_bone_rot(l_fore, -42.0 + step_l * 4.0, 0, 0, f)
+        if r_fore:
+            key_bone_rot(r_fore, -42.0 + step_r * 4.0, 0, 0, f)
+
+def build_flinch_torso(arm):
+    """
+    nexo_flinch_torso (16 frames / 0.53s a 30 FPS) — Inspirado en 'gut_flinch' de CS 1.6:
+    Sacudida reactiva instantánea por impacto o roce. Contracción espinal (+24°), cabeza hacia abajo,
+    pelvis que retrocede por conservación de momento y amortiguación elástica hacia reposo.
+    """
+    create_action(arm, 'nexo_flinch_torso', 0, 16)
+    b = arm.pose.bones
+    hips = b.get('mixamorig:Hips_01')
+    spine = b.get('mixamorig:Spine_02')
+    spine1 = b.get('mixamorig:Spine1_03')
+    head = b.get('mixamorig:Head_06')
+    l_arm = b.get('mixamorig:LeftArm_09')
+    r_arm = b.get('mixamorig:RightArm_033')
+    l_fore = b.get('mixamorig:LeftForeArm_010')
+    r_fore = b.get('mixamorig:RightForeArm_034')
+
+    kfs = [
+        (0,   0.00,  0.0,   0.0,   0.0,   4.0),
+        (3,  -0.08, 18.0,  12.0, -14.0,  28.0),
+        (6,  -0.05, 12.0,   8.0,  -8.0,  20.0),
+        (10, -0.02,  4.0,   2.0,  -2.0,  10.0),
+        (16,  0.00,  0.0,   0.0,   0.0,   4.0),
+    ]
+    for f, hy, hp, sp, he, ap in kfs:
+        if hips:
+            key_bone_loc(hips, 0, hy, 0, f)
+            key_bone_rot(hips, hp, 0, 0, f)
+        if spine: key_bone_rot(spine, sp, 0, 0, f)
+        if spine1: key_bone_rot(spine1, sp * 0.7, 0, 0, f)
+        if head: key_bone_rot(head, he, 0, 0, f)
+        if l_arm: key_bone_rot(l_arm, ap, 0, -18.0, f)
+        if r_arm: key_bone_rot(r_arm, ap, 0, 18.0, f)
+        if l_fore: key_bone_rot(l_fore, -ap * 1.5, 0, 0, f)
+        if r_fore: key_bone_rot(r_fore, -ap * 1.5, 0, 0, f)
+
+def build_flinch_head(arm):
+    """
+    nexo_flinch_head (14 frames / 0.46s a 30 FPS) — Inspirado en 'head_flinch' de CS 1.6:
+    Impacto directo en casco o sobrepresión transónica: cabeza y cuello son proyectados bruscamente
+    hacia atrás (-28°), hombros tensos y recuperación giroscópica.
+    """
+    create_action(arm, 'nexo_flinch_head', 0, 14)
+    b = arm.pose.bones
+    spine = b.get('mixamorig:Spine_02')
+    neck = b.get('mixamorig:Neck_05')
+    head = b.get('mixamorig:Head_06')
+    l_shoulder = b.get('mixamorig:LeftShoulder_08')
+    r_shoulder = b.get('mixamorig:RightShoulder_032')
+
+    kfs = [
+        (0,   0.0,   0.0,  0.0),
+        (2,  -8.0, -16.0, -28.0),
+        (5,  -4.0, -10.0, -18.0),
+        (9,  -1.0,  -3.0,  -6.0),
+        (14,  0.0,   0.0,   0.0),
+    ]
+    for f, sp, nk, hd in kfs:
+        if spine: key_bone_rot(spine, sp, 0, 0, f)
+        if neck: key_bone_rot(neck, nk, 0, 0, f)
+        if head: key_bone_rot(head, hd, 0, 0, f)
+        if l_shoulder: key_bone_rot(l_shoulder, -hd * 0.25, 0, 0, f)
+        if r_shoulder: key_bone_rot(r_shoulder, -hd * 0.25, 0, 0, f)
+
+def build_death_forward(arm):
+    """
+    nexo_death_forward (36 frames / 1.2s) — Inspirado en 'forward' de CS 1.6:
+    Colapso inercial hacia adelante: rodillas ceden, torso cae amortiguado en tierra, brazos abiertos.
+    """
+    create_action(arm, 'nexo_death_forward', 0, 36)
+    b = arm.pose.bones
+    hips = b.get('mixamorig:Hips_01')
+    spine = b.get('mixamorig:Spine_02')
+    head = b.get('mixamorig:Head_06')
+    l_upleg = b.get('mixamorig:LeftUpLeg_00')
+    r_upleg = b.get('mixamorig:RightUpLeg_060')
+    l_leg = b.get('mixamorig:LeftLeg_056')
+    r_leg = b.get('mixamorig:RightLeg_061')
+    l_arm = b.get('mixamorig:LeftArm_09')
+    r_arm = b.get('mixamorig:RightArm_033')
+
+    kfs = [
+        (0,   0.00,  0.00,  0.0,  0.0,   4.0),
+        (10,  0.04, -0.15, 20.0, 45.0,  25.0),
+        (22,  0.12, -0.38, 55.0, 85.0,  50.0),
+        (36,  0.18, -0.55, 82.0, 95.0,  70.0),
+    ]
+    for f, wy, wz, hp, kb, ap in kfs:
+        if hips:
+            key_hips_offset(hips, 0, wy, wz, f)
+            key_bone_rot(hips, hp, 0, 0, f)
+        if spine: key_bone_rot(spine, -hp * 0.15, 0, 0, f)
+        if head: key_bone_rot(head, hp * 0.2, 0, 0, f)
+        if l_upleg: key_bone_rot(l_upleg, kb * 0.7, 0, -8.0, f)
+        if r_upleg: key_bone_rot(r_upleg, kb * 0.7, 0, 8.0, f)
+        if l_leg: key_bone_rot(l_leg, -kb, 0, 0, f)
+        if r_leg: key_bone_rot(r_leg, -kb, 0, 0, f)
+        if l_arm: key_bone_rot(l_arm, ap, 0, -45.0, f)
+        if r_arm: key_bone_rot(r_arm, ap, 0, 45.0, f)
+
+def build_death_back(arm):
+    """
+    nexo_death_back (40 frames / 1.33s) — Inspirado en 'back' / 'headshot' de CS 1.6:
+    Desplome hacia atrás por impacto frontal severo: torso proyectado hacia atrás,
+    piernas colapsan y reposa de espaldas.
+    """
+    create_action(arm, 'nexo_death_back', 0, 40)
+    b = arm.pose.bones
+    hips = b.get('mixamorig:Hips_01')
+    spine = b.get('mixamorig:Spine_02')
+    head = b.get('mixamorig:Head_06')
+    l_upleg = b.get('mixamorig:LeftUpLeg_00')
+    r_upleg = b.get('mixamorig:RightUpLeg_060')
+    l_leg = b.get('mixamorig:LeftLeg_056')
+    r_leg = b.get('mixamorig:RightLeg_061')
+    l_arm = b.get('mixamorig:LeftArm_09')
+    r_arm = b.get('mixamorig:RightArm_033')
+
+    kfs = [
+        (0,   0.00,  0.00,   0.0,  0.0),
+        (12, -0.06, -0.15, -24.0, 30.0),
+        (26, -0.14, -0.38, -62.0, 60.0),
+        (40, -0.22, -0.56, -88.0, 20.0),
+    ]
+    for f, wy, wz, hp, kb in kfs:
+        if hips:
+            key_hips_offset(hips, 0, wy, wz, f)
+            key_bone_rot(hips, hp, 0, 0, f)
+        if spine: key_bone_rot(spine, -hp * 0.1, 0, 0, f)
+        if head: key_bone_rot(head, -hp * 0.25, 0, 0, f)
+        if l_upleg: key_bone_rot(l_upleg, -kb * 0.5, 0, -12.0, f)
+        if r_upleg: key_bone_rot(r_upleg, -kb * 0.5, 0, 12.0, f)
+        if l_leg: key_bone_rot(l_leg, -kb, 0, 0, f)
+        if r_leg: key_bone_rot(r_leg, -kb, 0, 0, f)
+        if l_arm: key_bone_rot(l_arm, -35.0, 0, -40.0, f)
+        if r_arm: key_bone_rot(r_arm, -35.0, 0, 40.0, f)
+
+def build_death_left(arm):
+    """
+    nexo_death_left (36 frames / 1.2s) — Inspirado en 'left' de CS 1.6:
+    Colapso lateral inercial hacia el flanco izquierdo.
+    """
+    create_action(arm, 'nexo_death_left', 0, 36)
+    b = arm.pose.bones
+    hips = b.get('mixamorig:Hips_01')
+    spine = b.get('mixamorig:Spine_02')
+    head = b.get('mixamorig:Head_06')
+    l_arm = b.get('mixamorig:LeftArm_09')
+    r_arm = b.get('mixamorig:RightArm_033')
+
+    kfs = [
+        (0,   0.00,  0.00,   0.0),
+        (14, -0.08, -0.20, -35.0),
+        (36, -0.25, -0.52, -80.0),
+    ]
+    for f, wx, wz, roll in kfs:
+        if hips:
+            key_hips_offset(hips, wx, 0, wz, f)
+            key_bone_rot(hips, 15.0, 0, roll, f)
+        if spine: key_bone_rot(spine, 0, 0, -roll * 0.3, f)
+        if head: key_bone_rot(head, 0, 0, roll * 0.2, f)
+        if l_arm: key_bone_rot(l_arm, 20.0, 0, -50.0, f)
+        if r_arm: key_bone_rot(r_arm, -20.0, 0, 30.0, f)
+
+def build_death_right(arm):
+    """
+    nexo_death_right (36 frames / 1.2s) — Inspirado en 'right' de CS 1.6:
+    Colapso lateral inercial hacia el flanco derecho.
+    """
+    create_action(arm, 'nexo_death_right', 0, 36)
+    b = arm.pose.bones
+    hips = b.get('mixamorig:Hips_01')
+    spine = b.get('mixamorig:Spine_02')
+    head = b.get('mixamorig:Head_06')
+    l_arm = b.get('mixamorig:LeftArm_09')
+    r_arm = b.get('mixamorig:RightArm_033')
+
+    kfs = [
+        (0,   0.00,  0.00,  0.0),
+        (14,  0.08, -0.20, 35.0),
+        (36,  0.25, -0.52, 80.0),
+    ]
+    for f, wx, wz, roll in kfs:
+        if hips:
+            key_hips_offset(hips, wx, 0, wz, f)
+            key_bone_rot(hips, 15.0, 0, roll, f)
+        if spine: key_bone_rot(spine, 0, 0, -roll * 0.3, f)
+        if head: key_bone_rot(head, 0, 0, roll * 0.2, f)
+        if l_arm: key_bone_rot(l_arm, -20.0, 0, -30.0, f)
+        if r_arm: key_bone_rot(r_arm, 20.0, 0, 50.0, f)
+
+def build_tactical_interact(arm):
+    """
+    nexo_tactical_interact (32 frames / 1.06s) — Inspirado en 'pressbutton' de v_c4 de CS 1.6:
+    Interacción táctica en consola holográfica del guantelete:
+    Antebrazo izquierdo alzado frente al pecho, mano derecha teclea 3 pulsaciones precisas
+    con mirada atenta del casco y retorno sincronizado a guardia.
+    """
+    create_action(arm, 'nexo_tactical_interact', 0, 32)
+    b = arm.pose.bones
+    head = b.get('mixamorig:Head_06')
+    l_arm = b.get('mixamorig:LeftArm_09')
+    r_arm = b.get('mixamorig:RightArm_033')
+    l_fore = b.get('mixamorig:LeftForeArm_010')
+    r_fore = b.get('mixamorig:RightForeArm_034')
+    r_hand = b.get('mixamorig:RightHand_035')
+
+    kfs = [
+        (0,   0.0,   -6.0,  -12.0,   6.0,  -12.0,   0.0),
+        (8,  16.0,  -35.0,  -75.0,  28.0,  -65.0,   0.0),
+        (12, 18.0,  -35.0,  -75.0,  28.0,  -72.0,  15.0),
+        (16, 18.0,  -35.0,  -75.0,  28.0,  -65.0,   0.0),
+        (20, 18.0,  -35.0,  -75.0,  28.0,  -72.0,  15.0),
+        (24, 18.0,  -35.0,  -75.0,  28.0,  -65.0,   0.0),
+        (32,  0.0,   -6.0,  -12.0,   6.0,  -12.0,   0.0),
+    ]
+    for f, hp, laz, lfx, raz, rfx, tp in kfs:
+        if head: key_bone_rot(head, hp, 0, 0, f)
+        if l_arm: key_bone_rot(l_arm, 18.0, 0, laz, f)
+        if l_fore: key_bone_rot(l_fore, lfx, 0, 20.0, f)
+        if r_arm: key_bone_rot(r_arm, 22.0, 0, raz, f)
+        if r_fore: key_bone_rot(r_fore, rfx, 0, -15.0, f)
+        if r_hand: key_bone_rot(r_hand, tp, 0, 0, f)
+
+def build_quicklook(arm):
+    """
+    nexo_quicklook (30 frames / 1.0s) — Inspirado en 'quicklook' de hostage.mdl de CS 1.6:
+    Inspección táctica periférica: giro rápido a la izquierda, pausa de reconocimiento,
+    giro rápido a la derecha y centrado al frente.
+    """
+    create_action(arm, 'nexo_quicklook', 0, 30)
+    b = arm.pose.bones
+    neck = b.get('mixamorig:Neck_05')
+    head = b.get('mixamorig:Head_06')
+
+    kfs = [
+        (0,    0.0,   0.0),
+        (6,  -15.0, -35.0),
+        (12, -15.0, -35.0),
+        (18,  15.0,  35.0),
+        (24,  15.0,  35.0),
+        (30,   0.0,   0.0),
+    ]
+    for f, ny, hy in kfs:
+        if neck: key_bone_rot(neck, 0, ny, 0, f)
+        if head: key_bone_rot(head, 2.0, hy, 0, f)
+
 def build_emote_salute(arm):
     """
     nexo_emote_salute (45 frames / 1.5s):
@@ -1592,6 +1907,21 @@ def generate_all_nexo_animations(arm):
     build_crouch(arm)
     print("  -> Generando nexo_crouch_stand...")
     build_crouch_stand(arm)
+    print("  -> Generando nexo_crouch_walk (CS 1.6 Crouchrun)...")
+    build_crouch_walk(arm)
+    print("  -> Generando nexo_flinch_torso (CS 1.6 Gut Flinch)...")
+    build_flinch_torso(arm)
+    print("  -> Generando nexo_flinch_head (CS 1.6 Head Flinch)...")
+    build_flinch_head(arm)
+    print("  -> Generando nexo_death_forward / back / left / right (CS 1.6 Directional Deaths)...")
+    build_death_forward(arm)
+    build_death_back(arm)
+    build_death_left(arm)
+    build_death_right(arm)
+    print("  -> Generando nexo_tactical_interact (CS 1.6 v_c4 interaction)...")
+    build_tactical_interact(arm)
+    print("  -> Generando nexo_quicklook (CS 1.6 Hostage quicklook)...")
+    build_quicklook(arm)
     print("  -> Generando nexo_emote_salute...")
     build_emote_salute(arm)
     print("  -> Generando nexo_emote_thumbs_up (Gesto 2: Pulgar Arriba)...")
