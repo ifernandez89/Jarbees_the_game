@@ -1,5 +1,33 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.15] - 2026-10-20
+
+### 🚶 Postura de Vuelo Aerodinámica Horizontal ("Acostado") y Locomoción Terrestre Táctica Natural
+
+#### Añadido
+- **Postura de Vuelo Horizontal Prone ("Acostado") (`scripts/generate_nexo_animations.py`, `public/models/jarbees_suit.jb3d`)**:
+  - Reestructuración biomecánica completa de la animación **`nexo_fly_forward`**:
+    - Inclinación frontal longitudinal de la pelvis (`mixamorig:Hips_01`) a **78°** y alineación vertebral recta (`+2°`) para vuelo en torpedo nivelado.
+    - Cuello y cabeza compensados a -24° y -48° respectivamente, manteniendo la mirada y el visor dirigidos hacia el frente y el horizonte.
+    - Brazos perfilados a lo largo de los flancos como superficies aerodinámicas estabilizadoras (`mixamorig:LeftArm`/`RightArm` extendidos hacia atrás).
+    - Piernas extendidas en línea recta con tobillos y botas a 48° simulando toberas vectoriales.
+  - Actualización de **`nexo_boost`** a postura plana hipersónica con inclinación a **84°**.
+  - Actualización de **`nexo_bank`** manteniendo vuelo prone a **75°** con alabeo dinámico de 35°.
+- **Suspensión Táctica en Vuelo Estático (`nexo_hover`)**:
+  - Reemplazo de la postura vertical rígida (0°) por una inclinación dinámica de suspensión frontal a **42°** con rodillas semiflexionadas (-14°) y botas a 36°.
+
+#### Modificado / Optimizado
+- **Ajuste de Locomoción Terrestre Natural ("Chill" & Forward Swing) (`scripts/generate_nexo_animations.py`, `components/BeePlayer.tsx`)**:
+  - Reemplazo del balanceo lateral oscilante por un braceo anteroposterior auténtico (adelante y atrás) con oscilación controlada en el eje frontal.
+  - Postura holgada y paso amplio en la caminata terrestre del exoesqueleto, eliminando movimientos rígidos o exagerados.
+  - Incremento de la velocidad de caminata por defecto a $7.2\text{ m/s}$ (trote táctico ágil en tierra).
+- **Modulación de Cabeceo y Actitud en Vuelo (`components/BeePlayer.tsx`)**:
+  - Eliminación de multiplicadores globales de inclinación excesiva en favor de trimado natural:
+    - Actitud horizontal por defecto en crucero nivelado.
+    - Cabeceo dinámico hacia arriba (`+0.22 rad`) durante ascenso activo con espacio.
+    - Cabeceo hacia abajo (`-0.25 rad`) durante descensos o picadas.
+    - Postura de frenado aerodinámico reactivo (`+0.25 rad`) al pulsar aerofreno con `S`.
+
 ## [0.8.14] - 2026-10-20
 
 ### 🚶 Modo Tierra (Walk) con Reconocimiento de Terreno, Transición Vuelo/Suelo y Limpieza Visual de Aurelium

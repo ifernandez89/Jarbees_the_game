@@ -114,8 +114,10 @@ def build_idle(arm):
 
 def build_walk(arm):
     """
-    nexo_walk (36 frames / 1.2s a 30 FPS):
-    Ciclo de caminata pesada con paso rotundo de armadura, braceo en contrapeso y balanceo pélvico.
+    nexo_walk (36 frames / 1.2s a 30 FPS) - Modo Chill & Badass Armored Walker:
+    Ciclo de caminata bipedal con zancada amplia (pasos largos), postura ancha (abducción paralela),
+    braceo pendular relajado a los costados del torso (libre de la espalda), rebote de amortiguación
+    vertical y actitud heroica confiada.
     """
     create_action(arm, 'nexo_walk', 0, 36)
     b = arm.pose.bones
@@ -123,68 +125,93 @@ def build_walk(arm):
     hips = b.get('mixamorig:Hips_01')
     spine = b.get('mixamorig:Spine_02')
     spine1 = b.get('mixamorig:Spine1_03')
+    neck = b.get('mixamorig:Neck_05')
+    head = b.get('mixamorig:Head_06')
+    
     l_upleg = b.get('mixamorig:LeftUpLeg_00')
     r_upleg = b.get('mixamorig:RightUpLeg_060')
     l_leg = b.get('mixamorig:LeftLeg_056')
     r_leg = b.get('mixamorig:RightLeg_061')
     l_foot = b.get('mixamorig:LeftFoot_057')
     r_foot = b.get('mixamorig:RightFoot_062')
+    
     l_arm = b.get('mixamorig:LeftArm_09')
     r_arm = b.get('mixamorig:RightArm_033')
     l_fore = b.get('mixamorig:LeftForeArm_010')
     r_fore = b.get('mixamorig:RightForeArm_034')
+    l_hand = b.get('mixamorig:LeftHand_011')
+    r_hand = b.get('mixamorig:RightHand_035')
     
-    # 36 frames: ciclo completo de 2 pasos
-    frames = [0, 9, 18, 27, 36]
-    for f in frames:
+    # 36 frames: ciclo completo horneado fotograma a fotograma para máxima fluidez
+    for f in range(0, 37):
         phase = (f / 36.0) * math.pi * 2.0
         s = math.sin(phase)
         c = math.cos(phase)
         
-        # Hips: rebote vertical doble (2x frecuencia) y torsión lateral
+        # 1. Hips (Pelvis): amortiguación hidráulica de la armadura (doble rebote rítmico)
         if hips:
-            bounce = math.cos(phase * 2.0) * -0.018
-            key_bone_loc(hips, s * 0.015, 0, bounce, f)
-            key_bone_rot(hips, -3.0, s * 3.5, -s * 2.0, f)
+            bounce = math.cos(phase * 2.0) * -0.016
+            key_bone_loc(hips, s * 0.005, 0, bounce, f)
+            # Postura decidida: inclinación frontal sutil (-2.0°) y giro pélvico natural (yaw +-1.5°)
+            key_bone_rot(hips, -2.0, s * 1.5, -s * 0.8, f)
             
-        # Torso: contra-torsión armónica
+        # 2. Torso y Cabeza: porte erguido, hombros anchos y contra-torsión sutil
         if spine:
-            key_bone_rot(spine, 2.0, -s * 3.0, s * 1.5, f)
+            key_bone_rot(spine, 2.0, -s * 1.2, s * 0.6, f)
         if spine1:
-            key_bone_rot(spine1, 1.5, -s * 2.0, 0, f)
+            key_bone_rot(spine1, 1.5, -s * 1.0, 0, f)
+        if neck:
+            key_bone_rot(neck, -1.0, 0, 0, f)
+        if head:
+            key_bone_rot(head, 1.5, s * 0.5, 0, f)
             
-        # Piernas: paso alternado
+        # 3. Piernas: zancada amplia (pasos largos) y postura ancha (pies en carriles paralelos)
         # Izquierda
-        l_pitch = s * 24.0
-        l_knee = max(0.0, -c * 38.0) if s > -0.2 else 6.0
-        l_ankle = -s * 12.0
+        l_pitch = s * 28.0
+        l_knee = max(0.0, -c * 40.0) if s > -0.2 else 3.0
+        l_ankle = -s * 14.0
         if l_upleg:
-            key_bone_rot(l_upleg, l_pitch, 0, -2.0, f)
+            # Z = -4.5° mantiene la pierna separada al ancho de caderas (sin pisar en cuerda floja)
+            key_bone_rot(l_upleg, l_pitch, 0, -4.5, f)
         if l_leg:
             key_bone_rot(l_leg, l_knee, 0, 0, f)
         if l_foot:
             key_bone_rot(l_foot, l_ankle, 0, 0, f)
             
-        # Derecha (fase invertida)
-        r_pitch = -s * 24.0
-        r_knee = max(0.0, c * 38.0) if s < 0.2 else 6.0
-        r_ankle = s * 12.0
+        # Derecha (fase opuesta)
+        r_pitch = -s * 28.0
+        r_knee = max(0.0, c * 40.0) if s < 0.2 else 3.0
+        r_ankle = s * 14.0
         if r_upleg:
-            key_bone_rot(r_upleg, r_pitch, 0, 2.0, f)
+            # Z = 4.5° apertura simétrica
+            key_bone_rot(r_upleg, r_pitch, 0, 4.5, f)
         if r_leg:
             key_bone_rot(r_leg, r_knee, 0, 0, f)
         if r_foot:
             key_bone_rot(r_foot, r_ankle, 0, 0, f)
             
-        # Braceo (opuesto a piernas)
+        # 4. Brazos: braceo pendular adelante/atrás sobre el eje sagital (Z local),
+        # manteniendo separación lateral fija y constante (X local = 4.0°) sin aleteo ni ladeo izq-der.
+        # Izquierda: s < 0 (pierna izq atrás) -> brazo izq adelante (Z negativo)
+        l_arm_z = s * 18.0 - 4.0
+        # Derecha: s > 0 (pierna der atrás) -> brazo der adelante (Z positivo)
+        r_arm_z = s * 18.0 + 4.0
         if l_arm:
-            key_bone_rot(l_arm, -s * 22.0, 0, -8.0, f)
+            key_bone_rot(l_arm, 4.0, 0, l_arm_z, f)
         if r_arm:
-            key_bone_rot(r_arm, s * 22.0, 0, 8.0, f)
+            key_bone_rot(r_arm, 4.0, 0, r_arm_z, f)
+            
+        # Antebrazos: flexión natural de codo hacia adelante al avanzar el brazo
         if l_fore:
-            key_bone_rot(l_fore, -18.0 + max(0.0, -s * 15.0), 0, 0, f)
+            l_fore_z = -10.0 + min(0.0, s * 12.0)
+            key_bone_rot(l_fore, 0, 0, l_fore_z, f)
         if r_fore:
-            key_bone_rot(r_fore, -18.0 + max(0.0, s * 15.0), 0, 0, f)
+            r_fore_z = 10.0 + max(0.0, s * 12.0)
+            key_bone_rot(r_fore, 0, 0, r_fore_z, f)
+        if l_hand:
+            key_bone_rot(l_hand, 0, 0, 0, f)
+        if r_hand:
+            key_bone_rot(r_hand, 0, 0, 0, f)
 
 def build_run(arm):
     """
@@ -1085,14 +1112,18 @@ def build_takeoff(arm):
 
 def build_hover(arm):
     """
-    nexo_hover (60 frames / 2.0s):
-    Suspensión vertical totalmente erguida con espalda recta y postura firme:
-    Cuerpo vertical (0°), columna recta, brazos cayendo relajados a los lados y piernas extendidas.
+    nexo_hover (60 frames / 2.0s loop):
+    Suspensión dinámica y propulsada en vuelo estacionario:
+    Postura aerodinámica inclinada a 42° hacia adelante, pecho despejado, piernas retrasadas con
+    micro-flexión en rodillas y toberas de botas canalizando empuje hacia abajo/atrás,
+    brazos como alerones estabilizadores y cabeza al horizonte.
     """
     create_action(arm, 'nexo_hover', 0, 60)
     b = arm.pose.bones
     hips = b.get('mixamorig:Hips_01')
-    spine = b.get('mixamorig:Spine1_03')
+    spine = b.get('mixamorig:Spine_02')
+    spine1 = b.get('mixamorig:Spine1_03')
+    neck = b.get('mixamorig:Neck_05')
     head = b.get('mixamorig:Head_06')
     l_arm = b.get('mixamorig:LeftArm_09')
     r_arm = b.get('mixamorig:RightArm_033')
@@ -1109,41 +1140,46 @@ def build_hover(arm):
         t = (f / 60.0) * math.pi * 2.0
         bob = math.sin(t)
         
-        # Hips: postura estrictamente recta y erguida con suave oscilación vertical
+        # Inclinación aerodinámica de suspensión activa (42° hacia adelante)
         if hips:
             key_bone_loc(hips, 0, 0, bob * 0.015, f)
-            key_bone_rot(hips, 0.0, 0, 0, f)
+            key_bone_rot(hips, 42.0 + bob * 1.5, 0, 0, f)
         if spine:
-            key_bone_rot(spine, 0.0, 0, 0, f)
+            key_bone_rot(spine, 2.0, 0, 0, f)
+        if spine1:
+            key_bone_rot(spine1, 2.0, 0, 0, f)
+        if neck:
+            key_bone_rot(neck, -16.0, 0, 0, f)
         if head:
-            key_bone_rot(head, 0.0, 0, 0, f)
+            key_bone_rot(head, -28.0 + bob * 0.8, 0, 0, f)
             
-        # Brazos descansando rectos y relajados a los costados
-        if l_arm: key_bone_rot(l_arm, 4.0, 0, -8.0, f)
-        if r_arm: key_bone_rot(r_arm, 4.0, 0, 8.0, f)
-        if l_fore: key_bone_rot(l_fore, -12.0, 0, 0, f)
-        if r_fore: key_bone_rot(r_fore, -12.0, 0, 0, f)
+        # Brazos abiertos a los costados como alerones estabilizadores de vuelo
+        if l_arm: key_bone_rot(l_arm, 4.0, 0, 10.0, f)
+        if r_arm: key_bone_rot(r_arm, 4.0, 0, -10.0, f)
+        if l_fore: key_bone_rot(l_fore, -10.0, 0, 0, f)
+        if r_fore: key_bone_rot(r_fore, -10.0, 0, 0, f)
         
-        # Piernas suspendidas verticalmente con puntas extendidas hacia abajo
-        if l_upleg: key_bone_rot(l_upleg, 0.0, 0, -2.0, f)
-        if r_upleg: key_bone_rot(r_upleg, 0.0, 0, 2.0, f)
-        if l_leg: key_bone_rot(l_leg, 6.0, 0, 0, f)
-        if r_leg: key_bone_rot(r_leg, 6.0, 0, 0, f)
-        if l_foot: key_bone_rot(l_foot, 18.0, 0, 0, f)
-        if r_foot: key_bone_rot(r_foot, 18.0, 0, 0, f)
+        # Piernas retrasadas con rodillas levemente flexionadas y botas descargando empuje
+        if l_upleg: key_bone_rot(l_upleg, -10.0 + bob * 0.5, 0, -2.5, f)
+        if r_upleg: key_bone_rot(r_upleg, -10.0 - bob * 0.5, 0, 2.5, f)
+        if l_leg: key_bone_rot(l_leg, -14.0, 0, 0, f)
+        if r_leg: key_bone_rot(r_leg, -14.0, 0, 0, f)
+        if l_foot: key_bone_rot(l_foot, 36.0, 0, 0, f)
+        if r_foot: key_bone_rot(r_foot, 36.0, 0, 0, f)
 
 def build_fly_forward(arm):
     """
     nexo_fly_forward (40 frames / 1.33s loop):
-    Vuelo crucero estilo torpedo aerodinámico:
-    Cuerpo inclinado hacia adelante a +46° (cabeza hacia -Y en mundo), columna estilizada,
-    brazos ceñidos como aletas con micro-ajustes y piernas extendidas en flecha.
+    Vuelo crucero estilo torpedo aerodinámico totalmente acostado (horizontal prone flight):
+    Cuerpo horizontal a 78° hacia adelante, columna en flecha, brazos ceñidos a los flancos,
+    piernas estiradas atrás y cabeza alzada mirando al frente.
     """
     create_action(arm, 'nexo_fly_forward', 0, 40)
     b = arm.pose.bones
     hips = b.get('mixamorig:Hips_01')
     spine = b.get('mixamorig:Spine_02')
     spine1 = b.get('mixamorig:Spine1_03')
+    neck = b.get('mixamorig:Neck_05')
     head = b.get('mixamorig:Head_06')
     l_arm = b.get('mixamorig:LeftArm_09')
     r_arm = b.get('mixamorig:RightArm_033')
@@ -1162,38 +1198,39 @@ def build_fly_forward(arm):
         t = (f / 40.0) * math.pi * 2.0
         wave = math.sin(t)
         
-        # Inclinación hacia adelante a +46° (torpedo horizontal hacia -Y)
+        # Postura acostada horizontal a 78°
         if hips:
             key_bone_loc(hips, 0, 0, wave * 0.008, f)
-            key_bone_rot(hips, 46.0 + wave * 0.8, 0, 0, f)
+            key_bone_rot(hips, 78.0 + wave * 1.0, 0, 0, f)
         if spine:
-            key_bone_rot(spine, -10.0 - wave * 0.4, 0, 0, f)
+            key_bone_rot(spine, 2.0, 0, 0, f)
         if spine1:
-            key_bone_rot(spine1, -12.0 - wave * 0.4, 0, 0, f)
+            key_bone_rot(spine1, 2.0, 0, 0, f)
+        if neck:
+            key_bone_rot(neck, -24.0, 0, 0, f)
         if head:
-            # Cabeza orientada al horizonte de avance
-            key_bone_rot(head, -36.0 + wave * 0.6, 0, 0, f)
+            key_bone_rot(head, -48.0 + wave * 0.8, 0, 0, f)
             
-        # Brazos pegados a los costados actuando como estabilizadores
-        if l_arm: key_bone_rot(l_arm, -14.0, 0, -6.0, f)
-        if r_arm: key_bone_rot(r_arm, -14.0, 0, 6.0, f)
+        # Brazos aerodinámicos ceñidos a los flancos
+        if l_arm: key_bone_rot(l_arm, 4.0, 0, 8.0, f)
+        if r_arm: key_bone_rot(r_arm, 4.0, 0, -8.0, f)
         if l_fore: key_bone_rot(l_fore, -4.0, 0, 0, f)
         if r_fore: key_bone_rot(r_fore, -4.0, 0, 0, f)
         if l_hand: key_bone_rot(l_hand, 0.0, 0, 0, f)
         if r_hand: key_bone_rot(r_hand, 0.0, 0, 0, f)
         
-        # Piernas estilizadas extendidas hacia atrás
-        if l_upleg: key_bone_rot(l_upleg, -18.0 + wave * 0.4, 0, -1.0, f)
-        if r_upleg: key_bone_rot(r_upleg, -18.0 - wave * 0.4, 0, 1.0, f)
-        if l_leg: key_bone_rot(l_leg, 4.0, 0, 0, f)
-        if r_leg: key_bone_rot(r_leg, 4.0, 0, 0, f)
-        if l_foot: key_bone_rot(l_foot, 36.0, 0, 0, f)
-        if r_foot: key_bone_rot(r_foot, 36.0, 0, 0, f)
+        # Piernas estilizadas extendidas hacia atrás como toberas
+        if l_upleg: key_bone_rot(l_upleg, -4.0 + wave * 0.3, 0, -1.5, f)
+        if r_upleg: key_bone_rot(r_upleg, -4.0 - wave * 0.3, 0, 1.5, f)
+        if l_leg: key_bone_rot(l_leg, 2.0, 0, 0, f)
+        if r_leg: key_bone_rot(r_leg, 2.0, 0, 0, f)
+        if l_foot: key_bone_rot(l_foot, 48.0, 0, 0, f)
+        if r_foot: key_bone_rot(r_foot, 48.0, 0, 0, f)
 
 def build_bank(arm, direction='left'):
     """
     nexo_bank_left / right (20 frames):
-    Viraje con alabeo del torso a 35°, hombro interior retraído y torsión de columna.
+    Viraje acostado con alabeo del torso a 35° y torsión aerodinámica.
     """
     sign = 1.0 if direction == 'left' else -1.0
     act_name = f'nexo_bank_{direction}'
@@ -1201,6 +1238,7 @@ def build_bank(arm, direction='left'):
     b = arm.pose.bones
     hips = b.get('mixamorig:Hips_01')
     spine = b.get('mixamorig:Spine1_03')
+    neck = b.get('mixamorig:Neck_05')
     head = b.get('mixamorig:Head_06')
     l_arm = b.get('mixamorig:LeftArm_09')
     r_arm = b.get('mixamorig:RightArm_033')
@@ -1214,27 +1252,30 @@ def build_bank(arm, direction='left'):
         roll = sign * weight * 35.0
         yaw = sign * weight * 15.0
         if hips:
-            key_bone_rot(hips, 42.0, yaw * 0.5, roll * 0.7, f)
+            key_bone_rot(hips, 75.0, yaw * 0.5, roll * 0.7, f)
         if spine:
-            key_bone_rot(spine, -10.0, yaw * 0.5, roll * 0.4, f)
+            key_bone_rot(spine, 0.0, yaw * 0.5, roll * 0.4, f)
+        if neck:
+            key_bone_rot(neck, -22.0, 0, 0, f)
         if head:
-            key_bone_rot(head, -34.0, yaw * 0.8, -roll * 0.2, f)
+            key_bone_rot(head, -46.0, yaw * 0.8, -roll * 0.2, f)
         if l_arm:
-            key_bone_rot(l_arm, -12.0, 0, -8.0 - (roll if sign > 0 else 0), f)
+            key_bone_rot(l_arm, 4.0, 0, 8.0 - (roll if sign > 0 else 0), f)
         if r_arm:
-            key_bone_rot(r_arm, -12.0, 0, 8.0 + (roll if sign < 0 else 0), f)
+            key_bone_rot(r_arm, 4.0, 0, -8.0 + (roll if sign < 0 else 0), f)
 
 def build_boost(arm):
     """
     nexo_boost (30 frames loop):
-    Postura hipersónica ultra-aerodinámica (Mach 1+):
-    Inclinación torpedo a +56°, brazos sellados a los flancos, columna rígida y pies en flecha pura.
+    Postura hipersónica ultra-acostada a 84° (Mach 1+):
+    Inclinación torpedo plana, brazos sellados al torso, columna rígida y pies en flecha pura.
     """
     create_action(arm, 'nexo_boost', 0, 30)
     b = arm.pose.bones
     hips = b.get('mixamorig:Hips_01')
     spine = b.get('mixamorig:Spine_02')
     spine1 = b.get('mixamorig:Spine1_03')
+    neck = b.get('mixamorig:Neck_05')
     head = b.get('mixamorig:Head_06')
     l_arm = b.get('mixamorig:LeftArm_09')
     r_arm = b.get('mixamorig:RightArm_033')
@@ -1248,20 +1289,21 @@ def build_boost(arm):
     for f in [0, 15, 30]:
         t = (f / 30.0) * math.pi * 2.0
         vibe = math.sin(t * 2.0) * 0.4
-        if hips: key_bone_rot(hips, 56.0 + vibe, 0, 0, f)
-        if spine: key_bone_rot(spine, -12.0, 0, 0, f)
-        if spine1: key_bone_rot(spine1, -14.0, 0, 0, f)
-        if head: key_bone_rot(head, -42.0 + vibe, 0, 0, f)
+        if hips: key_bone_rot(hips, 84.0 + vibe, 0, 0, f)
+        if spine: key_bone_rot(spine, 0.0, 0, 0, f)
+        if spine1: key_bone_rot(spine1, 0.0, 0, 0, f)
+        if neck: key_bone_rot(neck, -26.0, 0, 0, f)
+        if head: key_bone_rot(head, -52.0 + vibe, 0, 0, f)
         # Brazos ceñidos
-        if l_arm: key_bone_rot(l_arm, -18.0, 0, -4.0, f)
-        if r_arm: key_bone_rot(r_arm, -18.0, 0, 4.0, f)
+        if l_arm: key_bone_rot(l_arm, 3.0, 0, 4.0, f)
+        if r_arm: key_bone_rot(r_arm, 3.0, 0, -4.0, f)
         if l_fore: key_bone_rot(l_fore, -2.0, 0, 0, f)
         if r_fore: key_bone_rot(r_fore, -2.0, 0, 0, f)
         # Piernas tensas alineadas
-        if l_upleg: key_bone_rot(l_upleg, -22.0, 0, -1.0, f)
-        if r_upleg: key_bone_rot(r_upleg, -22.0, 0, 1.0, f)
-        if l_foot: key_bone_rot(l_foot, 45.0, 0, 0, f)
-        if r_foot: key_bone_rot(r_foot, 45.0, 0, 0, f)
+        if l_upleg: key_bone_rot(l_upleg, -4.0, 0, -1.0, f)
+        if r_upleg: key_bone_rot(r_upleg, -4.0, 0, 1.0, f)
+        if l_foot: key_bone_rot(l_foot, 52.0, 0, 0, f)
+        if r_foot: key_bone_rot(r_foot, 52.0, 0, 0, f)
 
 def build_air_brake(arm):
     """
@@ -1483,7 +1525,8 @@ def inject_retargeted_android_motions(arm):
         if target:
             bone_map[b_src] = target
 
-    animations_to_inject = ['walk', 'run', 'attack', 'jump', 'damage', 'dead']
+    # Nota: 'walk' se genera de forma procedural para garantizar zancada amplia heroica/chill, postura ancha y evitar cruce de brazos
+    animations_to_inject = ['run', 'attack', 'jump', 'damage', 'dead']
     for anim_id in animations_to_inject:
         anim_data = lib['animations'].get(anim_id)
         if not anim_data:
@@ -1514,17 +1557,15 @@ def generate_all_nexo_animations(arm):
     print("⚡ GENERANDO SET DE ANIMACIONES JARBEES: NEXO-01 (FASES 1 Y 3)")
     print("🎬 =============================================================")
     
-    # 0. Inyección de Locomoción y Combate Auténticos del Androide
+    # 0. Inyección de Locomoción y Combate Auténticos del Androide (Run, Attack, Jump, Damage, Dead)
     print("  -> Inyectando animaciones auténticas desde humanoid_motion_library.json...")
     inject_retargeted_android_motions(arm)
     
     # Fase 1: Tierra y Reposo
     print("  -> Generando nexo_idle...")
     build_idle(arm)
-    # Si no se inyectó walk/run desde la librería, generar procedimental
-    if not bpy.data.actions.get('nexo_walk'):
-        print("  -> Generando nexo_walk...")
-        build_walk(arm)
+    print("  -> Generando nexo_walk (Chill & Badass Armored Walker)...")
+    build_walk(arm)
     if not bpy.data.actions.get('nexo_run'):
         print("  -> Generando nexo_run...")
         build_run(arm)

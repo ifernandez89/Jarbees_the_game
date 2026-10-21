@@ -698,12 +698,12 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
           // Despegue / salto desde reposo en tierra
           targetName = actions['nexo_takeoff'] ? 'nexo_takeoff' : 'nexo_jump_start'
         } else if (isMoving) {
-          if (controls.boost || Math.abs(velocity) > 5.0) {
+          if (controls.boost || Math.abs(velocity) > 6.0) {
             targetName = actions['nexo_run'] ? 'nexo_run' : 'nexo_walk'
-            targetAnimSpeed = Math.max(0.8, Math.min(1.8, Math.abs(velocity) / 6.0))
+            targetAnimSpeed = Math.max(0.85, Math.min(1.8, Math.abs(velocity) / 6.5))
           } else {
             targetName = 'nexo_walk'
-            targetAnimSpeed = Math.max(0.8, Math.min(1.6, Math.abs(velocity) / 3.5))
+            targetAnimSpeed = Math.max(0.9, Math.min(1.6, Math.abs(velocity) / 4.5))
           }
           idleTimerRef.current = 0
         } else if (isTurning) {
@@ -983,7 +983,7 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
           }
 
           // Locomoción a pie con W (adelante) y S (retroceso)
-          const walkSpeed = controls.boost ? 6.5 : 3.6
+          const walkSpeed = controls.boost ? 7.6 : 5.0
           let moveDir = 0
           if (controls.forward) moveDir += 1
           if (controls.backward) moveDir -= 0.65
@@ -1144,11 +1144,17 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       // En reposo/suspensión o en tierra, la espalda se mantiene 100% recta y erguida (0°).
       let baseTargetPitch = 0
       if (!isGrounded) {
-        const isFlying = isIronMan ? controls.forward || flight.forwardSpeed > 2.0 : controls.forward
-        if (controls.backward) {
-          baseTargetPitch = isIronMan ? 0.38 : 0.12 // Contragolpe hacia atrás al clavar el freno reactivo
-        } else if (isFlying) {
-          baseTargetPitch = isIronMan ? (controls.boost || flight.forwardSpeed > 35 ? -0.85 : -0.75) : -0.16
+        if (isIronMan) {
+          if (controls.backward) {
+            baseTargetPitch = 0.25 // Contragolpe hacia atrás al clavar el freno reactivo
+          } else {
+            // Modulación de cabeceo (Pitch) en vuelo según ascenso / descenso / velocidad
+            const climbPitch = (controls.up || flight.vy > 2.0) ? 0.22 : (controls.down || flight.vy < -2.0) ? -0.25 : 0
+            const speedTrim = (controls.boost || flight.forwardSpeed > 35) ? -0.10 : 0
+            baseTargetPitch = climbPitch + speedTrim
+          }
+        } else {
+          baseTargetPitch = controls.backward ? 0.12 : (controls.forward ? -0.16 : 0)
         }
       }
 
