@@ -234,7 +234,9 @@ def build_run(arm):
     r_arm = b.get('mixamorig:RightArm_033')
     l_fore = b.get('mixamorig:LeftForeArm_010')
     r_fore = b.get('mixamorig:RightForeArm_034')
-    
+    l_hand = b.get('mixamorig:LeftHand_011')
+    r_hand = b.get('mixamorig:RightHand_035')
+
     frames = [0, 5, 11, 16, 22]
     for f in frames:
         phase = (f / 22.0) * math.pi * 2.0
@@ -270,15 +272,29 @@ def build_run(arm):
         if r_foot:
             key_bone_rot(r_foot, s * 20.0, 0, 0, f)
             
-        # Braceo dinámico
+        # 4. Brazos: braceo atlético abierto a los costados del torso (abducción X = -28.0° fija),
+        # garantizando separación total de las costillas y pechera (las manos y antebrazos oscilan
+        # a ~22 cm del eje central, sin cruzar ni entrar dentro del pecho).
+        # Izquierda: s < 0 (pierna izq atrás) -> brazo izq adelante (Z negativo)
+        l_arm_z = s * 24.0 - 4.0
+        # Derecha: s > 0 (pierna der atrás) -> brazo der adelante (Z positivo)
+        r_arm_z = s * 24.0 + 4.0
         if l_arm:
-            key_bone_rot(l_arm, -s * 45.0, 0, -10.0, f)
+            key_bone_rot(l_arm, -28.0, 0, l_arm_z, f)
         if r_arm:
-            key_bone_rot(r_arm, s * 45.0, 0, 10.0, f)
+            key_bone_rot(r_arm, -28.0, 0, r_arm_z, f)
+
+        # Antebrazos: flexión de codo sagital suave (Z), con manos libres y alineadas
         if l_fore:
-            key_bone_rot(l_fore, -45.0 + max(0.0, -s * 35.0), 0, 0, f)
+            l_fore_z = -22.0 + min(0.0, s * 10.0)
+            key_bone_rot(l_fore, 0, 0, l_fore_z, f)
         if r_fore:
-            key_bone_rot(r_fore, -45.0 + max(0.0, s * 35.0), 0, 0, f)
+            r_fore_z = 22.0 + max(0.0, s * 10.0)
+            key_bone_rot(r_fore, 0, 0, r_fore_z, f)
+        if l_hand:
+            key_bone_rot(l_hand, 0, 0, 0, f)
+        if r_hand:
+            key_bone_rot(r_hand, 0, 0, 0, f)
 
 def build_turn(arm, direction='left'):
     """
@@ -650,6 +666,8 @@ def build_crouch(arm):
     r_arm = b.get('mixamorig:RightArm_033')
     l_fore = b.get('mixamorig:LeftForeArm_010')
     r_fore = b.get('mixamorig:RightForeArm_034')
+    l_hand = b.get('mixamorig:LeftHand_011')
+    r_hand = b.get('mixamorig:RightHand_035')
 
     kfs = [
         # frame, hip_y (down is -), hip_z (depth), hip_pitch, upleg_x, leg_x, foot_x, arm_pitch
@@ -679,14 +697,21 @@ def build_crouch(arm):
             key_bone_rot(l_foot, fx, 0, 0, f)
         if r_foot:
             key_bone_rot(r_foot, fx, 0, 0, f)
+        # Brazos: caída protegida y natural a los costados de los muslos (sin torsión ni apertura excesiva)
+        arm_t = ap / 24.0
         if l_arm:
-            key_bone_rot(l_arm, ap, 0, -18.0, f)
+            key_bone_rot(l_arm, 12.0 * arm_t, 0, -8.0 * arm_t, f)
         if r_arm:
-            key_bone_rot(r_arm, ap, 0, 18.0, f)
+            key_bone_rot(r_arm, 12.0 * arm_t, 0, 8.0 * arm_t, f)
+        # Antebrazos: flexión de codo anatómica suave en el eje sagital (Z), manteniendo manos relajadas al frente
         if l_fore:
-            key_bone_rot(l_fore, -ap * 1.6, 0, 0, f)
+            key_bone_rot(l_fore, 0, 0, -14.0 * arm_t, f)
         if r_fore:
-            key_bone_rot(r_fore, -ap * 1.6, 0, 0, f)
+            key_bone_rot(r_fore, 0, 0, 14.0 * arm_t, f)
+        if l_hand:
+            key_bone_rot(l_hand, 0, 0, 0, f)
+        if r_hand:
+            key_bone_rot(r_hand, 0, 0, 0, f)
 
 def build_crouch_stand(arm):
     """
@@ -708,6 +733,8 @@ def build_crouch_stand(arm):
     r_arm = b.get('mixamorig:RightArm_033')
     l_fore = b.get('mixamorig:LeftForeArm_010')
     r_fore = b.get('mixamorig:RightForeArm_034')
+    l_hand = b.get('mixamorig:LeftHand_011')
+    r_hand = b.get('mixamorig:RightHand_035')
 
     kfs = [
         (0,  -13.5, 2.0, 18.0,  68.0, -112.0, 44.0, 24.0),
@@ -734,14 +761,19 @@ def build_crouch_stand(arm):
             key_bone_rot(l_foot, fx, 0, 0, f)
         if r_foot:
             key_bone_rot(r_foot, fx, 0, 0, f)
+        arm_t = ap / 24.0
         if l_arm:
-            key_bone_rot(l_arm, ap, 0, -12.0 if f < 15 else 0, f)
+            key_bone_rot(l_arm, 12.0 * arm_t, 0, -8.0 * arm_t, f)
         if r_arm:
-            key_bone_rot(r_arm, ap, 0, 12.0 if f < 15 else 0, f)
+            key_bone_rot(r_arm, 12.0 * arm_t, 0, 8.0 * arm_t, f)
         if l_fore:
-            key_bone_rot(l_fore, -ap * 1.5, 0, 0, f)
+            key_bone_rot(l_fore, 0, 0, -14.0 * arm_t, f)
         if r_fore:
-            key_bone_rot(r_fore, -ap * 1.5, 0, 0, f)
+            key_bone_rot(r_fore, 0, 0, 14.0 * arm_t, f)
+        if l_hand:
+            key_bone_rot(l_hand, 0, 0, 0, f)
+        if r_hand:
+            key_bone_rot(r_hand, 0, 0, 0, f)
 
 # =============================================================================
 # SET TÁCTICO INSPIRADO EN COUNTER-STRIKE 1.6 & LEFT 4 DEAD (SOURCE ENGINE)
@@ -770,6 +802,8 @@ def build_crouch_walk(arm):
     r_arm = b.get('mixamorig:RightArm_033')
     l_fore = b.get('mixamorig:LeftForeArm_010')
     r_fore = b.get('mixamorig:RightForeArm_034')
+    l_hand = b.get('mixamorig:LeftHand_011')
+    r_hand = b.get('mixamorig:RightHand_035')
 
     for f in range(0, 33, 4):
         phase = (f / 32.0) * math.pi * 2.0
@@ -804,14 +838,23 @@ def build_crouch_walk(arm):
         if r_foot:
             key_bone_rot(r_foot, 36.0 - step_r * 12.0, 0, 0, f)
 
+        # Brazos: braceo sigiloso a los costados del torso y muslos, con flexión anatómica natural
         if l_arm:
-            key_bone_rot(l_arm, 22.0 - step_l * 8.0, 0, -18.0, f)
+            l_arm_z = -8.0 + step_l * 8.0
+            key_bone_rot(l_arm, 10.0, 0, l_arm_z, f)
         if r_arm:
-            key_bone_rot(r_arm, 22.0 - step_r * 8.0, 0, 18.0, f)
+            r_arm_z = 8.0 + step_l * 8.0
+            key_bone_rot(r_arm, 10.0, 0, r_arm_z, f)
         if l_fore:
-            key_bone_rot(l_fore, -45.0 + step_l * 6.0, 0, 0, f)
+            l_fore_z = -16.0 + min(0.0, step_l * 6.0)
+            key_bone_rot(l_fore, 0, 0, l_fore_z, f)
         if r_fore:
-            key_bone_rot(r_fore, -45.0 + step_r * 6.0, 0, 0, f)
+            r_fore_z = 16.0 + max(0.0, step_l * 6.0)
+            key_bone_rot(r_fore, 0, 0, r_fore_z, f)
+        if l_hand:
+            key_bone_rot(l_hand, 0, 0, 0, f)
+        if r_hand:
+            key_bone_rot(r_hand, 0, 0, 0, f)
 
 def build_melee_shove(arm):
     """
@@ -2101,8 +2144,8 @@ def inject_retargeted_android_motions(arm):
         if target:
             bone_map[b_src] = target
 
-    # Nota: 'walk' se genera de forma procedural para garantizar zancada amplia heroica/chill, postura ancha y evitar cruce de brazos
-    animations_to_inject = ['run', 'attack', 'jump', 'damage', 'dead']
+    # Nota: 'walk' y 'run' se generan de forma procedural para garantizar zancada amplia, postura atlética limpia y evitar cruce de brazos dentro del torso
+    animations_to_inject = ['attack', 'jump', 'damage', 'dead']
     for anim_id in animations_to_inject:
         anim_data = lib['animations'].get(anim_id)
         if not anim_data:
@@ -2133,7 +2176,7 @@ def generate_all_nexo_animations(arm):
     print("⚡ GENERANDO SET DE ANIMACIONES JARBEES: NEXO-01 (FASES 1 Y 3)")
     print("🎬 =============================================================")
     
-    # 0. Inyección de Locomoción y Combate Auténticos del Androide (Run, Attack, Jump, Damage, Dead)
+    # 0. Inyección de Locomoción y Combate Auténticos del Androide (Attack, Jump, Damage, Dead)
     print("  -> Inyectando animaciones auténticas desde humanoid_motion_library.json...")
     inject_retargeted_android_motions(arm)
     
@@ -2142,9 +2185,8 @@ def generate_all_nexo_animations(arm):
     build_idle(arm)
     print("  -> Generando nexo_walk (Chill & Badass Armored Walker)...")
     build_walk(arm)
-    if not bpy.data.actions.get('nexo_run'):
-        print("  -> Generando nexo_run...")
-        build_run(arm)
+    print("  -> Generando nexo_run (Carrera atlética con brazos abiertos a los costados)...")
+    build_run(arm)
     print("  -> Generando nexo_turn_left / right...")
     build_turn(arm, 'left')
     build_turn(arm, 'right')

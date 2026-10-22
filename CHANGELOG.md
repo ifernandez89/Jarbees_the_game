@@ -1,5 +1,33 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.19] - 2026-10-21
+
+### 🦾 Corrección Cinemática de Brazos (Carrera y Agachado) & Saneamiento Acústico Total
+
+#### Corregido & Biomecánica
+- **Corrección Cinemática de Brazos al Correr (`nexo_run`)**:
+  - Se eliminó la inyección externa de Mixamo en `scripts/generate_nexo_animations.py` que sobreescribía la animación e introducía un cruce forzado de brazos hacia el centro del tórax, entrelazando las manos dentro de la pechera.
+  - Se implementó un ciclo procedural puro de carrera atlética con abducción lateral fija (`X = -28.0°`), asegurando que ambos brazos y antebrazos oscilen a ~22 cm a los costados del torso, con total holgura respecto a las costillas y pechera medieval reliquia.
+- **Corrección Anatómica al Agacharse (`nexo_crouch`, `nexo_crouch_stand` y `nexo_crouch_walk`)**:
+  - Se eliminó la rotación en el eje local X (`-38°`) de los antebrazos que abría los codos hacia afuera en postura de "alas de pollo" y torsionaba las manos en ángulos antinaturales.
+  - La flexión de codo ahora articula suavemente en el eje sagital Z (`-14°` a `+14°`), dejando caer los brazos de forma protegida y relajada paralelos a los muslos (`X = ±13.2 cm`), con las manos y muñecas niveladas de manera natural al frente junto a las rodillas.
+
+#### Limpiado & Paisaje Sonoro
+- **Saneamiento Definitivo de Audios con Derechos de Autor**:
+  - Se eliminaron por completo todos los disparos de audio en las teclas `J` (`nexo_landing_heavy.wav`) y `H` (`nexo_warning_denied.wav`), así como en aterrizajes forzados o pesados.
+  - Se purgaron y eliminaron del repositorio todos los archivos WAV con procedencia de Valve / Source Engine (`nexo_landing_heavy.wav`, `nexo_warning_denied.wav`, `nexo_heartbeat_loop.wav`, `nexo_impact_heavy.wav`, `nexo_armor_impact.wav`), suprimiendo su carga en `hooks/useAudio.ts` y `components/BeePlayer.tsx`.
+- **Nuevo Paisaje Acústico Continuo y Libre de Zumbidos para Auren (`auren_flight.wav`)**:
+  - En `scripts/generate_auren_audio.py`, se sintetizó un paisaje acústico continuo a 44.1 kHz 16-bit sin modulación de volumen sinusoidal (eliminada la respiración de 0.33 Hz que generaba un vaivén intermitente) y sin armónicos a 58 Hz / 116 Hz tipo zumbido de transformador eléctrico.
+  - Capa de armónicos cuánticos en quinta justa y octavas limpias (A2 = 110 Hz, E3 = 165 Hz, A3 = 220 Hz, C#4 = 277.18 Hz), flujo aerodinámico iónico aterciopelado y micro-shimmer a 880 Hz.
+  - En reposo estático sobre tierra firme, Auren entra en standby silencioso absoluto (volumen `0.0`).
+  - El zumbido de abeja (`bee_buzz`) ahora se inicializa en `0.0` para evitar cualquier filtración residual al seleccionar a Auren.
+
+#### Compilación & Cifrado
+- **Horneado y Cifrado glTF Draco v7**:
+  - Nuevo set horneado en Blender 5.2 sobre `assets_source/models/jarbees_suit.glb` (22.85 MB) y cifrado criptográfico mediante `scripts/protect-models.js` a `public/models/jarbees_suit.jb3d`.
+
+---
+
 ## [0.8.18] - 2026-10-21
 
 ### 🎵 Paisaje Acústico Original de Auren y Depuración de Sonidos Tácticos

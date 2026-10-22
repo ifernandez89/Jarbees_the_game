@@ -107,20 +107,9 @@ async function loadGameAudio(manager: AudioManager) {
     await manager.loadSound('crickets', getAssetPath('/audio/night_crickets.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('pause', getAssetPath('/audio/pause.wav'), { loop: false, volume: 0.4 })
 
-    // 3. Efectos cinéticos y tácticos Source Engine / Left 4 Dead
-    await manager.loadSound('nexo_landing_heavy', getAssetPath('/audio/nexo_landing_heavy.wav'), { loop: false, volume: 0.65 })
-    await manager.loadSound('nexo_armor_impact', getAssetPath('/audio/nexo_armor_impact.wav'), { loop: false, volume: 0.55 })
-    await manager.loadSound('nexo_impact_heavy', getAssetPath('/audio/nexo_impact_heavy.wav'), { loop: false, volume: 0.70 })
-    await manager.loadSound('nexo_heartbeat_loop', getAssetPath('/audio/nexo_heartbeat_loop.wav'), { loop: true, volume: 0.0 })
-    await manager.loadSound('nexo_warning_denied', getAssetPath('/audio/nexo_warning_denied.wav'), { loop: false, volume: 0.45 })
-    await manager.loadSound('nexo_heal_nanites', getAssetPath('/audio/nexo_heal_nanites.wav'), { loop: false, volume: 0.50 })
-    await manager.loadSound('nexo_threat_stinger', getAssetPath('/audio/nexo_threat_stinger.wav'), { loop: false, volume: 0.60 })
-
-    console.log('✅ Todos los audios de JarBees cargados con éxito')
-
     // Iniciar bucles de ambiente y sonido de vuelo
     manager.playMusic('ambient', 2.5)
-    manager.playLoop('bee_buzz', 0.08)
+    manager.playLoop('bee_buzz', 0.0)
     manager.playLoop('colibri_flutter', 0.0)
     manager.playLoop('butterfly_flutter', 0.0)
     manager.playLoop('auren_flight', 0.0)

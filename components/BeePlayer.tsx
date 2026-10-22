@@ -555,17 +555,14 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
           jumpStateRef.current = 'idle'
           crouchStateRef.current = 'idle'
           touchdownTimerRef.current = 0
-          getAudioManager()?.playSound('nexo_landing_heavy', 0.85)
         } else if (jumpStateRef.current === 'loop' || jumpStateRef.current === 'start') {
           // Aterrizaje elástico de salto normal
           jumpStateRef.current = 'land'
           jumpTimerRef.current = 0.60
           touchdownTimerRef.current = 0
-          getAudioManager()?.playSound('nexo_landing_heavy', 0.45)
         } else if (controls.down || altAboveGround < 0.5) {
           // Aterrizaje heroico original JarBees al tocar suelo en descenso voluntario
           touchdownTimerRef.current = 1.20
-          getAudioManager()?.playSound('nexo_landing_heavy', 0.65)
         }
       }
       if (isInFlightMode || isGrounded) {
@@ -629,16 +626,7 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
         }
       }
 
-      // Disparo de audio reactivo en el instante de inicio de un emote
-      if (activeEmote && prevEmoteRef.current !== activeEmote) {
-        const audio = getAudioManager()
-        if (audio) {
-          if (activeEmote === 'melee_shove') audio.playSound('nexo_impact_heavy', 0.65)
-          else if (activeEmote === 'hunter_pounce') audio.playSound('nexo_landing_heavy', 0.85)
-          else if (activeEmote === 'limp_walk') audio.playSound('nexo_warning_denied', 0.45)
-          // Se removieron sonidos de curación (L4D) y de impactos balísticos al recibir daño (flinch/stumble)
-        }
-      }
+      // Emotes cinéticos tácticos limpios de audios con derechos de autor
       prevEmoteRef.current = activeEmote
 
       // Control de Emotes
@@ -1305,9 +1293,14 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
 
       // Modular sonido del personaje activo
       if (isIronMan && isGrounded) {
-        // En tierra los reactores están en standby silencioso
-        audio.setSoundVolume(soundKey, 0.015)
-        audio.setSoundPitch(soundKey, 0.75)
+        if (isMoving) {
+          audio.setSoundVolume(soundKey, 0.035)
+          audio.setSoundPitch(soundKey, 0.9)
+        } else {
+          // En reposo estático en tierra: silencio absoluto sin zumbidos
+          audio.setSoundVolume(soundKey, 0.0)
+          audio.setSoundPitch(soundKey, 1.0)
+        }
       } else {
         const maxSpeedRef = isIronMan ? 300.0 : 16.0
         const speedNorm = Math.min(1, Math.abs(currentVelocity) / maxSpeedRef)

@@ -18,9 +18,9 @@ def save_wav(filename, samples, sample_rate=SAMPLE_RATE):
         wav_file.writeframes(int_samples.tobytes())
     print(f"Generated: {filename} ({len(samples)/sample_rate:.2f}s)")
 
-def make_seamless_loop(samples, crossfade_samples=17640):
+def make_seamless_loop(samples, crossfade_samples=22050):
     """
-    Seamless loop with generous 0.4s sinusoidal crossfade
+    Bucle sin saltos con crossfade cosenoidal suave
     """
     length = len(samples)
     cf = min(crossfade_samples, length // 4)
@@ -35,60 +35,60 @@ def make_seamless_loop(samples, crossfade_samples=17640):
     result[cf:] = samples[cf:length - cf]
     return result
 
-def generate_auren_flight_sound(duration=6.0):
+def generate_auren_flight_sound(duration=8.0):
     """
-    Sonido original para Auren (JarBees NEXO-01):
-    - Elimina completamente cualquier zumbido agudo o estridente (sin frecuencias molestas de 400-2000Hz tipo mosquito o taladro).
-    - Capa 1: Reactor cuántico Hex-Core sub-grave cálido y aterciopelado (58 Hz fundamental + 116 Hz armónico suave).
-    - Capa 2: Desplazamiento aerodinámico sedoso (ruido marrón/rosa filtrado pasa-bajos a ~420 Hz).
-    - Capa 3: Resonancia armónica etérea (acorde puro en quinta justa 174 Hz y 261 Hz con chorus ultra-lento de 0.2 Hz).
-    - Capa 4: Micro-pulsaciones de energía cuántica (respiración suave de propulsión a 0.3 Hz).
+    Paisaje acústico 100% original, continuo y de alta fidelidad para Auren (JarBees NEXO-01):
+    - CERO zumbido eléctrico de 50-60Hz.
+    - CERO modulación intermitente o respiración repetitiva (sin vaivenes oscilatorios molestos).
+    - Capa 1: Núcleo cuántico cristalino (Armónicos puros y cálidos en A2 / E3 / A3 / C#4: 110, 165, 220, 277.18 Hz).
+    - Capa 2: Resonancia de plasma ionizado etéreo (Acorde estelar 440 Hz y 660 Hz con micro-fase constante).
+    - Capa 3: Flujo de micro-propulsión iónica (Ruido rosa aterciopelado con filtrado bicuadrático suave).
+    - Capa 4: Shimmer cibernético de alta tecnología (Presencia sutil a 880 Hz a muy bajo volumen).
+    - Amplitud constante, sedosa y relajante para el oído durante sesiones prolongadas de vuelo y exploración.
     """
     t = np.linspace(0, duration, int(SAMPLE_RATE * duration), endpoint=False)
-    
-    # 1. Sub-grave Hex-Core (cálido, profundo, sin asperezas)
-    f_sub = 58.0
-    sub_1 = 0.40 * np.sin(2 * np.pi * f_sub * t)
-    sub_2 = 0.22 * np.sin(2 * np.pi * (f_sub * 2.0) * t)
-    sub_deep = 0.18 * np.sin(2 * np.pi * (f_sub * 0.5) * t)
-    core_layer = sub_1 + sub_2 + sub_deep
-    
-    # 2. Resonancia etérea de energía (Acorde F3 - C4 puro con phasing suave)
-    # Sin zumbidos: tonos puros de amplitud baja que dan identidad de ciencia ficción cinematográfica
-    chorus_lfo = 0.003 * np.sin(2 * np.pi * 0.25 * t)
-    phase_f3 = 2 * np.pi * 174.0 * (t + chorus_lfo)
-    phase_c4 = 2 * np.pi * 261.0 * (t - chorus_lfo)
-    ether_f3 = 0.12 * np.sin(phase_f3)
-    ether_c4 = 0.08 * np.sin(phase_c4)
-    ether_layer = ether_f3 + ether_c4
-    
-    # 3. Flujo aerodinámico ionizado (Ruido marrón ultra-filtrado pasa-bajos, sedoso)
+
+    # 1. Armónicos del Núcleo Cuántico (Tonos puros sinusoidales cálidos, sin distorsión armónica)
+    # Fundamental elegante A2 (110 Hz) + Quinta justa E3 (165 Hz) + Octava A3 (220 Hz)
+    layer_110 = 0.28 * np.sin(2 * np.pi * 110.0 * t)
+    layer_165 = 0.18 * np.sin(2 * np.pi * 165.0 * t)
+    layer_220 = 0.14 * np.sin(2 * np.pi * 220.0 * t)
+    layer_277 = 0.08 * np.sin(2 * np.pi * 277.18 * t) # Tercera mayor C#4, da sensación luminosa/heroica
+    core_harmonic = layer_110 + layer_165 + layer_220 + layer_277
+
+    # 2. Resonancia de plasma etéreo (acorde sci-fi superior con fase ultra-lenta para riqueza estéreo/textura)
+    chorus = 0.0008 * np.sin(2 * np.pi * 0.04 * t) # micro-chorus casi imperceptible (0.04 Hz = 25 segundos por ciclo)
+    plasma_440 = 0.06 * np.sin(2 * np.pi * 440.0 * (t + chorus))
+    plasma_660 = 0.035 * np.sin(2 * np.pi * 660.0 * (t - chorus))
+    plasma_layer = plasma_440 + plasma_660
+
+    # 3. Flujo aerodinámico iónico sedoso (Ruido filtrado paso-bajo sin siseos ni chasquidos)
+    np.random.seed(42) # Reproducibilidad limpia
     raw_noise = np.random.normal(0, 1.0, len(t))
-    # Doble filtro pasa-bajos por convolución para eliminar todo 'hiss' o siseo agudo
-    kernel_size = 90  # ~490 Hz cutoff
-    kernel = np.hamming(kernel_size)
+    # Filtro pasa-bajos convolucional suave para eliminar frecuencias medias/altas ásperas
+    kernel_size = 120
+    kernel = np.hanning(kernel_size)
     kernel /= kernel.sum()
     smooth_noise = np.convolve(raw_noise, kernel, mode='same')
-    # Segunda pasada para pendientes ultra suaves
-    kernel2 = np.hamming(45)
+    # Segunda pasada para respuesta aterciopelada
+    kernel2 = np.hanning(60)
     kernel2 /= kernel2.sum()
-    velvet_air = np.convolve(smooth_noise, kernel2, mode='same') * 1.8
-    
-    # 4. Modulación dinámica de respiración aerodinámica
-    breathing = 0.88 + 0.12 * np.sin(2 * np.pi * 0.33 * t)
-    
-    # Mezcla equilibrada: presencia rica, descansada para el oído, poderosa
-    full_mix = (core_layer * 0.48 + velvet_air * 0.38 + ether_layer * 0.22) * breathing * 0.72
-    
+    ion_flow = np.convolve(smooth_noise, kernel2, mode='same') * 2.2
+
+    # 4. Micro-shimmer cibernético de alta tecnología
+    shimmer = 0.02 * np.sin(2 * np.pi * 880.0 * t)
+
+    # 5. Mezcla final equilibrada y constante (CERO modulación de volumen, CERO intermitencia)
+    mix = (core_harmonic * 0.45 + plasma_layer * 0.35 + ion_flow * 0.28 + shimmer * 0.12) * 0.70
+
     # Bucle perfecto sin saltos
-    seamless = make_seamless_loop(full_mix, crossfade_samples=SAMPLE_RATE // 2)
+    seamless = make_seamless_loop(mix, crossfade_samples=SAMPLE_RATE)
     return seamless
 
 if __name__ == '__main__':
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'public', 'audio'))
-    sound = generate_auren_flight_sound(duration=6.0)
-    
-    # Guardar tanto en auren_flight.wav como sobrescribir iron_man_thruster.wav para compatibilidad total
+    sound = generate_auren_flight_sound(duration=8.0)
+
     save_wav(os.path.join(base_dir, 'auren_flight.wav'), sound)
     save_wav(os.path.join(base_dir, 'iron_man_thruster.wav'), sound)
-    print("[OK] Nuevos audios originales para Auren creados exitosamente.")
+    print("[OK] Nuevo audio original, continuo y libre de zumbidos creado exitosamente para Auren.")
