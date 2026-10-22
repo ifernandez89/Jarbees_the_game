@@ -1,5 +1,75 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.22] - 2026-10-22
+
+### 🏃 Biomecánica Auténtica de Carrera (`nexo_run`) & Erradicación Acústica del Drone de Fondo
+
+#### Corrección Crítica de Cinemática de Piernas en Carrera ("Correr hacia atrás")
+- **Diagnóstico Cinemático**:
+  - Al ver al personaje desde atrás, las piernas parecían correr "en reversa" o hacer moonwalk debido a una inversión de fase en la flexión de rodilla (`mixamorig:LeftLeg_056` y `mixamorig:RightLeg_061`).
+  - La fórmula anterior aplicaba la flexión máxima de rodilla (`93°`) durante la **fase de apoyo en el suelo** (`c <= 0`), mientras que durante la **fase de vuelo/avance en el aire** (`c > 0`), la rodilla permanecía casi recta (`15°`).
+  - En la vista frontal, la perspectiva ocultaba la rigidez de la pierna en vuelo, pero desde la vista trasera (cámara estándar del jugador en 3ra persona), ver la pierna estirada mientras avanzaba y doblarse hacia atrás en el suelo generaba la evidente ilusión óptica de estar corriendo marcha atrás.
+- **Solución Biomecánica Aplicada en [generate_nexo_animations.py](file:///c:/Projects/Jarbees_the_game/scripts/generate_nexo_animations.py)**:
+  - **Fase de Apoyo / Stance**: Rodilla extendida firme con flexión suave de absorción de impacto (`18° a 26°`) mientras el pie empuja de adelante hacia atrás (`foot_y` de `-14.2` a `+21.6`).
+  - **Fase de Vuelo / Swing**: En cuanto el pie despega del suelo por detrás (`f = 18`), la rodilla se flexiona profundamente (`-86°`) levantando el talón hacia la pelvis (`foot_z` asciende de `-28.6` a `-12.2`), permitiendo que la pierna pase holgadamente en el aire hacia adelante y extienda el metatarso justo antes de la pisada.
+  - El modelo `jarbees_suit.glb` fue recompilado con Draco 7 y empaquetado/cifrado en `public/models/jarbees_suit.jb3d`.
+
+#### Identificación y Erradicación Definitiva del Zumbido de Fondo
+- **Causa Real Encontrada en Análisis Espectral**:
+  - El archivo [ambient_music.wav](file:///c:/Projects/Jarbees_the_game/public/audio/ambient_music.wav) (`harmonia_mundi.wav`) contenía un **drone continuo en 45 Hz y sus armónicos (90 Hz, 135 Hz, 180 Hz y 225 Hz)**, que representaba el **48.6% de la energía sonora total** del track.
+  - Al reproducirse en bucle continuo de fondo vía `manager.playMusic('ambient', 2.5)` al 65% de volumen (`musicVolume: 0.65`), generaba un constante zumbido/hum eléctrico de baja frecuencia audible en todo momento independientemente del personaje.
+- **Tratamiento Acústico**:
+  - Se filtró `ambient_music.wav` mediante transformación FFT con un corte de paso alto a 130-180 Hz y notch específico en 225 Hz, reduciendo la energía grave por debajo de 200 Hz del 48.6% al **3.73%**. La música ahora preserva sus campanas, texturas y acordes etéreos cristalinos sin ningún tipo de zumbido o zumbido eléctrico residual.
+  - Se filtró también `wind_loop.wav` eliminando ruidos sordos graves sub-120 Hz.
+  - Se actualizó la versión del Service Worker en [sw.js](file:///c:/Projects/Jarbees_the_game/public/sw.js) a `jarbees-game-v3` para forzar la invalidación inmediata de la caché local del navegador y garantizar que los nuevos audios limpios y el modelo corregido se descarguen al instante.
+
+## [0.8.21] - 2026-10-22
+
+### 🛡️ Calibración Luminosa de Armadura Plateada & Silenciamiento Total del Zumbido
+
+#### Diagnóstico y Solución de Texturas Oscuras en Three.js
+- **Causa Raíz**: En [BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx), el recorrido de materiales forzaba `mat.color` a `#102D46` (azul petróleo oscuro) en `Red_Part` (60% del cuerpo) y `#35205B` (violeta oscuro) en `Gold_Part` (25% del cuerpo). El casco tenía un filtro condicional que preservaba `mat.color = '#ffffff'`, razón por la cual el casco lucía gris claro mientras el resto del cuerpo se oscurecía en un tono casi negro.
+- **Unificación Plata Forjada PBR**:
+  - Se eliminaron las máscaras oscuras en Three.js. Para todos los componentes texturizados (`Red_Part`, `Gold_Part`, pechera de ángel, casco), `mat.color` se estableció en `#ffffff` en espacio `sRGBColorSpace`, reproduciendo fielmente las texturas de plata forjada horneadas en Blender.
+  - Para evitar pérdida de luz difusa en Three.js (debido a la ausencia de mapa de entorno HDRI en la escena), `metalness` se calibró a `0.40` y `roughness` a `0.28`, garantizando un ~60% de reflexión difusa plateada y brillante en cualquier ángulo.
+  - Se añadieron luces de estudio frontales y traseras de relleno (`pointLight` y `ambientLight`) alrededor del personaje para iluminar uniformemente las placas y la pechera tanto mirando al frente como en vista supina/inclinada.
+
+#### Identificación y Extinción Definitiva del Zumbido de Fondo
+- **Diagnóstico del Zumbido ("no es el sonido de la abeja")**:
+  - **Fuente 1 (Osciladores de Turbina en [FlightAudio.ts](file:///c:/Projects/Jarbees_the_game/systems/FlightAudio.ts))**: El motor de audio procedural Web Audio API mantenía un piso residual incondicional `engineGain.gain = 0.02` alimentado por un oscilador de onda triangular a 58 Hz y otro de onda senoidal a 116 Hz. Al estar en reposo o suspensión estática (hovering), este circuito generaba un zumbido eléctrico constante de 58/116 Hz.
+  - **Fuente 2 (Bucle Armónico en [characters.ts](file:///c:/Projects/Jarbees_the_game/types/characters.ts) / [BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx))**: El sonido `auren_flight` tenía `baseVolume: 0.09`. Al estar flotando en el aire sin tocar el suelo (`!isGrounded`), el sistema reproducía el archivo `auren_flight.wav` (compuesto de capas senoidales continuas a 110, 165 y 220 Hz) a un 9% de volumen, percibido como un drone o zumbido permanente.
+  - **Fuente 3 (Viento Ambiente en [useAudio.ts](file:///c:/Projects/Jarbees_the_game/hooks/useAudio.ts))**: El loop de viento corría a un volumen elevado de 0.25 - 0.32 con resonancia grave.
+- **Extinción Aplicada**:
+  - En `FlightAudio.ts`: La ganancia del oscilador de turbina ahora es estrictamente `0.0` cuando el personaje está en reposo o hovering estático (`throttle < 0.01` y `speed < 3.0 km/h`).
+  - En `types/characters.ts`: `baseVolume` de `auren_flight` se fijó en `0.0`.
+  - En `BeePlayer.tsx`: Cuando el traje está en reposo terrestre o en flotación aérea estacionaria (`MACH 0.00 | 0 km/h`), `audio.setSoundVolume(soundKey, 0.0)` silencia por completo el sonido de vuelo.
+  - En `useAudio.ts`: El viento ambiental se redujo a una brisa sutil (`0.04 - 0.06`), eliminando cualquier estruendo o rumble de fondo.
+
+## [0.8.20] - 2026-10-22
+
+### 🎖️ Overhaul Táctico de Carrera CS 1.6 & Left 4 Dead (`nexo_run`)
+
+#### Biomecánica & Cinética Source Engine
+- **Rediseño Completo de la Carrera Táctica (`nexo_run`)**:
+  - **Inspiración CS 1.6 (GoldSrc) & Left 4 Dead (Source Engine)**: Sustituido el antiguo ciclo de carrera con brazos abiertos en abducción excesiva (-28°) por una postura militar compacta, ágil y de alta inercia (Tactical Rush).
+  - **Guardia Táctica de Brazos**: Los brazos ahora permanecen disciplinados y ceñidos al torso (`X = 4.0°`), con los codos flexionados en ángulo cerrado táctico (`Z = -30°` a `-52°` en carrera impulsada), eliminando el aspecto de "brazos extendidos/alas".
+  - **Puños de Combate**: Se incorporó flexión anatómica completa de dedos (`fist_curl = 68°`) formando puños cerrados listos para el combate en lugar de manos abiertas y sueltas.
+  - **Doble Rebote y Amortiguación Pélvica**: Se corrigió el eje de rebote en `mixamorig:Hips_01` (ahora en el eje vertical `Local Y`), transmitiendo el impacto de talón/metatarso con compresión amortiguada y elevación en fase aérea en cada paso.
+  - **Combat Horizon Lock (Estabilización de Visor)**: La inclinación atlética hacia adelante del torso (`+13°`) se compensa de forma giroscópica continua en cuello y cabeza (`-8°` / `-10.5°`), manteniendo el visor cibernético siempre apuntando al frente hacia el horizonte.
+  - **Zancada y Contacto Reactivo**: Cadencia precisa de 24 frames (0.8s a 30 FPS) horneada fotograma a fotograma (25 keyframes continuos) con flexión y extensión elástica de rodillas y pisada plantar firme.
+
+#### Paleta Monolítica y Acabado PBR (Plata Forjada & Acero Reliquia)
+- **Armonización Completa con la Pechera Medieval de Ángel (`armor_plate` / `DefaultMaterial`)**:
+  - **Fusión y Camuflaje Pectoral**: Se eliminó la antigua combinación fragmentada de azul petróleo y violeta. La armadura completa ahora comparte la misma base de **Acero Plateado Forjado** (`#9EA4AA`, `Metallic = 0.90`, `Roughness = 0.28`), haciendo que la pechera se integre y camufle orgánicamente con los hombros, pectorales, costillas y abdomen.
+  - **Relieves y Biseles en Plata Pulida**: Los marcos perimetrales, crestas y biseles reflejan en **Plata Pulida Reforzada** (`#C8CED4`, `Metallic = 0.92`, `Roughness = 0.24`), replicando las líneas pulidas de la placa pectoral.
+  - **Remaches de Bronce/Latón Antiguo**: Los remaches del casco gladiador y anclajes corporales fueron calibrados al tono exacto de los remaches de latón de la pechera (`#B88E48`).
+  - **Juntas en Gunmetal Steel**: Uniones articulares, juntas y tendones oscurecidos en grafito de alta densidad (`#3E4248`) para recrear los surcos oscuros tallados en el metal.
+  - **Contraste Fotónico Visor**: El visor cibernético detrás de la ranura en T del casco brilla en cian puro, creando un contraste épico entre acero medieval forjado y tecnología cibernética.
+
+#### Compilación y Cifrado
+- Modelo `assets_source/models/jarbees_suit.glb` reanimado y exportado en Blender 5.2 con compresión Draco nivel 7.
+- Binario de producción empaquetado y cifrado criptográficamente en `public/models/jarbees_suit.jb3d`.
+
 ## [0.8.19] - 2026-10-21
 
 ### 🦾 Corrección Cinemática de Brazos (Carrera y Agachado) & Saneamiento Acústico Total

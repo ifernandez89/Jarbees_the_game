@@ -33,7 +33,16 @@ En esta actualización, Auren incorpora un set de 9 animaciones adaptadas desde 
 
 ## 3. Catálogo de Animaciones Implementadas
 
-### 3.1 `nexo_crouch_walk` (Inspirada en `crouchrun` — CS 1.6 Seq 5)
+### 3.1 `nexo_run` (Inspirada en `run` / Tactical Rush de CS 1.6 & Left 4 Dead)
+* **Tipo:** Loop continuo (24 frames / 0.8s a 30 FPS horneado fotograma a fotograma).
+* **Activación:** Desplazamiento en tierra con `W` + `Shift` (o velocidad > 6.0 m/s).
+* **Biomecánica:** 
+  - **Silueta y Guardia Táctica:** Se eliminó la anterior apertura excesiva de brazos (-28°). Ahora los brazos van disciplinados y compactos al torso (`X = 4°`), con los codos en ángulo táctico (~52° a 74°), braceo pendular potente en el eje sagital (Z) y manos cerradas en puño de combate (`fist_curl = 68°`).
+  - **Inercia y Rebote Source:** La pelvis desciende y asciende rítmicamente en el eje vertical (Local Y) simulando la compresión de peso y amortiguación elástica de cada zancada.
+  - **Combat Horizon Lock:** El cuello y la cabeza contrarrestan la inclinación frontal del torso (`+13°`) manteniendo el visor cibernético siempre apuntando firme al horizonte.
+  - **Zancada y Contacto:** Movimiento enérgico de rodillas y tobillos con propulsión reactiva y pisada contundente.
+
+### 3.2 `nexo_crouch_walk` (Inspirada en `crouchrun` — CS 1.6 Seq 5)
 * **Tipo:** Loop continuo (32 frames / 1.06s a 30 FPS).
 * **Activación:** Mantener `Ctrl` (o `C`) mientras te desplazas con `W`, `A`, `S` o `D`.
 * **Biomecánica:** Pelvis descendida a `-0.16m`, torso inclinado `+16°`, rodillas en flexión profunda continua (entre `-45°` y `-75°`), pasos rítmicos alternados y brazos recogidos hacia el pecho en guardia sigilosa. Ideal para explorar cavernas y grietas bajas sin ser detectado.

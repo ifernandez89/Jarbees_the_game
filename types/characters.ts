@@ -231,7 +231,7 @@ export const CHARACTER_PROFILES: Record<CharacterId, CharacterProfile> = {
     },
     audio: {
       soundKey: 'auren_flight',
-      baseVolume: 0.09,
+      baseVolume: 0.0,
       maxVolume: 0.30,
       basePitch: 1.0,
       pitchRange: 0.35,

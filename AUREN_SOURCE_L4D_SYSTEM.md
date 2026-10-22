@@ -28,6 +28,7 @@ En la versión inicial, al presionar `Ctrl` el personaje permanecía completamen
 
 | Animación | Duración / Frames | Tecla / Trigger | Biomecánica y Rol Táctico |
 | :--- | :--- | :--- | :--- |
+| **`nexo_run`** (Actualizada) | 24 f (0.8s) Loop | `Shift` + `W` (Suelo) | Tactical Rush estilo CS 1.6 / L4D: cadera con doble rebote elástico en Local Y, torso inclinado +13°, visor nivelado con Combat Horizon Lock, brazos compactos (`X=4°`) con codos flexionados y puños en guardia. |
 | **`nexo_crouch`** (Corregida) | 24 f (0.8s) Clamped | `Ctrl` / `C` | Perfil bajo táctico en tierra con cadera a `-0.38m`, rodillas a `-112°` y visor nivelado. |
 | **`nexo_crouch_walk`** (Corregida) | 32 f (1.06s) Loop | `Ctrl` + `WASD` | Locomoción sigilosa continua con cadera baja (`-0.35m`), pasos rítmicos alternados y brazos en guardia. |
 | **`nexo_melee_shove`** *(L4D Shove)* | 28 f (0.93s) One-Shot | `F` | Empuje cinético repulsor: brazos se repliegan al pecho y descargan hacia adelante con impulso de torso para alejar amenazas. Sonido de impacto contundente `nexo_impact_heavy.wav`. |

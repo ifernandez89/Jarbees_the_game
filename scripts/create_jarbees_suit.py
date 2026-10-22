@@ -13,24 +13,26 @@ ARMOR_DIR = os.path.join(MODELS_DIR, 'berserker-orc-armor-cosplay')
 CUIRASS_GLB = os.path.join(MODELS_DIR, 'armor_plate.glb')
 DST_GLB = os.path.join(MODELS_DIR, 'jarbees_suit.glb')
 
-ARTIFACT_DIR = r"C:\Users\xiphos-pc1\.gemini\antigravity-ide\brain\46db6c0b-a380-4cc3-a8e4-1ceb365549fd"
+ARTIFACT_DIR = r"C:\Users\xiphos-pc1\.gemini\antigravity-ide\brain\18f5acca-df42-4178-b673-a7768ece91ac"
 os.makedirs(ARTIFACT_DIR, exist_ok=True)
 os.makedirs('temp_render', exist_ok=True)
 
 # -------------------------------------------------------------
-# PALETA OFICIAL JARBEES & AUREN (SYNTHETIC CERAMIC & TITANIUM)
+# PALETA MONOLÍTICA JARBEES & AUREN (FORGED ANTIQUE SILVER & STEEL)
 # -------------------------------------------------------------
-# - Cerámica Sintética Perlada (#132A3E): Superficies principales satinadas
-# - Compuesto Violeta Profundo (#2E1C4B): Placas secundarias y máscara gladiador
-# - Titanio Frío Cepillado (#A4C0D2): Refuerzos, biseles, cresta y remaches
-# - Circuitería Fotónica Cian (#36DBE8): Canales energéticos cognitivos discretos
-# - Grafito Mecánico (#22262C): Juntas, tendones, interior y sellos
+# Inspirada exactamente en el acabado, reflectividad PBR y micro-textura
+# de la Placa Pechera Medieval Reliquia (armor_plate / DefaultMaterial):
+# - Acero Plateado Forjado Satinado (#9EA4AA): Placas principales del cuerpo, muslos, hombros y casco
+# - Plata Pulida Reforzada (#C8CED4): Biseles, relieves, cresta y remaches reflectivos
+# - Acero Grafito y Juntas (#3E4248): Uniones mecánicas, tendones y acentos profundos
+# - Remaches Latón/Bronce Antiguo (#B88E48): Puntos de anclaje de la armadura
+# - Circuitería Fotónica Cian (#36DBE8): Visor cibernético brillante y canales cognitivos
 PALETTE_SRGB = {
-    'petroleum_ceramic': np.array([0x13 / 255.0, 0x2A / 255.0, 0x3E / 255.0], dtype=np.float32),
-    'violet_composite':  np.array([0x2E / 255.0, 0x1C / 255.0, 0x4B / 255.0], dtype=np.float32),
-    'titanium':         np.array([0xA4 / 255.0, 0xC0 / 255.0, 0xD2 / 255.0], dtype=np.float32),
+    'forged_silver':    np.array([0x9E / 255.0, 0xA4 / 255.0, 0xAA / 255.0], dtype=np.float32),
+    'polished_silver':  np.array([0xC8 / 255.0, 0xCE / 255.0, 0xD4 / 255.0], dtype=np.float32),
+    'gunmetal_steel':   np.array([0x3E / 255.0, 0x42 / 255.0, 0x48 / 255.0], dtype=np.float32),
+    'relic_brass':      np.array([0xB8 / 255.0, 0x8E / 255.0, 0x48 / 255.0], dtype=np.float32),
     'photonic_cyan':    (0x36 / 255.0, 0xDB / 255.0, 0xE8 / 255.0, 1.0),
-    'graphite':         np.array([0x22 / 255.0, 0x26 / 255.0, 0x2C / 255.0], dtype=np.float32),
     'stealth_black':    (0x08 / 255.0, 0x08 / 255.0, 0x0C / 255.0, 1.0),
 }
 
@@ -84,7 +86,7 @@ def load_and_scale_stl(filename, target_h, decimate_ratio=0.25):
 
 def create_jarbees_suit():
     print('\n========================================================================')
-    print('🐝 CREATING JARBEES SUIT (AUREN / NEXO-01) — GLADIATOR & TIME RELIC')
+    print('🐝 CREATING JARBEES SUIT (AUREN / NEXO-01) — UNIFIED FORGED SILVER ARMOR')
     print('========================================================================')
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -94,39 +96,39 @@ def create_jarbees_suit():
     bpy.context.view_layer.objects.active = arm
 
     # -------------------------------------------------------------
-    # 1. TRATAMIENTO PBR AVANZADO CONSERVANDO MAPAS NORMALES Y RUGOSIDAD
+    # 1. TRATAMIENTO PBR MONOLÍTICO: INTEGRACIÓN CON LA PECHERA MEDIEVAL
     # -------------------------------------------------------------
-    # Red_Part -> Cerámica Sintética Perlada (Satinada y elegante)
+    # Red_Part -> Acero Plateado Forjado (idéntico al acabado y brillo de la pechera)
     mat_red = bpy.data.materials.get('Red_Part')
     if mat_red and mat_red.node_tree:
         tex_node = [n for n in mat_red.node_tree.nodes if n.type == 'TEX_IMAGE' and n.name == 'Image Texture']
         if tex_node and tex_node[0].image:
-            tint_existing_texture(tex_node[0].image, PALETTE_SRGB['petroleum_ceramic'], contrast=1.12, brightness=1.35)
+            tint_existing_texture(tex_node[0].image, PALETTE_SRGB['forged_silver'], contrast=1.08, brightness=1.35)
         bsdf = mat_red.node_tree.nodes.get('Principled BSDF')
         if bsdf:
-            bsdf.inputs['Metallic'].default_value = 0.32
-            bsdf.inputs['Roughness'].default_value = 0.30
+            bsdf.inputs['Metallic'].default_value = 0.90
+            bsdf.inputs['Roughness'].default_value = 0.28
 
-    # Gold_Part -> Compuesto Violeta Satinado
+    # Gold_Part -> Plata Pulida Reforzada (armonizando con relieves y biseles)
     mat_gold = bpy.data.materials.get('Gold_Part')
     if mat_gold and mat_gold.node_tree:
         tex_node = [n for n in mat_gold.node_tree.nodes if n.type == 'TEX_IMAGE' and n.name == 'Image Texture']
         if tex_node and tex_node[0].image:
-            tint_existing_texture(tex_node[0].image, PALETTE_SRGB['violet_composite'], contrast=1.15, brightness=1.45)
+            tint_existing_texture(tex_node[0].image, PALETTE_SRGB['polished_silver'], contrast=1.12, brightness=1.40)
         bsdf = mat_gold.node_tree.nodes.get('Principled BSDF')
         if bsdf:
-            bsdf.inputs['Metallic'].default_value = 0.40
-            bsdf.inputs['Roughness'].default_value = 0.28
+            bsdf.inputs['Metallic'].default_value = 0.92
+            bsdf.inputs['Roughness'].default_value = 0.24
 
-    # Silver_Part -> Titanio Cepillado y Grafito en Juntas Mecánicas
+    # Silver_Part -> Acero Grafito y Juntas Mecánicas
     mat_silver = bpy.data.materials.get('Silver_Part')
     if mat_silver and mat_silver.node_tree:
         tex_node = [n for n in mat_silver.node_tree.nodes if n.type == 'TEX_IMAGE' and n.name == 'Image Texture']
         if tex_node and tex_node[0].image:
-            tint_existing_texture(tex_node[0].image, PALETTE_SRGB['titanium'], contrast=1.05, brightness=1.20)
+            tint_existing_texture(tex_node[0].image, PALETTE_SRGB['gunmetal_steel'], contrast=1.10, brightness=1.20)
         bsdf = mat_silver.node_tree.nodes.get('Principled BSDF')
         if bsdf:
-            bsdf.inputs['Metallic'].default_value = 0.88
+            bsdf.inputs['Metallic'].default_value = 0.92
             bsdf.inputs['Roughness'].default_value = 0.22
 
     # Arc_Reactor -> Núcleo Sub-Pectoral Encapsulado en Grafito
@@ -135,8 +137,8 @@ def create_jarbees_suit():
         bsdf = mat_reactor.node_tree.nodes.get('Principled BSDF')
         if bsdf:
             bsdf.inputs['Base Color'].default_value = (0.05, 0.05, 0.07, 1.0)
-            bsdf.inputs['Metallic'].default_value = 0.85
-            bsdf.inputs['Roughness'].default_value = 0.35
+            bsdf.inputs['Metallic'].default_value = 0.88
+            bsdf.inputs['Roughness'].default_value = 0.32
 
     # Lights -> Canales Fotónicos Cognitivos Discretos
     mat_lights = bpy.data.materials.get('Lights')
@@ -147,26 +149,20 @@ def create_jarbees_suit():
             if 'Emission Color' in bsdf.inputs:
                 bsdf.inputs['Emission Color'].default_value = PALETTE_SRGB['photonic_cyan']
             if 'Emission Strength' in bsdf.inputs:
-                bsdf.inputs['Emission Strength'].default_value = 2.2
+                bsdf.inputs['Emission Strength'].default_value = 2.4
 
-    # Materiales PBR dedicados para placas de armadura agregadas
-    mat_titanium_pbr = bpy.data.materials.new(name="JarBees_Titanium_Armor")
-    b = mat_titanium_pbr.node_tree.nodes.get('Principled BSDF')
-    b.inputs['Base Color'].default_value = (PALETTE_SRGB['titanium'][0], PALETTE_SRGB['titanium'][1], PALETTE_SRGB['titanium'][2], 1.0)
+    # Materiales PBR dedicados para placas de armadura agregadas (Forjadas en Plata)
+    mat_forged_silver_pbr = bpy.data.materials.new(name="JarBees_Forged_Silver")
+    b = mat_forged_silver_pbr.node_tree.nodes.get('Principled BSDF')
+    b.inputs['Base Color'].default_value = (PALETTE_SRGB['forged_silver'][0], PALETTE_SRGB['forged_silver'][1], PALETTE_SRGB['forged_silver'][2], 1.0)
     b.inputs['Metallic'].default_value = 0.90
-    b.inputs['Roughness'].default_value = 0.20
-
-    mat_violet_pbr = bpy.data.materials.new(name="JarBees_Violet_Armor")
-    b = mat_violet_pbr.node_tree.nodes.get('Principled BSDF')
-    b.inputs['Base Color'].default_value = (PALETTE_SRGB['violet_composite'][0], PALETTE_SRGB['violet_composite'][1], PALETTE_SRGB['violet_composite'][2], 1.0)
-    b.inputs['Metallic'].default_value = 0.40
     b.inputs['Roughness'].default_value = 0.28
 
-    mat_petroleum_pbr = bpy.data.materials.new(name="JarBees_Petroleum_Armor")
-    b = mat_petroleum_pbr.node_tree.nodes.get('Principled BSDF')
-    b.inputs['Base Color'].default_value = (PALETTE_SRGB['petroleum_ceramic'][0], PALETTE_SRGB['petroleum_ceramic'][1], PALETTE_SRGB['petroleum_ceramic'][2], 1.0)
-    b.inputs['Metallic'].default_value = 0.35
-    b.inputs['Roughness'].default_value = 0.30
+    mat_polished_silver_pbr = bpy.data.materials.new(name="JarBees_Polished_Silver")
+    b = mat_polished_silver_pbr.node_tree.nodes.get('Principled BSDF')
+    b.inputs['Base Color'].default_value = (PALETTE_SRGB['polished_silver'][0], PALETTE_SRGB['polished_silver'][1], PALETTE_SRGB['polished_silver'][2], 1.0)
+    b.inputs['Metallic'].default_value = 0.94
+    b.inputs['Roughness'].default_value = 0.20
 
     # -------------------------------------------------------------
     # 2. ENCASTE Y OCULTAMIENTO DE CABEZA BASE
@@ -188,7 +184,7 @@ def create_jarbees_suit():
         v.co = obj.matrix_world.inverted() @ (head_center + delta)
 
     # -------------------------------------------------------------
-    # 3. IMPORTACIÓN Y TRANSFORMACIÓN DEL CASCO GLADIADOR
+    # 3. IMPORTACIÓN Y TRANSFORMACIÓN DEL CASCO GLADIADOR EN PLATA FORJADA
     # -------------------------------------------------------------
     existing_objs = set(bpy.context.scene.objects)
     bpy.ops.import_scene.gltf(filepath=SRC_HELMET)
@@ -208,27 +204,35 @@ def create_jarbees_suit():
         if 'SkullC' in mat.name or mat.name == 'material' or 'material.' in mat.name:
             for node in getattr(mat.node_tree, 'nodes', []):
                 if node.type == 'TEX_IMAGE' and node.image:
-                    tint_existing_texture(node.image, PALETTE_SRGB['petroleum_ceramic'], contrast=1.1, brightness=1.5)
+                    tint_existing_texture(node.image, PALETTE_SRGB['forged_silver'], contrast=1.08, brightness=1.35)
             bsdf = mat.node_tree.nodes.get('Principled BSDF')
             if bsdf:
-                bsdf.inputs['Metallic'].default_value = 0.35
+                bsdf.inputs['Metallic'].default_value = 0.90
                 bsdf.inputs['Roughness'].default_value = 0.28
         elif 'FaceP' in mat.name and 'TFaceP' not in mat.name:
             for node in getattr(mat.node_tree, 'nodes', []):
                 if node.type == 'TEX_IMAGE' and node.image:
-                    tint_existing_texture(node.image, PALETTE_SRGB['violet_composite'], contrast=1.15, brightness=1.6)
-            bsdf = mat.node_tree.nodes.get('Principled BSDF')
-            if bsdf:
-                bsdf.inputs['Metallic'].default_value = 0.40
-                bsdf.inputs['Roughness'].default_value = 0.26
-        elif 'TFaceP' in mat.name or 'TopSpike' in mat.name or 'Rivet' in mat.name:
-            for node in getattr(mat.node_tree, 'nodes', []):
-                if node.type == 'TEX_IMAGE' and node.image:
-                    tint_existing_texture(node.image, PALETTE_SRGB['titanium'], contrast=1.05, brightness=1.3)
+                    tint_existing_texture(node.image, PALETTE_SRGB['forged_silver'], contrast=1.08, brightness=1.35)
             bsdf = mat.node_tree.nodes.get('Principled BSDF')
             if bsdf:
                 bsdf.inputs['Metallic'].default_value = 0.90
+                bsdf.inputs['Roughness'].default_value = 0.28
+        elif 'TFaceP' in mat.name or 'TopSpike' in mat.name:
+            for node in getattr(mat.node_tree, 'nodes', []):
+                if node.type == 'TEX_IMAGE' and node.image:
+                    tint_existing_texture(node.image, PALETTE_SRGB['polished_silver'], contrast=1.10, brightness=1.35)
+            bsdf = mat.node_tree.nodes.get('Principled BSDF')
+            if bsdf:
+                bsdf.inputs['Metallic'].default_value = 0.94
                 bsdf.inputs['Roughness'].default_value = 0.18
+        elif 'Rivet' in mat.name:
+            for node in getattr(mat.node_tree, 'nodes', []):
+                if node.type == 'TEX_IMAGE' and node.image:
+                    tint_existing_texture(node.image, PALETTE_SRGB['relic_brass'], contrast=1.15, brightness=1.45)
+            bsdf = mat.node_tree.nodes.get('Principled BSDF')
+            if bsdf:
+                bsdf.inputs['Metallic'].default_value = 0.92
+                bsdf.inputs['Roughness'].default_value = 0.22
 
     bpy.ops.object.select_all(action='DESELECT')
     for o in helmet_meshes:
@@ -366,28 +370,28 @@ def create_jarbees_suit():
     bm_w.free()
     obj_wings = bpy.data.objects.new('JarBees_DorsalWings', mesh_wings)
     bpy.context.scene.collection.objects.link(obj_wings)
-    obj_wings.data.materials.append(mat_petroleum_pbr)
+    obj_wings.data.materials.append(mat_forged_silver_pbr)
 
-    # Placa Pélvica Inferior (Titanio Frío)
+    # Placa Pélvica Inferior (Plata Pulida)
     obj_belt = load_and_scale_stl('Belt_Buckle.stl', 0.14)
     obj_belt.name = "JarBees_Armor_BeltBuckle"
     mat_belt_trans = mathutils.Matrix.Translation(mathutils.Vector((0.000, -0.155, 0.065)))
     mat_belt_rot = mathutils.Matrix.Rotation(math.radians(-6.0), 4, 'X')
     obj_belt.data.transform(mat_belt_trans @ mat_belt_rot)
     obj_belt.matrix_world = mathutils.Matrix.Identity(4)
-    obj_belt.data.materials.append(mat_titanium_pbr)
+    obj_belt.data.materials.append(mat_polished_silver_pbr)
 
     # NOTA: Las placas laterales de brazos (bíceps, coderas y guanteletes) fueron
     # retiradas a pedido del usuario para mantener los brazos estilizados y limpios.
 
-    # Botas Blindadas
+    # Botas Blindadas (Acero Plateado Forjado)
     obj_boot_l = load_and_scale_stl('foot_-_left.stl', 0.52)
     obj_boot_l.name = "JarBees_Armor_Boot_L"
     m_bt_l = mathutils.Matrix.Translation(mathutils.Vector((0.132, 0.025, -0.680))) @ \
              mathutils.Euler((math.radians(-4), 0, 0)).to_matrix().to_4x4()
     obj_boot_l.data.transform(m_bt_l)
     obj_boot_l.matrix_world = mathutils.Matrix.Identity(4)
-    obj_boot_l.data.materials.append(mat_petroleum_pbr)
+    obj_boot_l.data.materials.append(mat_forged_silver_pbr)
 
     obj_boot_r = load_and_scale_stl('foot_-_right.stl', 0.52)
     obj_boot_r.name = "JarBees_Armor_Boot_R"
@@ -395,7 +399,7 @@ def create_jarbees_suit():
              mathutils.Euler((math.radians(-4), 0, 0)).to_matrix().to_4x4()
     obj_boot_r.data.transform(m_bt_r)
     obj_boot_r.matrix_world = mathutils.Matrix.Identity(4)
-    obj_boot_r.data.materials.append(mat_petroleum_pbr)
+    obj_boot_r.data.materials.append(mat_forged_silver_pbr)
 
     # -------------------------------------------------------------
     # 6. RIGGING INTEGRAL AL ESQUELETO MIXAMO

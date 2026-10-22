@@ -323,99 +323,82 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
           // 1. CASCO GLADIADOR JARBEES (Texturas PBR de alta fidelidad)
           const isHelmet =
             meshName.includes('JarBees_Gladiator_Helmet') ||
-            matName.includes('Helmet')
+            matName.includes('Helmet') ||
+            matName.includes('SkullC') ||
+            matName.includes('FaceP') ||
+            matName.includes('TopSpike') ||
+            matName.includes('TFaceP') ||
+            matName.includes('Rivet')
 
-          // 2. NÚCLEO HEXAGONAL JARBEES (Reactor central cian)
-          const isHexCore = meshName.includes('JarBees_Chest_HexCore')
+          // 2. NÚCLEO HEXAGONAL Y VISOR CIAN (Elementos de energía activa)
+          const isEnergyGlow =
+            meshName.includes('JarBees_Chest_HexCore') ||
+            meshName.includes('CyberVisor') ||
+            matName.includes('Cyan') ||
+            matName.includes('Visor') ||
+            matName.includes('Lights')
 
-          // 3. CARA Y OJOS ANTIGUOS DE IRON MAN (Eliminados en Stealth Black)
-          const isOldIronManFace =
-            (meshName.includes('JarBees_Helmet_Visor') || matName.includes('StealthBlack')) &&
-            !meshName.includes('CyberVisor') &&
-            !matName.includes('Cyan')
-
-          // 4. ANTIGUO REACTOR CIRCULAR DE IRON MAN (Apagado en Carbón Stealth)
-          const isOldIronManReactor =
+          // 3. CARA Y REACTOR OBSOLETOS DE IRON MAN (Ocultos en interior)
+          const isObsoleteInternal =
+            meshName.includes('JarBees_Helmet_Visor') ||
             meshName.includes('Object_10') ||
             meshName.includes('Object_11') ||
             meshName.includes('Object_20') ||
             matName.includes('Arc_Reactor') ||
             matName.includes('Glass') ||
+            matName.includes('StealthBlack') ||
             matName.includes('CarbonBlack')
 
-          if (isHexCore || meshName.includes('CyberVisor') || matName.includes('Cyan')) {
-            // Núcleo hexagonal, visor cibernético y propulsores de plasma en Cian Energético
+          if (isEnergyGlow) {
+            // Visor cibernético y propulsores de plasma en Cian Energético puro
             mat.color = new THREE.Color('#55F0FF')
             mat.emissive = new THREE.Color('#55F0FF')
             mat.emissiveIntensity = 3.5
             mat.toneMapped = false
-          } else if (isHelmet) {
-            // El casco gladiador preserva sus texturas PBR calibradas
-            if (mat.map) {
-              mat.color = new THREE.Color('#ffffff')
-            }
-            if (matName.includes('Petroleum')) {
-              mat.roughness = 0.25
-              mat.metalness = 0.84
-            } else if (matName.includes('Violet')) {
-              mat.roughness = 0.22
-              mat.metalness = 0.80
-            } else if (matName.includes('Titanium')) {
-              mat.roughness = 0.16
-              mat.metalness = 0.90
-            }
-          } else if (meshName.includes('Cuirass') || meshName.includes('armor_plate')) {
-            // Pechera Medieval Reliquia de Auren (Acero forjado histórico)
+          } else if (isObsoleteInternal) {
+            // Estructuras internas ocultas en negro carbón mate
+            mat.color = new THREE.Color('#14171c')
+            mat.emissive = new THREE.Color('#000000')
+            mat.emissiveIntensity = 0
+            mat.roughness = 0.50
+            mat.metalness = 0.20
+          } else {
+            // =========================================================================
+            // ARMADURA MONOLÍTICA UNIFICADA EN PLATA FORJADA & ACERO RELIQUIA
+            // =========================================================================
+            // Aplica tanto a la pechera de ángel, casco, torso, brazos, piernas, botas y alas.
+            // Para texturas horneadas en sRGB (pechera, torso, casco), se asigna #ffffff
+            // para que Three.js reproduzca los detalles PBR con su luminosidad real sin oscurecerlos.
             if (mat.map) {
               mat.map.colorSpace = THREE.SRGBColorSpace
               mat.color = new THREE.Color('#ffffff')
+              mat.map.needsUpdate = true
             }
-            mat.roughness = 0.28
-            mat.metalness = 0.90
-          } else if (isOldIronManFace) {
-            // Cara original de Iron Man en Negro Obsidiana Polarizado puro
-            mat.color = new THREE.Color('#08080c')
-            mat.emissive = new THREE.Color('#000000')
-            mat.emissiveIntensity = 0
-            mat.roughness = 0.12
-            mat.metalness = 0.92
-          } else if (isOldIronManReactor) {
-            // Antiguo reactor circular apagado en Negro Carbón Stealth
-            mat.color = new THREE.Color('#060608')
-            mat.emissive = new THREE.Color('#000000')
-            mat.emissiveIntensity = 0
-            mat.roughness = 0.22
-            mat.metalness = 0.85
-          } else if (
-            matName.includes('Titanium') ||
-            matName.includes('Silver_Part') ||
-            meshName.includes('Plexus') ||
-            meshName.includes('Gauntlet') ||
-            meshName.includes('Belt')
-          ) {
-            // Titanio Frío (#A8C4D5, 15%) - Escudo de plexo, guanteletes con cuchillas, hebilla y biseles
-            mat.color = new THREE.Color('#A8C4D5')
-            mat.roughness = 0.16
-            mat.metalness = 0.90
-          } else if (
-            matName.includes('Violet') ||
-            matName.includes('Gold_Part') ||
-            meshName.includes('Bicep') ||
-            meshName.includes('Elbow')
-          ) {
-            // Violeta Profundo (#35205B, 20%) - Placas de bíceps, coderas y hombros
-            mat.color = new THREE.Color('#35205B')
-            mat.roughness = 0.22
-            mat.metalness = 0.80
-          } else if (
-            matName.includes('Petroleum') ||
-            matName.includes('Red_Part') ||
-            meshName.includes('Boot')
-          ) {
-            // Azul Petróleo (#102D46, 60%) - Carrocería principal y greaves de botas
-            mat.color = new THREE.Color('#102D46')
-            mat.roughness = 0.26
-            mat.metalness = 0.82
+
+            if (matName.includes('Rivet')) {
+              // Remaches decorativos en latón / bronce antiguo
+              mat.color = new THREE.Color('#D4AF37')
+              mat.metalness = 0.55
+              mat.roughness = 0.25
+            } else if (
+              matName.includes('Silver_Part') ||
+              matName.includes('Polished') ||
+              matName.includes('TopSpike') ||
+              matName.includes('TFaceP') ||
+              meshName.includes('Belt')
+            ) {
+              // Biseles, aristas musculares y cresta en plata pulida brillante
+              if (!mat.map) mat.color = new THREE.Color('#F8FAFC')
+              mat.roughness = 0.22
+              mat.metalness = 0.45
+            } else {
+              // Placas principales del cuerpo (Red_Part, Gold_Part, Cuirass, Casco, Botas, Alas)
+              // Metalness calibrado a 0.40 para mantener un ~60% de reflexión difusa
+              // brillante bajo la luz ambiental y direccional sin volverse negro.
+              if (!mat.map) mat.color = new THREE.Color('#E2E8F0')
+              mat.roughness = 0.28
+              mat.metalness = 0.40
+            }
           }
           mat.needsUpdate = true
         }
@@ -829,12 +812,14 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       }}
     >
       {/* =====================================================================
-          ILUMINACIÓN DE ESTUDIO DEDICADA: Resalta el Azul Petróleo y Titanio Frío
-          desde cualquier ángulo de cámara sin sombras oscuras planas
+          ILUMINACIÓN DE ESTUDIO DEDICADA: Resalta la armadura en Plata Forjada
+          y el relieve de la pechera de ángel desde cualquier ángulo (frontal y posterior)
           ===================================================================== */}
-      <pointLight position={[0, 1.2, 2.5]} intensity={2.2} color="#ffffff" distance={7} />
-      <pointLight position={[0, -0.5, -2.2]} intensity={2.0} color="#55F0FF" distance={6} />
-      <directionalLight position={[-2, 1.0, 1]} intensity={1.4} color="#A8C4D5" />
+      <pointLight position={[0, 1.2, 2.5]} intensity={2.6} color="#ffffff" distance={8} />
+      <pointLight position={[0, 1.2, -2.5]} intensity={2.2} color="#ffffff" distance={8} />
+      <pointLight position={[0, -0.4, 0]} intensity={1.6} color="#55F0FF" distance={5} />
+      <directionalLight position={[-2, 1.5, 1]} intensity={1.6} color="#E2E8F0" />
+      <ambientLight intensity={0.5} color="#EDF2F7" />
 
 
       {/* =====================================================================
@@ -1292,17 +1277,33 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       }
 
       // Modular sonido del personaje activo
-      if (isIronMan && isGrounded) {
-        if (isMoving) {
-          audio.setSoundVolume(soundKey, 0.035)
-          audio.setSoundPitch(soundKey, 0.9)
+      if (isIronMan) {
+        if (isGrounded) {
+          if (isMoving) {
+            audio.setSoundVolume(soundKey, 0.035)
+            audio.setSoundPitch(soundKey, 0.9)
+          } else {
+            // En reposo estático en tierra: silencio absoluto sin zumbidos
+            audio.setSoundVolume(soundKey, 0.0)
+            audio.setSoundPitch(soundKey, 1.0)
+          }
         } else {
-          // En reposo estático en tierra: silencio absoluto sin zumbidos
-          audio.setSoundVolume(soundKey, 0.0)
-          audio.setSoundPitch(soundKey, 1.0)
+          // En vuelo o suspensión aérea (hovering)
+          if (!isMoving && Math.abs(currentVelocity) < 0.8 && !isManeuvering) {
+            // En flotación / hover quieto: SILENCIO COMPLETO, cero zumbido
+            audio.setSoundVolume(soundKey, 0.0)
+            audio.setSoundPitch(soundKey, 1.0)
+          } else {
+            const maxSpeedRef = 300.0
+            const speedNorm = Math.min(1, Math.abs(currentVelocity) / maxSpeedRef)
+            const pitch = basePitch + speedNorm * pitchRange + (isManeuvering ? 0.04 : 0.0)
+            const currentVol = speedNorm * maxVolume
+            audio.setSoundPitch(soundKey, pitch)
+            audio.setSoundVolume(soundKey, currentVol)
+          }
         }
       } else {
-        const maxSpeedRef = isIronMan ? 300.0 : 16.0
+        const maxSpeedRef = 16.0
         const speedNorm = Math.min(1, Math.abs(currentVelocity) / maxSpeedRef)
         const pitch = basePitch + speedNorm * pitchRange + (isManeuvering ? 0.04 : 0.0)
         const currentVol = isMoving

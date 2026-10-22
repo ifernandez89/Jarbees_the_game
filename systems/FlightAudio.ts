@@ -171,12 +171,17 @@ export class FlightAudio {
     this.ramp(this.windFilter.frequency, (320 + speedNorm * 2600) * (rt.mach > 1 ? 0.55 : 1))
     this.ramp(this.windFilter.Q, 0.7 - 0.35 * speedNorm)
 
-    // Turbina (propulsión suave sin agudos estridentes)
+    // Turbina (propulsión suave sin agudos estridentes ni zumbido estático)
     const base = 58 + rt.throttle * 30 + rt.afterburner * 25
     this.ramp(this.osc1.frequency, base, 0.12)
     this.ramp(this.osc2.frequency, base * 2.0, 0.12)
     this.ramp(this.engineFilter.frequency, 250 + rt.throttle * 300 + rt.afterburner * 450)
-    this.ramp(this.engineGain.gain, 0.02 + rt.throttle * 0.05 + rt.afterburner * 0.035)
+    // Silencio absoluto en reposo o suspensión estática (hovering): CERO zumbido
+    const isPropelling = rt.throttle > 0.01 || rt.speed > 3.0 || rt.afterburner > 0.01
+    const engineTargetGain = isPropelling
+      ? rt.throttle * 0.05 + rt.afterburner * 0.035 + Math.min(0.02, (rt.speed / 200.0) * 0.02)
+      : 0.0
+    this.ramp(this.engineGain.gain, engineTargetGain, 0.12)
 
     // Postquemador
     this.ramp(this.abFilter.frequency, 550 + rt.afterburner * 650)

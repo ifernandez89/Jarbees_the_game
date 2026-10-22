@@ -77,8 +77,8 @@ export function useAudio() {
 
     // Grillos: solo activos de noche
     const targetCricketsVol = isNight ? 0.35 : (isDawnOrDusk ? 0.1 : 0.0)
-    // Viento: más suave de noche, normal de día
-    const targetWindVol = isNight ? 0.15 : 0.32
+    // Viento: brisa orgánica tenue y limpia sin rumble ni zumbidos graves
+    const targetWindVol = isNight ? 0.04 : 0.06
 
     globalAudioManager.setSoundVolume('crickets', targetCricketsVol)
     globalAudioManager.setSoundVolume('wind', targetWindVol)
