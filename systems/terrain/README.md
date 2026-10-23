@@ -143,15 +143,93 @@ systems/terrain/
     └── cache/                     # Caché local
 ```
 
+## Uso en el Proyecto
+
+### Ejemplo Básico
+
+```tsx
+// En tu componente de escena (ej: GameScene.tsx)
+import { RealTerrain } from '@/components/RealTerrain'
+
+export function GameScene() {
+  return (
+    <Canvas>
+      {/* Otros componentes */}
+      
+      <RealTerrain
+        region="aconcagua"
+        quality="medium"
+        onLoad={() => console.log('¡Terreno cargado!')}
+      />
+      
+      {/* Tu personaje, cámara, etc. */}
+    </Canvas>
+  )
+}
+```
+
+### Regiones Disponibles
+
+```typescript
+import { PREDEFINED_REGIONS } from '@/systems/terrain/RealTerrainSystem'
+
+// Regiones predefinidas:
+// - 'aconcagua': Cordillera de los Andes, pico más alto de América
+// - 'andes_central': Región más amplia de los Andes centrales
+// - 'titicaca': Lago Titicaca y alrededores
+// - 'easter_island': Isla de Pascua
+
+<RealTerrain region="aconcagua" quality="high" />
+```
+
+### Región Personalizada
+
+```tsx
+<RealTerrain
+  region={{
+    name: 'mi_region',
+    bounds: {
+      north: -32.553,
+      south: -32.753,
+      east: -69.900,
+      west: -70.100
+    },
+    resolution: 30,
+    source: 'copernicus'
+  }}
+  quality="medium"
+/>
+```
+
+### Acceder desde Otros Componentes
+
+```tsx
+import { useRealTerrain } from '@/components/RealTerrain'
+
+export function BeePlayer() {
+  const { getHeightAt, isLoaded } = useRealTerrain()
+  
+  useFrame(() => {
+    if (isLoaded) {
+      const terrainHeight = getHeightAt(bee.position.x, bee.position.z)
+      const minHeight = terrainHeight + 1.0 // 1 metro sobre el suelo
+      bee.position.y = Math.max(minHeight, bee.position.y)
+    }
+  })
+  
+  return <mesh ref={beeRef}>...</mesh>
+}
+```
+
 ## Próximos Pasos
 
 1. ✅ Configurar descarga de DEM
-2. ⏳ Implementar procesamiento de heightmaps
-3. ⏳ Sistema de chunks mejorado
-4. ⏳ LOD con quadtree
-5. ⏳ Streaming asíncrono
-6. ⏳ Caché inteligente
-7. ⏳ Floating origin
-8. ⏳ Materiales procedurales
-9. ⏳ Colisiones optimizadas
+2. ✅ Implementar procesamiento de heightmaps
+3. ✅ Sistema de chunks mejorado con LOD
+4. ⏳ Streaming asíncrono avanzado
+5. ⏳ Caché inteligente con LRU
+6. ⏳ Floating origin
+7. ⏳ Materiales procedurales (nieve/roca/hierba)
+8. ⏳ Colisiones optimizadas
+9. ⏳ Descargar datos reales de Copernicus
 10. ⏳ Prototipo: Aconcagua 20x20km

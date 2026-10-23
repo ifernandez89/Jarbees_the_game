@@ -103,7 +103,7 @@ async function loadGameAudio(manager: AudioManager) {
     await manager.loadSound('butterfly_flutter', getAssetPath('/audio/butterfly_flutter.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('auren_flight', getAssetPath('/audio/auren_flight.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('iron_man_thruster', getAssetPath('/audio/iron_man_thruster.wav'), { loop: true, volume: 0.0 })
-    await manager.loadSound('wind', getAssetPath('/audio/wind_loop.wav'), { loop: true, volume: 0.25 })
+    await manager.loadSound('wind', getAssetPath('/audio/wind_loop.wav'), { loop: true, volume: 0.05 })
     await manager.loadSound('crickets', getAssetPath('/audio/night_crickets.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('pause', getAssetPath('/audio/pause.wav'), { loop: false, volume: 0.4 })
 
@@ -114,7 +114,7 @@ async function loadGameAudio(manager: AudioManager) {
     manager.playLoop('butterfly_flutter', 0.0)
     manager.playLoop('auren_flight', 0.0)
     manager.playLoop('iron_man_thruster', 0.0)
-    manager.playLoop('wind', 0.25)
+    manager.playLoop('wind', 0.05)
     manager.playLoop('crickets', 0.0)
   } catch (error) {
     console.warn('⚠️ Nota sobre carga de audios:', error)

@@ -23,6 +23,16 @@
   - Se filtró también `wind_loop.wav` eliminando ruidos sordos graves sub-120 Hz.
   - Se actualizó la versión del Service Worker en [sw.js](file:///c:/Projects/Jarbees_the_game/public/sw.js) a `jarbees-game-v3` para forzar la invalidación inmediata de la caché local del navegador y garantizar que los nuevos audios limpios y el modelo corregido se descarguen al instante.
 
+#### Barrido de Estabilidad & Saneamiento de Código
+- **Sincronización en [RealTerrain.tsx](file:///c:/Projects/Jarbees_the_game/components/RealTerrain.tsx)**:
+  - Eliminada llamada a propiedad obsoleta `setBeePosition` inexistente en `GameState`.
+  - Conversión de `position` a instancia `THREE.Vector3` para alimentar `RealTerrainSystem.update()`, garantizando streaming dinámico continuo de chunks de elevación real.
+  - Saneamiento de tipado en cleanup asignando `terrainManager: null`.
+- **Atenuación Inicial en [useAudio.ts](file:///c:/Projects/Jarbees_the_game/hooks/useAudio.ts)**:
+  - Inicialización de volumen en `loadSound` y `playLoop` de `wind` fijada en `0.05` (antes `0.25`), previniendo cualquier pico acústico transitorio al cargar el juego.
+- **Validación de Compilación en Producción**:
+  - `npm run build` ejecutado exitosamente con 0 errores de TypeScript, 0 fallos de linter y empaquetado optimizado de Next.js listo para testeo.
+
 ## [0.8.21] - 2026-10-22
 
 ### 🛡️ Calibración Luminosa de Armadura Plateada & Silenciamiento Total del Zumbido
