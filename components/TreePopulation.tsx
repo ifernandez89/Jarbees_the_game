@@ -26,7 +26,7 @@ export function TreePopulation({
   chunkZ,
   chunkSize,
   density = 0.6,
-  biome = 'titicaca',
+  biome = 'aconcagua',
 }: TreePopulationProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const terrainManager = useGameStore((state) => state.terrainManager)

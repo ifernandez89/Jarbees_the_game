@@ -26,11 +26,11 @@ export function useGameControls() {
       // Cambiar de bioma con B
       if (e.code === 'KeyB') {
         e.preventDefault()
-        const biomes: Array<'titicaca' | 'easter_island' | 'constellations' | 'aconcagua'> = [
+        const biomes: Array<'aconcagua' | 'titicaca' | 'easter_island' | 'constellations'> = [
+          'aconcagua',
           'titicaca',
           'easter_island',
           'constellations',
-          'aconcagua',
         ]
         const current = useGameStore.getState().currentBiome
         const next = biomes[(biomes.indexOf(current) + 1) % biomes.length]

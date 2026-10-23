@@ -134,7 +134,7 @@ export function GameHUD() {
         {/* Selector de Bioma / Relieve Real */}
         <button
           onClick={() => {
-            const biomes = ['titicaca', 'easter_island', 'constellations', 'aconcagua'] as const
+            const biomes = ['aconcagua', 'titicaca', 'easter_island', 'constellations'] as const
             const current = useGameStore.getState().currentBiome
             const next = biomes[(biomes.indexOf(current) + 1) % biomes.length]
             useGameStore.getState().setBiome(next)

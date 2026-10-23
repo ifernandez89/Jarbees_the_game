@@ -23,7 +23,7 @@
   - [TreePopulation.tsx](file:///c:/Projects/Jarbees_the_game/components/TreePopulation.tsx): Árboles limitados estrictamente a valles bajos (<15m), dejando las laderas y glaciares completamente alpinos.
   - [RockPopulation.tsx](file:///c:/Projects/Jarbees_the_game/components/RockPopulation.tsx): Aumento de densidad de rocas andinas y morrenas.
   - [WaterSurface.tsx](file:///c:/Projects/Jarbees_the_game/components/WaterSurface.tsx): Agua de lagunas glaciares en azul profundo (`#1b4d6b`).
-  - [GameHUD.tsx](file:///c:/Projects/Jarbees_the_game/components/GameHUD.tsx) & [useGameControls.ts](file:///c:/Projects/Jarbees_the_game/hooks/useGameControls.ts): Botón interactivo en el HUD y atajo con la tecla **[B]** para conmutar directamente a `🏔️ Aconcagua (DEM Real)`.
+  - [GameHUD.tsx](file:///c:/Projects/Jarbees_the_game/components/GameHUD.tsx), [gameStore.ts](file:///c:/Projects/Jarbees_the_game/store/gameStore.ts) & [useGameControls.ts](file:///c:/Projects/Jarbees_the_game/hooks/useGameControls.ts): `🏔️ Aconcagua (DEM Real)` establecido como el **bioma predeterminado inicial** al entrar a la partida, con botón interactivo en el HUD y atajo con la tecla **[B]** para ciclar entre entornos.
 
 #### Erradicación de Esfera Residual Negra en la Espalda de NEXO-01
 - **Causa Raíz**:

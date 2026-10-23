@@ -24,7 +24,7 @@ export function RockPopulation({
   chunkX,
   chunkZ,
   chunkSize,
-  biome = 'titicaca',
+  biome = 'aconcagua',
 }: RockPopulationProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const terrainManager = useGameStore((state) => state.terrainManager)

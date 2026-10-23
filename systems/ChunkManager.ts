@@ -32,7 +32,7 @@ export class ChunkManager {
   private static aconcaguaDEM: Float32Array | null = null
   private static aconcaguaLoading = false
 
-  constructor(config: ChunkConfig, seed?: number, biome: BiomeType = 'titicaca') {
+  constructor(config: ChunkConfig, seed?: number, biome: BiomeType = 'aconcagua') {
     this.config = config
     this.noiseGenerator = new PerlinNoiseGenerator(seed)
     this.biome = biome

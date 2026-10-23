@@ -175,7 +175,7 @@ const initialState = {
   distanceTraveled: 0,
   altitude: 2,
   gameTime: 0,
-  currentBiome: 'titicaca' as const,
+  currentBiome: 'aconcagua' as const,
   terrainManager: null,
   wind: {
     speed: 1.8, // Brisa suave constante permanente
