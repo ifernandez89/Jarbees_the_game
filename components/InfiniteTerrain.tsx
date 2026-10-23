@@ -69,10 +69,33 @@ export function InfiniteTerrain({ biome = 'aconcagua', seed }: InfiniteTerrainPr
     }
   }, [chunkManager, setTerrainManager])
 
-  // Limpiar al desmontar
+  // Limpiar mallas anteriores de Three.js al cambiar de bioma o desmontar
   useEffect(() => {
+    if (groupRef.current) {
+      chunksRef.current.forEach((mesh) => {
+        groupRef.current.remove(mesh)
+        mesh.geometry.dispose()
+        if (mesh.material instanceof THREE.Material) {
+          mesh.material.dispose()
+        }
+      })
+      chunksRef.current.clear()
+    }
+    previousKeysRef.current = ''
+    setActiveChunkKeys(new Set())
+
     return () => {
       chunkManager.dispose()
+      if (groupRef.current) {
+        chunksRef.current.forEach((mesh) => {
+          groupRef.current.remove(mesh)
+          mesh.geometry.dispose()
+          if (mesh.material instanceof THREE.Material) {
+            mesh.material.dispose()
+          }
+        })
+        chunksRef.current.clear()
+      }
     }
   }, [chunkManager])
 
@@ -118,6 +141,7 @@ export function InfiniteTerrain({ biome = 'aconcagua', seed }: InfiniteTerrainPr
         mesh.receiveShadow = true
         mesh.castShadow = false
         
+        chunkData.mesh = mesh
         groupRef.current.add(mesh)
         chunksRef.current.set(chunkData.key, mesh)
       }

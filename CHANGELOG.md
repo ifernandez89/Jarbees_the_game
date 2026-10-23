@@ -1,5 +1,29 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.24] - 2026-10-23
+
+### 🏔️ Erradicación de Terrenos Superpuestos & Calibración de Cota Cero en el Spawn del Aconcagua
+
+#### Diagnóstico del "Terreno Flotando por Encima de Otro"
+- **Causa 1 (Persistencia de Mallas Anteriores en Three.js)**:
+  - En [InfiniteTerrain.tsx](file:///c:/Projects/Jarbees_the_game/components/InfiniteTerrain.tsx), al ciclar de bioma con la tecla **[B]** (ej: de Titicaca a Aconcagua), `chunkManager.dispose()` destruía los chunks en memoria JS, pero las mallas de Three.js (`chunksRef.current`) **permanecían añadidas al `groupRef.current`** de la escena.
+  - Al cargar el bioma Aconcagua, las nuevas mallas de montaña alta se superponían directamente sobre las colinas verdes de Titicaca que nunca se habían removido.
+- **Causa 2 (Race Condition al Cargar el DEM Satelital)**:
+  - En los primeros milisegundos de arranque, los chunks iniciales se generaban antes de que el `fetch` del archivo binario (`heightmap.bin`) completara, creando colinas bajas verdes a 10m de altitud.
+  - Al completar la descarga, los nuevos chunks se generaban a 76m de altitud, produciendo un corte vertical artificial entre chunks antiguos y nuevos que dejaba al terreno superior como una losa suspendida en el aire.
+- **Causa 3 (Desfase de Cota Cero en el Spawn)**:
+  - La elevación satelital cruda de la región situaba al valle en ~3.614m sobre el nivel del mar, haciendo que el punto de spawn del jugador en `(0, 0)` quedara a 24m de altura mientras la cámara inicial empezaba a `y = 2`, viendo el terreno desde abajo hacia arriba.
+
+#### Solución Integral Aplicada
+- **Limpieza de Ciclo de Vida en [InfiniteTerrain.tsx](file:///c:/Projects/Jarbees_the_game/components/InfiniteTerrain.tsx)**:
+  - Implementado efecto de desmontaje completo: cada vez que `chunkManager` o el bioma cambia, todas las mallas `THREE.Mesh` en `chunksRef.current` se remueven de `groupRef.current`, se liberan sus geometrías (`geometry.dispose()`) y materiales (`material.dispose()`), y se limpian los registros.
+  - Enlace bidireccional `chunkData.mesh = mesh` para que cualquier regeneración asíncrona actualice directamente la geometría viva en la GPU.
+- **Calibración Anatómica del Aconcagua en [ChunkManager.ts](file:///c:/Projects/Jarbees_the_game/systems/ChunkManager.ts)**:
+  - **Cota Cero en el Spawn**: La elevación del valle en `(0, 0)` ahora se calibra a **2.5 m** (exactamente al nivel del lago), permitiendo despegar, caminar y ver la ladera natural frente al jugador sin quedar bajo tierra.
+  - **Cumbre Centrada al Frente**: La cumbre real a 6.935m se ubica al frente a `worldZ = -900 m` alcanzando **128 m** de altitud, con rampa ascendente continua y natural.
+  - **Clamp de Píxeles**: Eliminado el salto abrupto a bordes de mapa mediante `Math.max(0, Math.min(510, px))` y un radio de transición suave (*cosine blend*) entre 1.100m y 1.500m.
+  - **Precarga Inmediata**: La descarga de `heightmap.bin` se dispara a nivel de módulo del cliente, garantizando que el DEM esté en caché desde el frame 0.
+
 ## [0.8.23] - 2026-10-23
 
 ### 🏔️ Relieve Satelital Real del Monte Aconcagua en el Mundo Infinito & Limpieza Dorsal de NEXO-01

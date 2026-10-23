@@ -79,6 +79,9 @@ export class ChunkManager {
       const [chunkX, chunkZ] = key.split('_').map(Number)
       chunk.geometry.dispose()
       chunk.geometry = this.generateChunkGeometry(chunkX, chunkZ)
+      if (chunk.mesh) {
+        chunk.mesh.geometry = chunk.geometry
+      }
     })
   }
 
@@ -91,39 +94,43 @@ export class ChunkManager {
     const procH = this.noiseGenerator.getHeight(worldX, worldZ, this.config.heightMultiplier)
     if (!dem) return procH
 
-    // El valle de Horcones (inicio seguro) está alineado a (0, 0)
-    // La cumbre máxima (6.935m) se sitúa majestuosamente al frente a (worldX=0, worldZ=-1100)
-    const valleyPx = 283
-    const valleyPy = 433
-    const meterPerPx = 5.2
+    // Cumbre real del Monte Aconcagua (6.935m) centrada al frente a (worldX=0, worldZ=-900)
+    // El punto de spawn del jugador en (0, 0) queda situado suavemente sobre el valle a nivel de orilla
+    const peakPx = 182
+    const peakPy = 184
+    const peakWorldZ = -900.0
+    const meterPerPx = 6.0
+    const spawnRawElev = 3614.0 // Elevación base en el punto de spawn (px: 182, py: 334)
 
-    const px = valleyPx + worldX / meterPerPx
-    const py = valleyPy + worldZ / meterPerPx
+    const px = Math.max(0, Math.min(510, peakPx + worldX / meterPerPx))
+    const py = Math.max(0, Math.min(510, peakPy + (worldZ - peakWorldZ) / meterPerPx))
 
-    let rawElev = 2600.0
-    if (px >= 0 && px <= 510 && py >= 0 && py <= 510) {
-      const x0 = Math.floor(px)
-      const y0 = Math.floor(py)
-      const x1 = x0 + 1
-      const y1 = y0 + 1
-      const fx = px - x0
-      const fy = py - y0
+    const x0 = Math.floor(px)
+    const y0 = Math.floor(py)
+    const x1 = x0 + 1
+    const y1 = y0 + 1
+    const fx = px - x0
+    const fy = py - y0
 
-      const e00 = dem[y0 * 512 + x0]
-      const e10 = dem[y0 * 512 + x1]
-      const e01 = dem[y1 * 512 + x0]
-      const e11 = dem[y1 * 512 + x1]
+    const e00 = dem[y0 * 512 + x0]
+    const e10 = dem[y0 * 512 + x1]
+    const e01 = dem[y1 * 512 + x0]
+    const e11 = dem[y1 * 512 + x1]
 
-      rawElev = (e00 * (1 - fx) + e10 * fx) * (1 - fy) + (e01 * (1 - fx) + e11 * fx) * fy
+    const rawElev = (e00 * (1 - fx) + e10 * fx) * (1 - fy) + (e01 * (1 - fx) + e11 * fx) * fy
+
+    // Normalizar elevación satelital: spawn a 2.5m, cumbre a 130m
+    const norm = (rawElev - spawnRawElev) / (6935.0 - spawnRawElev)
+    let satH: number
+    if (norm >= 0) {
+      satH = 2.5 + Math.pow(norm, 1.15) * 125.0
+    } else {
+      satH = Math.max(1.6, 2.5 + norm * 8.0)
     }
 
-    // Normalizar elevación satelital (de 2600m en valle a 6935m en cumbre)
-    const norm = Math.max(0, Math.min(1, (rawElev - 2600.0) / (6935.0 - 2600.0)))
-    const satH = 3.0 + Math.pow(norm, 1.15) * 142.0
-
-    // Mezcla suave (blend) hacia el relieve procedural infinito en los bordes (radio 1000m - 1500m)
-    const distFromCenter = Math.hypot(worldX, worldZ + 1100)
-    const innerRadius = 1000.0
+    // Mezcla suave (blend) hacia el relieve procedural infinito en los bordes (radio 1100m - 1500m)
+    const distFromCenter = Math.hypot(worldX, worldZ - peakWorldZ)
+    const innerRadius = 1100.0
     const outerRadius = 1500.0
 
     if (distFromCenter <= innerRadius) {
@@ -392,4 +399,9 @@ export class ChunkManager {
     this.chunks.clear()
     this.chunkPool = []
   }
+}
+
+// Precargar inmediatamente el DEM satelital de Aconcagua en el cliente al importar el módulo
+if (typeof window !== 'undefined') {
+  ChunkManager.loadAconcaguaDEM()
 }
