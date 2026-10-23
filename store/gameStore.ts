@@ -93,7 +93,7 @@ export interface GameState {
   distanceTraveled: number
   altitude: number
   gameTime: number
-  currentBiome: 'titicaca' | 'easter_island' | 'constellations'
+  currentBiome: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua'
   
   // Configuración de clima y viento
   wind: {
@@ -143,7 +143,7 @@ export interface GameState {
   updateAltitude: (altitude: number) => void
   updateGameTime: (delta: number) => void
   setTerrainManager: (manager: ChunkManager | null) => void
-  setBiome: (biome: 'titicaca' | 'easter_island' | 'constellations') => void
+  setBiome: (biome: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua') => void
   setWind: (wind: { speed: number; direction: [number, number, number] }) => void
   setDayNightEnabled: (enabled: boolean) => void
   setDayNightSpeed: (speed: number) => void

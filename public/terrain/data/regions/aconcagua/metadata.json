@@ -7,18 +7,18 @@
       "east": -69.900,
       "west": -70.100
     },
-    "resolution": 30,
+    "resolution": 38,
     "source": "copernicus"
   },
-  "downloadDate": "2026-10-22T00:00:00.000Z",
-  "fileSize": 10485760,
+  "downloadDate": "2026-10-23T00:00:00.000Z",
+  "fileSize": 1048576,
   "format": "raw",
   "dataType": "float32",
   "noDataValue": -32768,
-  "minElevation": 2500,
-  "maxElevation": 6962,
-  "width": 1024,
-  "height": 1024,
-  "description": "Aconcagua region - Highest peak in the Americas",
-  "attribution": "Copernicus DEM GLO-30 - European Space Agency"
+  "minElevation": 2535,
+  "maxElevation": 6935,
+  "width": 512,
+  "height": 512,
+  "description": "Aconcagua region - Real satellite DEM (Copernicus/SRTM)",
+  "attribution": "Copernicus DEM GLO-30 / USGS SRTM - Real Satellite Elevation"
 }

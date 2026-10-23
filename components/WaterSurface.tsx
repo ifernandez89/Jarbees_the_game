@@ -18,7 +18,7 @@ export function WaterSurface({ waterHeight = 1.2, size = 650 }: WaterSurfaceProp
   const wind = useGameStore((state) => state.wind)
 
   // En el espacio (constelaciones), no mostramos agua terrestre
-  const isVisible = currentBiome === 'titicaca' || currentBiome === 'easter_island'
+  const isVisible = currentBiome === 'titicaca' || currentBiome === 'easter_island' || currentBiome === 'aconcagua'
 
   // Textura procedural de normales de oleaje suave para reflejos realistas (Sun Glade)
   const normalMap = useMemo(() => {
@@ -57,7 +57,8 @@ export function WaterSurface({ waterHeight = 1.2, size = 650 }: WaterSurfaceProp
   // Material PBR de agua pura con reflejo especular directo hacia el sol/luna
   const waterMaterial = useMemo(() => {
     const isTiticaca = currentBiome === 'titicaca'
-    const waterColor = isTiticaca ? '#0077be' : '#224e6b'
+    const isAconcagua = currentBiome === 'aconcagua'
+    const waterColor = isAconcagua ? '#1b4d6b' : isTiticaca ? '#0077be' : '#224e6b'
 
     return new THREE.MeshStandardMaterial({
       color: waterColor,

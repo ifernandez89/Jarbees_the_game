@@ -85,4 +85,17 @@ export const BIOMES: Record<string, Biome> = {
       types: ['star_dust'],
     },
   },
+  aconcagua: {
+    id: 'aconcagua',
+    name: 'Monte Aconcagua (DEM Real)',
+    colors: {
+      sky: '#4a90e2',
+      ground: '#e8eff5',
+      water: '#1e3d59',
+    },
+    vegetation: {
+      density: 0.18,
+      types: ['rock', 'sparse_grass', 'ice'],
+    },
+  },
 }

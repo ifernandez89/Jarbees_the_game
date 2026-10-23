@@ -10,7 +10,7 @@ interface TreePopulationProps {
   chunkZ: number
   chunkSize: number
   density?: number
-  biome?: 'titicaca' | 'easter_island' | 'constellations'
+  biome?: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua'
 }
 
 // Configuración de densidad por bioma
@@ -18,6 +18,7 @@ const BIOME_DENSITY = {
   titicaca: 0.6,        // Vegetación natural
   easter_island: 0.15,  // Escaso
   constellations: 0.0,  // Sin vegetación
+  aconcagua: 0.08,      // Árboles escasos solo en valles bajos (<15m)
 }
 
 export function TreePopulation({

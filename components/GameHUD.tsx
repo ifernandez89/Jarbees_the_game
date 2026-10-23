@@ -12,6 +12,7 @@ export function GameHUD() {
   const altitude = useGameStore((state) => state.altitude)
   const dayNightEnabled = useGameStore((state) => state.dayNightEnabled)
   const audioEnabled = useGameStore((state) => state.audioEnabled)
+  const currentBiome = useGameStore((state) => state.currentBiome)
 
   const selectedCharacter = useGameStore((state) => state.selectedCharacter)
   const setSelectedCharacter = useGameStore((state) => state.setSelectedCharacter)
@@ -128,6 +129,35 @@ export function GameHUD() {
         >
           <span>{audioEnabled ? '🔊 ON' : '🔇 OFF'}</span>
           <span style={{ opacity: 0.6 }}>[M]</span>
+        </button>
+
+        {/* Selector de Bioma / Relieve Real */}
+        <button
+          onClick={() => {
+            const biomes = ['titicaca', 'easter_island', 'constellations', 'aconcagua'] as const
+            const current = useGameStore.getState().currentBiome
+            const next = biomes[(biomes.indexOf(current) + 1) % biomes.length]
+            useGameStore.getState().setBiome(next)
+          }}
+          className="hud-audio-btn"
+          style={{
+            marginTop: 4,
+            background: currentBiome === 'aconcagua' ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255, 255, 255, 0.08)',
+            border: `1px solid ${currentBiome === 'aconcagua' ? 'rgba(56, 189, 248, 0.7)' : 'rgba(255, 255, 255, 0.2)'}`,
+            color: currentBiome === 'aconcagua' ? '#38BDF8' : '#e2e8f0',
+          }}
+          title="Cambiar bioma / entorno de vuelo [B]"
+        >
+          <span>
+            {currentBiome === 'aconcagua'
+              ? '🏔️ Aconcagua (DEM Real)'
+              : currentBiome === 'titicaca'
+              ? '🌿 Lago Titicaca'
+              : currentBiome === 'easter_island'
+              ? '🗿 Isla de Pascua'
+              : '✨ Constelaciones'}
+          </span>
+          <span style={{ opacity: 0.6 }}>[B]</span>
         </button>
       </div>
 

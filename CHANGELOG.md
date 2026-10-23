@@ -1,5 +1,41 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.23] - 2026-10-23
+
+### 🏔️ Relieve Satelital Real del Monte Aconcagua en el Mundo Infinito & Limpieza Dorsal de NEXO-01
+
+#### Integración de Datos Satelitales DEM Reales (Copernicus GLO-30 / SRTM)
+- **Extracción de Elevación Real**:
+  - Descarga y procesamiento de los datos de elevación topográfica del macizo del **Aconcagua** (Argentina), cubriendo el rango real desde el valle a **2.535 m** hasta la cumbre a **6.935 m**.
+  - Generación de dataset binario `Float32Array` de 512×512 puntos ([heightmap.bin](file:///c:/Projects/Jarbees_the_game/public/terrain/data/regions/aconcagua/heightmap.bin)) con un peso de solo **1 MB**, permitiendo carga asíncrona instantánea en memoria sin comprometer recursos ni FPS.
+- **Muestreo e Hibridación Infinita en [ChunkManager.ts](file:///c:/Projects/Jarbees_the_game/systems/ChunkManager.ts)**:
+  - Interpolación bilineal de alta precisión sobre la cuadrícula DEM para recrear las paredes verticales, crestas y glaciares reales de la montaña.
+  - **Fusión sin Abismos**: La cumbre del Aconcagua domina el horizonte central a 1.100 m al frente del jugador, mientras que en los bordes exteriores (>1.000m - 1.500m) un *cosine blend* suaviza la topografía hacia la cordillera procedural infinita.
+  - **Calibración Vertical**: Altitud de cumbre escalada a **~145 m** en el espacio del juego, permitiendo sobrevolar la montaña, atravesar el manto de nubes a Mach 1, hacer descensos rasantes por la Pared Sur o aterrizar en la cumbre con colisiones y modo caminata integrados.
+- **Coloración Geológica Andina por Altitud**:
+  - Valles y lagunas (< 6m): pastizal andino fértil (`#4e6b42`).
+  - Estepa y Puna (6m - 22m): pastos de altura e ichu dorado (`#666f48`).
+  - Granito y paredes verticales (22m - 55m): roca oscura andina (`#544e45`).
+  - Morrenas y pedregales (55m - 95m): bloques fríos de granito (`#78736b`).
+  - Glaciar de los Polacos (95m - 120m): hielo glaciar y penitentes (`#b8cce0`).
+  - Cima nevada (120m - 145m): manto blanco perpetuo (`#ffffff`).
+- **Ajustes de Ecosistema & Entorno**:
+  - [TreePopulation.tsx](file:///c:/Projects/Jarbees_the_game/components/TreePopulation.tsx): Árboles limitados estrictamente a valles bajos (<15m), dejando las laderas y glaciares completamente alpinos.
+  - [RockPopulation.tsx](file:///c:/Projects/Jarbees_the_game/components/RockPopulation.tsx): Aumento de densidad de rocas andinas y morrenas.
+  - [WaterSurface.tsx](file:///c:/Projects/Jarbees_the_game/components/WaterSurface.tsx): Agua de lagunas glaciares en azul profundo (`#1b4d6b`).
+  - [GameHUD.tsx](file:///c:/Projects/Jarbees_the_game/components/GameHUD.tsx) & [useGameControls.ts](file:///c:/Projects/Jarbees_the_game/hooks/useGameControls.ts): Botón interactivo en el HUD y atajo con la tecla **[B]** para conmutar directamente a `🏔️ Aconcagua (DEM Real)`.
+
+#### Erradicación de Esfera Residual Negra en la Espalda de NEXO-01
+- **Causa Raíz**:
+  - En [BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx), existía una malla estática `<sphereGeometry args={[0.032, 16, 16]} />` con material negro carbón (`#060608`) colocada en `[0, 0.35, 0.04]` que no estaba riggeada a los huesos del esqueleto.
+  - Durante las animaciones de vuelo horizontal prone (`nexo_fly`), la columna y el omóplato del modelo atravesaban las coordenadas fijas de la esfera, proyectándola como un círculo negro sobre la espalda del personaje.
+- **Corrección**:
+  - Remoción total de la malla redundante; el interior del reactor y la pechera ya son cubiertos de forma nativa por el shader y la coraza medieval sin artefactos visuales.
+
+#### Correcciones de Infraestructura en el Sistema de Terreno
+- [TerrainChunk.ts](file:///c:/Projects/Jarbees_the_game/systems/terrain/core/TerrainChunk.ts): Inicialización de `currentLOD` corregida a `-1` para permitir que `setLOD(0)` incorpore la malla al grupo en el primer ciclo.
+- [ProceduralTerrainMaterial.ts](file:///c:/Projects/Jarbees_the_game/systems/terrain/materials/ProceduralTerrainMaterial.ts): Fijado `lights: false` para evitar requerimientos de uniforms de Three.js en shaders con modelo de luz manual.
+
 ## [0.8.22] - 2026-10-22
 
 ### 🏃 Biomecánica Auténtica de Carrera (`nexo_run`) & Erradicación Acústica del Drone de Fondo

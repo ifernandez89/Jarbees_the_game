@@ -39,7 +39,7 @@ export class TerrainChunk {
   public worldPosition: THREE.Vector3
   public config: ChunkConfig
   public lodMeshes: LODMesh[] = []
-  public currentLOD: number = 0
+  public currentLOD: number = -1
   public boundingBox: THREE.Box3
   public isVisible: boolean = true
   public lastUsed: number = Date.now()

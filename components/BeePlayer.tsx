@@ -839,15 +839,6 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       <group ref={rotatingGroupRef} rotation={[0, Math.PI, 0]}>
         {/* Modelo 3D del personaje animado por Mixer */}
         <primitive object={sceneClone} />
-
-        {/* =====================================================================
-            ACABADO STEALTH NEGRO CARBÓN: Sin luz emisiva en el pecho
-            para que el reactor y la cara permanezcan completamente negros
-            ===================================================================== */}
-        <mesh position={[0, 0.35, 0.04]}>
-          <sphereGeometry args={[0.032, 16, 16]} />
-          <meshBasicMaterial color="#060608" />
-        </mesh>
       </group>
     </group>
   )

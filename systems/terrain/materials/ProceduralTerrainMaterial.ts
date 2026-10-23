@@ -73,7 +73,7 @@ export class ProceduralTerrainMaterial extends THREE.ShaderMaterial {
       uniforms,
       vertexShader: vertexShader,
       fragmentShader: fragmentShader,
-      lights: true,
+      lights: false,
     })
   }
 

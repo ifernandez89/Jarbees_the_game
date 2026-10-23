@@ -10,7 +10,7 @@ import { flightRuntime } from '@/systems/FlightDynamics'
 import { RockPopulation } from './RockPopulation'
 
 interface InfiniteTerrainProps {
-  biome?: 'titicaca' | 'easter_island' | 'constellations'
+  biome?: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua'
   seed?: number
 }
 
@@ -27,6 +27,10 @@ const BIOME_CONFIGS: Record<string, Partial<ChunkConfig>> = {
   constellations: {
     color: '#16162a', // Azul noche espacial
     heightMultiplier: 3,
+  },
+  aconcagua: {
+    color: '#ffffff', // Multiplicador neutro para vertexColors satelitales (glaciares y granito)
+    heightMultiplier: 25,
   },
 }
 
@@ -51,7 +55,7 @@ export function InfiniteTerrain({ biome = 'titicaca', seed }: InfiniteTerrainPro
     const biomeConfig = BIOME_CONFIGS[biome] || {}
     const config = { ...baseConfig, ...biomeConfig }
     
-    return new ChunkManager(config, seed)
+    return new ChunkManager(config, seed, biome)
   }, [biome, seed])
 
   // Registrar ChunkManager en el store global
