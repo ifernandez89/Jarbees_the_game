@@ -53,8 +53,8 @@ export function useGameControls() {
         return
       }
 
-      // Giro para quedar de espaldas o mirar al usuario con T o F
-      if (e.code === 'KeyT' || e.code === 'KeyF') {
+      // Giro para quedar de espaldas o mirar al usuario con T
+      if (e.code === 'KeyT') {
         e.preventDefault()
         if (useGameStore.getState().selectedCharacter === 'iron_man') {
           useGameStore.getState().toggleIronManFlip()
@@ -143,11 +143,6 @@ export function useGameControls() {
         useGameStore.getState().triggerEmote('melee_shove')
         return
       }
-      if (e.code === 'KeyG') {
-        e.preventDefault()
-        useGameStore.getState().triggerEmote('stumble')
-        return
-      }
       if (e.code === 'KeyH') {
         e.preventDefault()
         useGameStore.getState().triggerEmote('limp_walk')
@@ -201,17 +196,13 @@ export function useGameControls() {
           e.preventDefault()
           setControls({ up: true, jump: true })
           break
-        // BAJAR ALTITUD con Q o AvPág (y SHIFT para los personajes sin postquemador)
+        // POSTQUEMADOR / VUELO RÁPIDO / SPRINT con SHIFT (disponible siempre, para todos los personajes)
         case 'ShiftLeft':
         case 'ShiftRight':
           e.preventDefault()
-          if (useGameStore.getState().selectedCharacter === 'iron_man') {
-            // POSTQUEMADOR del traje JarBees
-            setControls({ boost: true })
-          } else {
-            setControls({ down: true })
-          }
+          setControls({ boost: true })
           break
+        // BAJAR ALTITUD / DESCENSO con Q o AvPág
         case 'KeyQ':
         case 'PageDown':
           e.preventDefault()
@@ -252,7 +243,6 @@ export function useGameControls() {
           break
         case 'ShiftLeft':
         case 'ShiftRight':
-          // Soltar SHIFT libera tanto el postquemador como el descenso (según el personaje activo)
           setControls({ boost: false, down: false })
           break
         case 'KeyQ':
@@ -262,14 +252,31 @@ export function useGameControls() {
       }
     }
 
+    // Limpieza de controles si la ventana pierde el foco (evita teclas atascadas o desconfiguración)
+    const handleBlur = () => {
+      setControls({
+        forward: false,
+        backward: false,
+        left: false,
+        right: false,
+        up: false,
+        down: false,
+        boost: false,
+        crouch: false,
+        jump: false,
+      })
+    }
+
     // Añadir listeners
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', handleBlur)
 
     // Limpiar listeners
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', handleBlur)
     }
   }, [setControls, setPaused, isPaused])
 }

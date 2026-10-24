@@ -1041,17 +1041,17 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
         if (isTryingTakeoff) {
           isGroundedRef.current = false
           setGrounded(false)
-          takeoffCooldownRef.current = 0.70 // Inmunidad de despegue para evitar re-aterrizaje inmediato
+          takeoffCooldownRef.current = 1.0 // Inmunidad de despegue generosa para evitar re-aterrizaje inmediato
 
           // Impulso vertical y separación neta de la superficie
           const hasBoost = controls.boost
-          flight.vy = hasBoost ? 16.0 : 10.0
-          player.position.y = floorY + 1.1
+          flight.vy = hasBoost ? 18.0 : 10.0
+          player.position.y = floorY + 1.2
 
           // Conservar inercia de tierra: si venía corriendo con Shift (hasta 15.2 m/s), saltar lo lanza a velocidad de vuelo
           const forwardIntent = controls.forward ? 1 : 0
           const initialSpeed = hasBoost
-            ? (forwardIntent ? Math.max(45.0, velocityRef.current * 3.0) : 12.0)
+            ? (forwardIntent ? Math.max(50.0, velocityRef.current * 3.5) : 16.0)
             : (forwardIntent ? Math.max(18.0, velocityRef.current) : 0)
 
           flight.forwardSpeed = initialSpeed
@@ -1075,6 +1075,10 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
           flight.forwardSpeed = 0
           flight.throttle = 0
           flight.afterburner = 0
+          // Regenerar y acondicionar sistemas en tierra para disponibilidad supersónica inmediata
+          flight.energy = 100
+          flight.heat = Math.max(10, flight.heat - 40 * dt)
+          flight.overheated = false
 
           // Giro de orientación en tierra con A y D
           if (controls.left) {
@@ -1184,9 +1188,9 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       // Solo avanza al presionar W / Flecha Arriba.
       let targetSpeed = 0.0
       if (controls.forward) {
-        targetSpeed = 16.0
+        targetSpeed = controls.boost ? 32.0 : 16.0
       } else if (controls.backward) {
-        targetSpeed = -4.0
+        targetSpeed = controls.boost ? -8.0 : -4.0
       }
 
       velocityRef.current = THREE.MathUtils.lerp(velocityRef.current, targetSpeed, delta * 4.0)

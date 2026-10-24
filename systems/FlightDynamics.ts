@@ -322,16 +322,19 @@ export class FlightDynamics {
     const rho = airDensity(altitude)
 
     // --- Estados de energía y térmicos ------------------------------------
-    const noEnergy = this.energy <= 0.5
-    if (this.heat >= 100) this.overheated = true
-    else if (this.heat < 70) this.overheated = false
+    // Reactor Arc / Cuántico JarBees: disponibilidad incondicional de potencia
+    const noEnergy = false
+
+    // Temperatura de monitoreo (actúa como lectura visual y acústica en el HUD)
+    this.overheated = this.heat >= 96
 
     // --- Actuadores con inercia -------------------------------------------
     const throttleTarget = input.forward ? 1 : 0
     this.throttle = approach(this.throttle, throttleTarget, (throttleTarget > this.throttle ? 1.6 : 1.2) * dt)
 
-    const abAllowed = input.boost && this.energy > ENERGY_MIN_FOR_AB && !this.overheated
-    // Postquemador súper velocidad: se activa con Shift si se avanza (forward) o si se asciende/vuela (up / forward)
+    // Postquemador súper velocidad: se activa SIEMPRE con Shift (boost) sin bloqueos ni límite de tiempo
+    const abAllowed = !!input.boost
+    // Se activa con Shift si se avanza (forward) o si se asciende/vuela (up / forward)
     const abTarget = abAllowed && (this.throttle > 0.1 || input.forward || input.up) ? 1 : 0
     this.afterburner = approach(this.afterburner, abTarget, (abTarget > this.afterburner ? 1.4 : 2.5) * dt)
 
@@ -341,7 +344,7 @@ export class FlightDynamics {
     // Se activa con Boost sostenido a partir de la zona transónica (Mach >= 0.72)
     // canalizando un campo electromagnético/energético que colapsa la onda de choque
     const aureliumTarget =
-      abAllowed && this.afterburner > 0.4 && this.energy > 8 && (mach >= 0.72 || this.forwardSpeed > 230) ? 1 : 0
+      abAllowed && this.afterburner > 0.4 && (mach >= 0.72 || this.forwardSpeed > 230) ? 1 : 0
     this.aureliumPhase = approach(
       this.aureliumPhase,
       aureliumTarget,
@@ -350,9 +353,8 @@ export class FlightDynamics {
 
     // --- Empuje -----------------------------------------------------------
     let thrust = availableThrust(mach, this.afterburner, this.throttle, this.aureliumPhase)
-    if (noEnergy) thrust *= 0.3
-    if (this.overheated) thrust *= 0.55
-    if (!assist) thrust *= 1 - 0.35 * smoothstep(85, 100, this.heat)
+    // En modo simulación manual con temperatura extrema, leve caída máxima del 10% (nunca corte total)
+    if (!assist && this.heat > 92) thrust *= 1 - 0.1 * smoothstep(92, 100, this.heat)
 
     // --- Resistencia aerodinámica y de onda -------------------------------
     const brakeMul = 1 + 1.6 * this.brake
@@ -398,8 +400,6 @@ export class FlightDynamics {
     let vyTarget = 0
     if (input.up) vyTarget += VERTICAL_MAX * climbMul
     if (input.down) vyTarget -= VERTICAL_MAX * 0.85 * climbMul
-    if (!input.up && !input.down && noEnergy) vyTarget = -9 // sin energía: la sustentación asistida falla
-    if (input.up && noEnergy) vyTarget *= 0.3
     this.vy += (vyTarget - this.vy) * (1 - Math.exp(-(assist ? 4.0 : 2.2) * dt))
 
     // JarBees GCAS (Ground Collision Avoidance System):
@@ -428,25 +428,25 @@ export class FlightDynamics {
     this.vz = vf * fz + vl * rz
     this.forwardSpeed = vf
 
-    // --- Energía ----------------------------------------------------------
-    const aureliumDrain = this.aureliumPhase * 3.8
+    // --- Energía: Reactor Cuántico / Arc JarBees de Potencia Continua -----
+    // Fluctúa dinámicamente como telemetría visual viva, pero con suministro garantizado
+    const aureliumDrain = this.aureliumPhase * 1.2
     const drain =
-      0.5 * this.throttle +
-      3.8 * this.afterburner +
+      0.3 * this.throttle +
+      1.8 * this.afterburner +
       aureliumDrain +
-      (input.up || input.down ? 0.5 : 0) +
-      (assist ? 0 : 0.2)
-    const regen = this.throttle < 0.15 && this.afterburner < 0.05 ? (assist ? 4 : 3) : 0
-    this.energy = clamp(this.energy + (regen - drain) * dt, 0, 100)
+      (input.up || input.down ? 0.3 : 0)
+    const regen = 2.0 + (this.throttle < 0.2 ? 4.0 : 0) + (assist ? 0.8 : 0)
+    // Rango operacional óptimo [70% - 100%], nunca se agota
+    this.energy = clamp(this.energy + (regen - drain) * dt, 70, 100)
 
     // --- Temperatura del núcleo y calentamiento aerodinámico --------------
-    // A Mach < 0.83 el aire casi no calienta. A Mach 2.5 - 5 el calentamiento por estancamiento
-    // de plasma es brutal, aunque la Fase Aurelium disipa hasta un 45% del choque térmico.
+    // A Mach > 1.4 el choque térmico de plasma es equilibrado por el sistema criogénico activo
     const ramHeat =
-      mach > 1.4 ? 0.38 * Math.pow(mach, 3.2) * (rho / RHO0) * (1 - 0.45 * this.aureliumPhase) : 0
+      mach > 1.4 ? 0.28 * Math.pow(mach, 2.8) * (rho / RHO0) * (1 - 0.50 * this.aureliumPhase) : 0
     const heatIn =
-      ramHeat + 0.6 * this.throttle + 6.2 * this.afterburner + 2.4 * this.aureliumPhase
-    const cooling = 2.0 + 0.012 * airspeed + (this.throttle < 0.05 ? 1.5 : 0)
+      ramHeat + 0.4 * this.throttle + 2.4 * this.afterburner + 1.0 * this.aureliumPhase
+    const cooling = 3.2 + 0.022 * airspeed + (this.throttle < 0.05 ? 3.5 : 0)
     this.heat = clamp(this.heat + (heatIn - cooling) * dt, 10, 100)
 
     // Incandescencia térmica en bordes de ataque (Mach > 2.2 a Mach 5)

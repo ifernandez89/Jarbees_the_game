@@ -1,5 +1,33 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.34] - 2026-10-24
+
+### ⚡ Disponibilidad Permanente e Ilimitada de Vuelo Supersónico con Shift
+
+#### 1. Postquemador Incondicional sin Cortes ni Agotamiento ([FlightDynamics.ts](file:///c:/Projects/Jarbees_the_game/systems/FlightDynamics.ts))
+- **Disponibilidad Permanente de Boost**:
+  - Se eliminó el bloqueo artificial `energy > 10` y `!this.overheated` que apagaba los repulsores a los 14 segundos de vuelo.
+  - El postquemador ahora responde incondicionalmente a `Shift` (`abAllowed = !!input.boost`) sosteniendo empuje al 100% de forma indefinida hasta Mach 3.33+ (~4.083 km/h).
+- **Reactor Arc / Cuántico con Regeneración Continua**:
+  - Se implementó un modelo de flujo de energía continua que mantiene la telemetría viva en un rango óptimo (70% - 100%) sin agotarse jamás en avance continuo.
+- **Refrigeración Criogénica de Alta Velocidad**:
+  - Disipación térmica activa del plasma aerodinámico sin estrangular la potencia de propulsión ni forzar descensos en picado.
+
+#### 2. Transición Robusta Tierra ↔ Vuelo y Despegue Reactivo ([BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx))
+- **Acondicionamiento Inmediato en Tierra**:
+  - Al correr o caminar en tierra firme, el simulador aerodinámico restablece de inmediato la energía al 100% y enfría rápidamente el sistema, asegurando que cualquier despegue posterior cuente con potencia total.
+- **Despegue Supersónico con Transferencia de Inercia**:
+  - Saltar con `Espacio` o `E` mientras se sostiene `Shift` lanza de inmediato al personaje a velocidad supersónica vectorial ($\ge 50\text{ m/s}$) con postquemador activo en el fotograma 1.
+- **Protección de Vuelo Rasante (Ground Skimming)**:
+  - Volar a alta velocidad o con `Shift` cerca de las colinas amortigua la altitud sin aterrizar involuntariamente. El aterrizaje ahora solo ocurre por intención deliberada (frenando a velocidad nula o con `Ctrl`/`Q`).
+- **Soporte de Impulso Rápido Universal**:
+  - Los personajes no armados (abeja, colibrí, mariposa) ahora también cuentan con impulso de avance rápido al presionar `Shift + W`.
+
+#### 3. Prevención de Teclas Atascadas y Desincronización ([useGameControls.ts](file:///c:/Projects/Jarbees_the_game/hooks/useGameControls.ts))
+- **Control Limpio de Boost**: Mapeo directo y consistente de `Shift` (Left/Right) para activación de turbo.
+- **Listener de Desenfoque (`window.onblur`)**: Limpieza automática de todos los controles de movimiento y aceleración si la ventana pierde el foco, evitando que teclas como `Shift` o `W` queden trabadas.
+- **Limpieza de Conflictos de Teclas**: Eliminación de atajos duplicados en `KeyF` y `KeyG`.
+
 ## [0.8.33] - 2026-10-24
 
 ### ✈️ Restauración de la Postura de Vuelo Aerodinámica Horizontal ("Acostado") en Vuelo
