@@ -3,24 +3,24 @@
   "name": "Antártida - Valles Secos de McMurdo & Región Ross",
   "origin": {
     "id": "spawn_blood_falls",
-    "name": "Blood Falls (Cuna de Auren)",
+    "name": "Santuario Pirámide (Casa de Auren)",
     "coordinates": {
       "lat": -77.722,
       "lon": 162.273,
-      "elevation": 65
+      "elevation": 140
     },
-    "description": "Cascadas de salmuera carmesí rica en hierro. Punto de arranque del traje JarBees."
+    "description": "Gran Pirámide a escala real de Guiza con acabado tecnológico cuántico. Hogar y punto de despliegue de Auren."
   },
   "places": [
     {
       "id": "blood_falls",
-      "name": "Blood Falls [Spawn]",
+      "name": "Santuario Pirámide [Casa de Auren]",
       "type": "origin",
-      "elevation": 65,
+      "elevation": 140,
       "coordinates": { "lat": -77.722, "lon": 162.273 },
       "color": "#ff2a5f",
       "highlight": true,
-      "description": "Falla geológica activa y punto cero de despliegue de Auren."
+      "description": "Hogar y punto cero de despliegue: Gran Pirámide a escala real (base 230m, altura 138.8m)."
     },
     {
       "id": "lake_bonney",

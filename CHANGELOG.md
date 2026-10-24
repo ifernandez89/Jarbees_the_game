@@ -1,5 +1,40 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.36] - 2026-10-24
+
+### 🏛️ Santuario Pirámide de Auren a Escala Real de Guiza (Hogar & Despliegue en el Punto Cero)
+
+#### 1. Integración de la Gran Pirámide a Escala Real de Guiza ([AurenPyramidSanctuary.tsx](file:///c:/Projects/Jarbees_the_game/components/AurenPyramidSanctuary.tsx))
+- **Dimensiones Exactas 1:1 de la Gran Pirámide de Guiza (Keops)**:
+  - **Base Cuadrada**: $230.34\text{ m} \times 230.34\text{ m}$ (perímetro de base $\approx 921.36\text{ m}$).
+  - **Altura Consolidada**: $138.80\text{ m}$ (pendiente canónica de $51.8^\circ$).
+  - **Cálculo de Escala Dinámico**: Medición automática del bounding box glTF (`Box3`) y calibración métrica milimétrica en Three.js.
+- **Hogar y Salida en el Punto Cero Oficial (`X: 0, Y: 2, Z: 0`)**:
+  - Orientada con el monumental portal de entrada hacia el frente (vector $-Z$, con visión directa hacia el Valle de Taylor, Blood Falls y el Monte Erebus).
+  - Situada en $Z = +118.0\text{ m}$ para que el umbral del pórtico coincida exactamente con la plataforma de salida de Auren.
+
+#### 2. Acabado y Tratamiento Tecnológico Cuántico para el Territorio Polar Natal
+- **Materialidad de Nano-Obsidiana y Basalto Polar**:
+  - Sustitución de la caliza arenosa del desierto por aleación de nano-obsidiana/titanio oscuro (`#0c121c` a `#1e293b`), metalicidad PBR calibrada a `0.65` y rugosidad `0.32` para reflejar la luz polar y la Aurora Australis.
+- **Circuitos y Conducciones de Energía Cuántica**:
+  - Inyección en fragment shader (`onBeforeCompile`) de ondas ascendentes de energía cuántica que recorren los sillares ciclópeos hacia la cumbre cada pocos segundos.
+  - Conducciones lumínicas en cian fotónico (`#55F0FF`) y oro Aurelium (`#E5A93C`) integradas en las juntas de los bloques y el blasón del dintel.
+- **Piramidión de Aurelium en la Cúspide (140.6m de Cota Total)**:
+  - Ápice dorado puro monolítico (`#FFD700`, metalicidad `0.96`, emisividad `0.4`).
+  - Doble aro orbital de energía cuántica en rotación continua sincronizado en `useFrame`.
+  - Haz de luz atmosférico fotónico (`cylinderGeometry` aditivo) que asciende 500m hacia la ionosfera, actuando como faro cósmico visible en todo el mapa.
+  - **Flight Pad Superior**: Plataforma superior de aterrizaje a 140m para posarse en vuelo a contemplar el continente blanco.
+
+#### 3. Plataforma de Despliegue de Auren (Spawn Dais) & Navegación ANS
+- **Dais Hexagonal de Salida (`[0, 2, 0]`)**:
+  - Anillos concéntricos giratorios de runas cian, borde de titanio y glifo central de teletransporte de colmena JarBees.
+  - Flanqueada por 4 monolitos / obeliscos cuánticos de titanio con ranuras emisivas aditivas.
+  - Rótulo táctico AR flotante: `⬡ SANTUARIO DE AUREN · ORIGEN`.
+- **Integración Cartográfica ANS ([NavigationService.ts](file:///c:/Projects/Jarbees_the_game/services/NavigationService.ts), [antarctica_taylor_guide.json](file:///c:/Projects/Jarbees_the_game/public/data/guides/antarctica_taylor_guide.json))**:
+  - Registrado oficialmente como destino y origen en la brújula táctica y mapa holográfico como `Santuario Pirámide (Casa de Auren)` con cota a 140m.
+- **Bóveda Criptográfica JB3D**:
+  - Modelo optimizado (`pyramid.jb3d`, 8.61 MB) cifrado bajo AES-256-CTR con descifrado en memoria RAM vía Web Crypto API.
+
 ## [0.8.35] - 2026-10-24
 
 ### 🏔️ Geología Polar Ultra-Realista de la Antártida, Estratovolcán Monte Erebus y Aurora Australis
