@@ -1,5 +1,32 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.27] - 2026-10-23
+
+### 🥋 Puños Completamente Cerrados (Erradicación Total de Pulgares Arriba) y Biomecánica Contralateral de Caminata (`nexo_walk`)
+
+#### 1. Puño Anatómico 100% Cerrado sin Pulgar Arriba (`curl_fist`, `nexo_run`, `nexo_walk`)
+- **Causa Raíz del Pulgar Levantado**:
+  - En la estructura ósea de Mixamo, las rotaciones positivas en $+X$ sobre los huesos del pulgar (`Thumb2` y `Thumb3`) actúan en sentido de extensión / apertura (hacia el cielo / dorso), en lugar de flexión. Por consiguiente, al asignar $+48^\circ$ y $+55^\circ$ en $+X$, los pulgares eran forzados a proyectarse rígidamente hacia arriba en actitud de autoestopista.
+- **Solución Geométrica Aplicada**:
+  - En [generate_nexo_animations.py](file:///c:/Projects/Jarbees_the_game/scripts/generate_nexo_animations.py), se recalibraron los ejes sagitales y de oposición en `curl_fist`:
+    - `mixamorig:{side}HandThumb1`: Rotación $-25^\circ$ en X, $\pm 15^\circ$ en Y, $\mp 35^\circ$ en Z (abducción y aducción sobre el plano palmar).
+    - `mixamorig:{side}HandThumb2`: Flexión metacarpiana a $-42^\circ$ en X y $\mp 10^\circ$ en Z.
+    - `mixamorig:{side}HandThumb3`: Flexión interfalángica terminal a $-50^\circ$ en X.
+  - El pulgar queda ahora completamente replegado y ajustado plano sobre los nudillos de los dedos índice y medio formando un puño atlético cerrado y limpio tanto al correr como al caminar.
+
+#### 2. Erradicación del Efecto "Piernas al Revés" al Caminar de Espaldas (`nexo_walk`)
+- **Diagnóstico Cinemático**:
+  - **Inversión de Inclinación del Pie (Foot Pitch)**: Al avanzar la pierna hacia el frente para el contacto de talón ($s > 0$), se aplicaba $-s \cdot 12^\circ$ (plantarflexión / punta hacia abajo clavándose en el suelo), mientras que al empujar hacia atrás ($s < 0$) se aplicaba $+12^\circ$ (talón abajo), invirtiendo por completo la cinemática del tobillo.
+  - **Braceo Ipsilateral (Paso de Camello)**: En `build_walk`, los brazos se calculaban con $+s \cdot 18^\circ$, provocando que al adelantar la pierna izquierda, el brazo izquierdo también avanzara al unísono, lo que creaba una distorsión visual desbalanceada vista desde atrás.
+  - **Eje de Amortiguación Pélvica**: En `mixamorig:Hips_01`, el rebote vertical debe viajar en el eje local $Y$ (no en $Z$), y el giro pélvico de cadera debe acompañar la pierna que avanza (rotación contralateral armónica $-s \cdot 2.2^\circ$).
+- **Solución Cinemática Aplicada**:
+  - Se corrigió el pitch de los pies a $+s \cdot 14^\circ$ para lograr un impacto natural de talón en fase anterior y extensión de empuje atrás.
+  - Braceo contralateral estricto implementado con $-s \cdot 18^\circ$ en brazos y contratorsión natural de columna y codos.
+  - Amortiguación vertical hidráulica de cadera en Local $Y$ (`bounce_y = -0.3 + cos(2 * phase) * 0.4`) con postura erguida atlética ($+2.5^\circ$ forward pitch).
+- **Despliegue y Protección**:
+  - Modelo `jarbees_suit.glb` reanimado en Blender 5.2 con compresión Draco y protegido en `public/models/jarbees_suit.jb3d`.
+  - Service Worker invalidado a `jarbees-game-v5` en [sw.js](file:///c:/Projects/Jarbees_the_game/public/sw.js).
+
 ## [0.8.26] - 2026-10-23
 
 ### 🏃 Puños de Combate Completos en Carrera (`nexo_run`), Cinemática Biomecánica de Caminata (`nexo_walk`) y Retroceso Táctico (`nexo_walk_back`)

@@ -147,30 +147,37 @@ def build_walk(arm):
         phase = (f / 36.0) * math.pi * 2.0
         s = math.sin(phase)
         c = math.cos(phase)
+        double_phase = phase * 2.0
         
-        # 1. Hips (Pelvis): amortiguación hidráulica de la armadura (doble rebote rítmico)
+        # 1. Hips (Pelvis): amortiguación hidráulica vertical (Local Y en Mixamo)
         if hips:
-            bounce = math.cos(phase * 2.0) * -0.016
-            key_bone_loc(hips, s * 0.005, 0, bounce, f)
-            # Postura decidida: inclinación frontal sutil (-2.0°) y giro pélvico natural (yaw +-1.5°)
-            key_bone_rot(hips, -2.0, s * 1.5, -s * 0.8, f)
+            # En Mixamo: Local Y es vertical, Local X es lateral, Local Z es anteroposterior
+            bounce_y = -0.3 + math.cos(double_phase) * 0.4
+            sway_x = s * 0.25
+            key_bone_loc(hips, sway_x, bounce_y, 0.0, f)
+            # Postura erguida decidida: leve inclinación frontal atlética (+2.5°) y rotación pélvica armónica (-s * 2.2°)
+            # que acompaña armónicamente la pierna que avanza hacia el frente
+            key_bone_rot(hips, 2.5, -s * 2.2, -s * 0.8, f)
             
-        # 2. Torso y Cabeza: porte erguido, hombros anchos y contra-torsión sutil
+        # 2. Torso y Cabeza: contratorsión sagital fluida, porte erguido y hombros firmes
         if spine:
-            key_bone_rot(spine, 2.0, -s * 1.2, s * 0.6, f)
+            key_bone_rot(spine, 1.5, s * 1.5, s * 0.5, f)
         if spine1:
-            key_bone_rot(spine1, 1.5, -s * 1.0, 0, f)
+            key_bone_rot(spine1, 1.0, s * 1.0, 0, f)
         if neck:
-            key_bone_rot(neck, -1.0, 0, 0, f)
+            key_bone_rot(neck, -2.0, 0, 0, f)
         if head:
-            key_bone_rot(head, 1.5, s * 0.5, 0, f)
+            key_bone_rot(head, -1.0, -s * 0.5, 0, f)
             
-        # 3. Piernas: zancada amplia (pasos largos) y postura ancha (pies en carriles paralelos)
-        # Biomecánica auténtica: extensión firme en fase de apoyo y flexión limpia en fase de vuelo
+        # 3. Piernas: zancada biomecánica humana auténtica
+        # - s > 0: Pierna izquierda oscila hacia adelante (swing) y hace contacto con el talón (dorsiflexión +14°)
+        # - s < 0: Pierna izquierda apoya peso en tierra (stance), se extiende y empuja con la punta (plantarflexión -12°)
         # Izquierda
         l_thigh_pitch = s * 24.0
-        l_knee_flex = 10.0 + max(0.0, c) * 45.0 + max(0.0, -c) * 6.0
-        l_foot_pitch = -s * 12.0 - (c * 8.0 if c > 0 else 0.0)
+        # Rodilla: extensión estable en apoyo (10° a 14°) y flexión ágil de despeje en vuelo (-36° max)
+        l_knee_flex = 10.0 + max(0.0, c) * 32.0 + max(0.0, -c) * 4.0
+        # Tobillo: talón al frente (+s * 14° dorsiflexión al contactar suelo), punta atrás empujando
+        l_foot_pitch = s * 14.0 - (c * 6.0 if c > 0 else 0.0)
         if l_upleg:
             # Z = -4.5° mantiene la pierna separada al ancho de caderas
             key_bone_rot(l_upleg, l_thigh_pitch, 0, -4.5, f)
@@ -179,10 +186,10 @@ def build_walk(arm):
         if l_foot:
             key_bone_rot(l_foot, l_foot_pitch, 0, 0, f)
             
-        # Derecha (contralateral)
+        # Derecha (contralateral: fase invertida 180°)
         r_thigh_pitch = -s * 24.0
-        r_knee_flex = 10.0 + max(0.0, -c) * 45.0 + max(0.0, c) * 6.0
-        r_foot_pitch = s * 12.0 - (-c * 8.0 if -c > 0 else 0.0)
+        r_knee_flex = 10.0 + max(0.0, -c) * 32.0 + max(0.0, c) * 4.0
+        r_foot_pitch = -s * 14.0 - (-c * 6.0 if -c > 0 else 0.0)
         if r_upleg:
             # Z = 4.5° apertura simétrica
             key_bone_rot(r_upleg, r_thigh_pitch, 0, 4.5, f)
@@ -191,30 +198,34 @@ def build_walk(arm):
         if r_foot:
             key_bone_rot(r_foot, r_foot_pitch, 0, 0, f)
             
-        # 4. Brazos: braceo pendular adelante/atrás sobre el eje sagital (Z local),
-        # manteniendo separación lateral fija y constante (X local = 4.0°) sin aleteo ni ladeo izq-der.
-        l_arm_z = s * 18.0 - 4.0
-        r_arm_z = s * 18.0 + 4.0
+        # 4. Brazos: braceo contralateral auténtico (pierna izq adelante -> brazo izq atrás y brazo der adelante)
+        # En Mixamo:
+        # LeftArm: Z negativo = atrás, Z positivo = adelante.
+        # RightArm: Z negativo = adelante, Z positivo = atrás.
+        # Por tanto, para braceo contralateral:
+        # s > 0 (pierna izq adelante): brazo izq atrás (Z neg) y brazo der adelante (Z neg).
+        l_arm_z = -s * 18.0 - 4.0
+        r_arm_z = -s * 18.0 + 4.0
         if l_arm:
             key_bone_rot(l_arm, 4.0, 0, l_arm_z, f)
         if r_arm:
             key_bone_rot(r_arm, 4.0, 0, r_arm_z, f)
             
-        # Antebrazos: flexión natural de codo hacia adelante al avanzar el brazo
+        # Antebrazos: flexión natural del codo al avanzar hacia adelante (-s > 0)
         if l_fore:
-            l_fore_z = -10.0 + min(0.0, s * 12.0)
+            l_fore_z = -10.0 + min(0.0, -s * 14.0)
             key_bone_rot(l_fore, 0, 0, l_fore_z, f)
         if r_fore:
-            r_fore_z = 10.0 + max(0.0, s * 12.0)
+            r_fore_z = 10.0 + max(0.0, -s * 14.0)
             key_bone_rot(r_fore, 0, 0, r_fore_z, f)
         if l_hand:
             key_bone_rot(l_hand, 0, 0, 0, f)
         if r_hand:
             key_bone_rot(r_hand, 0, 0, 0, f)
 
-        # Puños en guardia relajada
-        curl_fist(b, 'Left', 55.0, f)
-        curl_fist(b, 'Right', 55.0, f)
+        # Puños tácticos completamente cerrados
+        curl_fist(b, 'Left', 68.0, f)
+        curl_fist(b, 'Right', 68.0, f)
 
 def build_walk_back(arm):
     """
@@ -255,8 +266,8 @@ def build_walk_back(arm):
         double_phase = -phase * 2.0
 
         if hips:
-            bounce = math.cos(double_phase) * -0.014
-            key_bone_loc(hips, s * 0.004, 0, bounce, f)
+            bounce_y = -0.3 + math.cos(double_phase) * 0.35
+            key_bone_loc(hips, s * 0.2, bounce_y, 0.0, f)
             key_bone_rot(hips, 2.0, -s * 1.5, s * 0.8, f)
 
         if spine: key_bone_rot(spine, -1.0, s * 1.0, -s * 0.5, f)
@@ -290,11 +301,11 @@ def build_walk_back(arm):
         if l_hand: key_bone_rot(l_hand, 0, 0, 0, f)
         if r_hand: key_bone_rot(r_hand, 0, 0, 0, f)
 
-        curl_fist(b, 'Left', 60.0, f)
-        curl_fist(b, 'Right', 60.0, f)
+        curl_fist(b, 'Left', 68.0, f)
+        curl_fist(b, 'Right', 68.0, f)
 
 def curl_fist(b, side, curl, f):
-    """Cierra los dedos de la mano en puño táctico anatómico completo (+X en Mixamo) con pulgar cerrado."""
+    """Cierra los dedos de la mano en puño táctico anatómico completo (+X en Mixamo) con pulgar cerrado firmemente."""
     indices = ['Index', 'Middle', 'Ring', 'Pinky']
     for ind in indices:
         for seg in ['1', '2', '3']:
@@ -306,11 +317,11 @@ def curl_fist(b, side, curl, f):
     sign = -1.0 if side == 'Right' else 1.0
     for name, bone in b.items():
         if f"mixamorig:{side}HandThumb1" in name:
-            key_bone_rot(bone, 32.0, 18.0 * sign, 28.0 * sign, f)
+            key_bone_rot(bone, -25.0, 15.0 * sign, -35.0 * sign, f)
         elif f"mixamorig:{side}HandThumb2" in name:
-            key_bone_rot(bone, 48.0, 0.0, 10.0 * sign, f)
+            key_bone_rot(bone, -42.0, 0.0, -10.0 * sign, f)
         elif f"mixamorig:{side}HandThumb3" in name:
-            key_bone_rot(bone, 55.0, 0.0, 0.0, f)
+            key_bone_rot(bone, -50.0, 0.0, 0.0, f)
 
 def build_run(arm):
     """
@@ -320,7 +331,7 @@ def build_run(arm):
     - Amortiguación y doble rebote cinético en pelvis (Local Y vertical con compresión y despegue).
     - Combat Horizon Lock: Visor estabilizado en el horizonte compensando el pitch de carrera.
     - Guardia cerrada: Brazos pegados al torso (X=4.0° sin abrirse), codos flexionados en ángulo
-      táctico (~52° a 74°), braceo pendular potente en Z sagital y puños cerrados en guardia.
+      táctico (~52° a 74°), braceo pendular potente en Z sagital contralateral y puños completamente cerrados.
     - Zancada enérgica con extensión propulsiva y flexión anatómica limpia de rodillas.
     """
     create_action(arm, 'nexo_run', 0, 24)
@@ -362,35 +373,35 @@ def build_run(arm):
             inertia_z = -math.sin(double_phase) * 0.25
             key_bone_loc(hips, sway_x, bounce_y, inertia_z, f)
             
-            # Rotación: Inclinación frontal atlética (+13°), giro pélvico con la zancada (+-3.8°) y balanceo lateral (+-2.0°)
+            # Rotación: Inclinación frontal atlética (+13°), giro pélvico armónico con la zancada (-s * 3.5°) y balanceo lateral (-s * 1.5°)
             hip_pitch = 13.0 + math.cos(double_phase) * 1.5
-            hip_yaw = s * 3.8
-            hip_roll = -s * 2.0
+            hip_yaw = -s * 3.5
+            hip_roll = -s * 1.5
             key_bone_rot(hips, hip_pitch, hip_yaw, hip_roll, f)
             
         # 2. Torso y Columna: porte atlético, contratorsión táctica y hombros firmes
         if spine:
-            key_bone_rot(spine, 4.0, -s * 2.5, s * 1.2, f)
+            key_bone_rot(spine, 4.0, s * 2.5, s * 1.2, f)
         if spine1:
-            key_bone_rot(spine1, 3.5, -s * 2.0, 0.0, f)
+            key_bone_rot(spine1, 3.5, s * 2.0, 0.0, f)
         if spine2:
-            key_bone_rot(spine2, 2.0, -s * 1.2, 0.0, f)
+            key_bone_rot(spine2, 2.0, s * 1.2, 0.0, f)
             
         # 3. Cuello y Cabeza: Estabilización de combate (Combat Horizon Lock estilo CS / L4D)
         # Compensa la inclinación del torso para mantener el visor cibernético siempre apuntando al frente
         if neck:
-            key_bone_rot(neck, -8.0, s * 0.8, 0.0, f)
+            key_bone_rot(neck, -8.0, -s * 0.8, 0.0, f)
         if head:
             head_pitch = -10.5 - math.cos(double_phase) * 0.8
-            key_bone_rot(head, head_pitch, s * 0.5, 0.0, f)
+            key_bone_rot(head, head_pitch, -s * 0.5, 0.0, f)
             
         # 4. Piernas y Zancada Biomecánica Auténtica (Ciclo de Carrera Progresiva):
         # - Fase de Apoyo / Stance (c <= 0): Pie plantado empujando hacia atrás, rodilla extendida (18° a 26° absorción)
-        # - Fase de Vuelo / Swing (c > 0): Talón sube en flexión profunda (-86°) y la pierna avanza en el aire hacia adelante
+        # - Fase de Vuelo / Swing (c > 0): Talón sube en flexión profunda (-64°) y la pierna avanza en el aire hacia adelante
         # Izquierda
         l_thigh_pitch = s * 36.0 + 4.0
-        l_knee_flex = 18.0 + max(0.0, c) * 68.0 + max(0.0, -c) * 8.0
-        l_foot_pitch = -s * 18.0 - (c * 12.0 if c > 0 else 0.0)
+        l_knee_flex = 18.0 + max(0.0, c) * 64.0 + max(0.0, -c) * 8.0
+        l_foot_pitch = s * 16.0 - (c * 10.0 if c > 0 else 0.0)
         if l_upleg:
             key_bone_rot(l_upleg, l_thigh_pitch, 0.0, -4.5, f)
         if l_leg:
@@ -400,8 +411,8 @@ def build_run(arm):
             
         # Derecha (fase invertida 180°: contralateral)
         r_thigh_pitch = -s * 36.0 + 4.0
-        r_knee_flex = 18.0 + max(0.0, -c) * 68.0 + max(0.0, c) * 8.0
-        r_foot_pitch = s * 18.0 - (-c * 12.0 if -c > 0 else 0.0)
+        r_knee_flex = 18.0 + max(0.0, -c) * 64.0 + max(0.0, c) * 8.0
+        r_foot_pitch = -s * 16.0 - (-c * 10.0 if -c > 0 else 0.0)
         if r_upleg:
             key_bone_rot(r_upleg, r_thigh_pitch, 0.0, 4.5, f)
         if r_leg:
@@ -409,22 +420,21 @@ def build_run(arm):
         if r_foot:
             key_bone_rot(r_foot, r_foot_pitch, 0.0, 0.0, f)
             
-        # 5. Brazos y Guardia Táctica CS 1.6 / Left 4 Dead:
-        # Silueta cerrada: brazos pegados al torso (X = 4.0°), balanceo sagital en Z.
-        # s > 0 (pierna izq adelante) -> brazo izq atrás (+Z), brazo der adelante (+Z)
-        # s < 0 (pierna der adelante) -> brazo izq adelante (-Z), brazo der atrás (-Z)
-        l_arm_z = s * 26.0 - 6.0
-        r_arm_z = s * 26.0 + 6.0
+        # 5. Brazos y Guardia Táctica CS 1.6 / Left 4 Dead (Contralateral estricto):
+        # Silueta cerrada: brazos pegados al torso (X = 4.0°), balanceo sagital contralateral en Z.
+        # s > 0 (pierna izq adelante) -> brazo izq atrás (-Z), brazo der adelante (-Z)
+        # s < 0 (pierna der adelante) -> brazo izq adelante (+Z), brazo der atrás (+Z)
+        l_arm_z = -s * 26.0 - 6.0
+        r_arm_z = -s * 26.0 + 6.0
         if l_arm:
             key_bone_rot(l_arm, 4.0, 0.0, l_arm_z, f)
         if r_arm:
             key_bone_rot(r_arm, 4.0, 0.0, r_arm_z, f)
             
         # Antebrazos: Flexión de codo cerrada y táctica en Z (eje de bisagra sagital de Mixamo)
-        # En s < 0 (brazo izq adelante): codo flexiona a -52° en Z (guardia táctica compacta)
-        # En s > 0 (brazo der adelante): codo der flexiona a +52° en Z
-        l_fore_z = -30.0 + min(0.0, s * 22.0)
-        r_fore_z = 30.0 + max(0.0, s * 22.0)
+        # Al avanzar brazo hacia adelante (-s > 0 en brazo izq): codo flexiona a -52° en Z
+        l_fore_z = -30.0 + min(0.0, -s * 22.0)
+        r_fore_z = 30.0 + max(0.0, -s * 22.0)
         if l_fore:
             key_bone_rot(l_fore, 0.0, 0.0, l_fore_z, f)
         if r_fore:
@@ -436,9 +446,9 @@ def build_run(arm):
         if r_hand:
             key_bone_rot(r_hand, 0.0, 0.0, 0.0, f)
             
-        # Puños tácticos cerrados (fist curl +X)
-        curl_fist(b, 'Left', 68.0, f)
-        curl_fist(b, 'Right', 68.0, f)
+        # Puños tácticos completamente cerrados (fist curl +X con pulgares anatómicos cerrados)
+        curl_fist(b, 'Left', 78.0, f)
+        curl_fist(b, 'Right', 78.0, f)
 
 def build_turn(arm, direction='left'):
     """
