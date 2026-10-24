@@ -5,10 +5,14 @@ import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useGameStore } from '@/store/gameStore'
-import { navigationService } from '@/services/NavigationService'
+import {
+  calculateGeodesicBearing,
+  calculateGeodesicDistance,
+} from '@/services/NavigationService'
 
 export function PeakBeacon3D() {
   const isHoloMapActive = useGameStore((state) => state.isHoloMapActive)
+  const currentBiome = useGameStore((state) => state.currentBiome)
   const navigationTarget = useGameStore((state) => state.navigationTarget)
   const playerPosition = useGameStore((state) => state.position)
   const terrainManager = useGameStore((state) => state.terrainManager)
@@ -17,146 +21,211 @@ export function PeakBeacon3D() {
   const ringRef = useRef<THREE.Mesh>(null)
   const diamondRef = useRef<THREE.Mesh>(null)
 
-  // Calcular posición 3D en el mundo Three.js según coordenadas geográficas del objetivo
-  const targetPos3D = useMemo(() => {
-    if (!navigationTarget) return null
+  // Origen geográfico según el bioma activo
+  const biomeOrigin = useMemo(() => {
+    const BIOME_ORIGINS: Record<string, { lat: number; lon: number; baseAlt: number }> = {
+      antarctica: { lat: -77.722, lon: 162.273, baseAlt: 65 },
+      aconcagua: { lat: -32.653, lon: -70.011, baseAlt: 2800 },
+      titicaca: { lat: -15.800, lon: -69.200, baseAlt: 3812 },
+      easter_island: { lat: -27.120, lon: -109.350, baseAlt: 50 },
+      constellations: { lat: 0, lon: 0, baseAlt: 0 },
+    }
+    return BIOME_ORIGINS[currentBiome] || BIOME_ORIGINS.antarctica
+  }, [currentBiome])
 
-    // Origen de referencia de la escena actual
-    const originLat = -77.722
-    const originLon = 162.273
+  // Coordenadas geográficas actuales de Auren en tiempo real
+  const playerCoords = useMemo(() => {
     const earthRadius = 6371000
+    const cosOrigin = Math.cos((biomeOrigin.lat * Math.PI) / 180) || 1.0
 
-    const cosOriginLat = Math.cos((originLat * Math.PI) / 180)
-    const dLon = ((navigationTarget.longitude - originLon) * Math.PI) / 180
-    const dLat = ((navigationTarget.latitude - originLat) * Math.PI) / 180
+    const dLat = (-playerPosition[2] / earthRadius) * (180 / Math.PI)
+    const dLon = (playerPosition[0] / (earthRadius * cosOrigin)) * (180 / Math.PI)
 
-    let rawX = dLon * cosOriginLat * earthRadius
-    let rawZ = -dLat * earthRadius
+    return {
+      lat: biomeOrigin.lat + dLat,
+      lon: biomeOrigin.lon + dLon,
+      alt: Math.max(0, playerPosition[1] * 25 + biomeOrigin.baseAlt),
+    }
+  }, [playerPosition, biomeOrigin])
 
-    // Compresión para objetivos lejanos continentales
-    const dist2D = Math.hypot(rawX, rawZ)
-    if (dist2D > 2500) {
-      const compressedDist = 2500 + Math.log10(1 + (dist2D - 2500) * 0.01) * 350
-      const ratio = compressedDist / dist2D
-      rawX *= ratio
-      rawZ *= ratio
+  // Distancia real matemática y rumbo hacia el objetivo
+  const { trueDistance, bearingDeg, deltaElevation } = useMemo(() => {
+    if (!navigationTarget) {
+      return { trueDistance: 0, bearingDeg: 0, deltaElevation: 0 }
     }
 
-    // Obtener altura del terreno si existe en esa coordenada
+    const dist = calculateGeodesicDistance(
+      playerCoords.lat,
+      playerCoords.lon,
+      navigationTarget.latitude,
+      navigationTarget.longitude
+    )
+
+    const bearing = calculateGeodesicBearing(
+      playerCoords.lat,
+      playerCoords.lon,
+      navigationTarget.latitude,
+      navigationTarget.longitude
+    )
+
+    const dElev = navigationTarget.elevation - playerCoords.alt
+
+    return {
+      trueDistance: dist,
+      bearingDeg: bearing,
+      deltaElevation: dElev,
+    }
+  }, [navigationTarget, playerCoords])
+
+  // Formato limpio de distancia para el HUD 3D
+  const distanceFormatted = useMemo(() => {
+    if (trueDistance >= 1000000) {
+      return `${Math.round(trueDistance / 1000).toLocaleString('es-ES')} km`
+    }
+    if (trueDistance >= 100000) {
+      return `${Math.round(trueDistance / 1000)} km`
+    }
+    if (trueDistance >= 10000) {
+      return `${(trueDistance / 1000).toFixed(1).replace('.', ',')} km`
+    }
+    if (trueDistance >= 1000) {
+      return `${(trueDistance / 1000).toFixed(2).replace('.', ',')} km`
+    }
+    return `${Math.round(trueDistance)} m`
+  }, [trueDistance])
+
+  // Posición visual en 3D garantizada dentro del frustum de la cámara (far: 1000)
+  // Anclada en el horizonte a 350m a lo largo del rumbo real si está lejos
+  const visualPos3D = useMemo(() => {
+    if (!navigationTarget) return new THREE.Vector3(0, 0, 0)
+
+    const bearingRad = (bearingDeg * Math.PI) / 180
+    // Distancia visual en el motor (máximo 380m para evitar culling de la cámara far: 1000)
+    const visualDist = Math.min(trueDistance, 380)
+
+    const targetX = playerPosition[0] + Math.sin(bearingRad) * visualDist
+    const targetZ = playerPosition[2] - Math.cos(bearingRad) * visualDist
+
     let groundY = 0
     if (terrainManager && typeof terrainManager.getHeightAt === 'function') {
-      groundY = terrainManager.getHeightAt(rawX, rawZ)
+      groundY = terrainManager.getHeightAt(targetX, targetZ)
     }
 
-    // Altura visual de cumbre proporcional
-    const visualY = Math.max(groundY + 12, (navigationTarget.elevation / 35))
+    // Si es local (< 380m), se ubica en su cumbre; si está en el horizonte lejano, se eleva visiblemente
+    const visualY =
+      trueDistance <= 380
+        ? Math.max(groundY + 10, navigationTarget.elevation / 35)
+        : Math.max(playerPosition[1] + 18, groundY + 25)
 
-    return new THREE.Vector3(rawX, visualY, rawZ)
-  }, [navigationTarget, terrainManager])
+    return new THREE.Vector3(targetX, visualY, targetZ)
+  }, [navigationTarget, bearingDeg, trueDistance, playerPosition, terrainManager])
 
-  // Distancia del jugador al objetivo en 3D
-  const distance3D = useMemo(() => {
-    if (!targetPos3D) return 999999
-    return targetPos3D.distanceTo(
-      new THREE.Vector3(playerPosition[0], playerPosition[1], playerPosition[2])
-    )
-  }, [targetPos3D, playerPosition])
-
-  // Animaciones continuas de pulso y rotación con bajo costo de CPU/GPU
+  // Animaciones de pulso y rotación livianas
   useFrame((state) => {
-    if (!isHoloMapActive || !targetPos3D) return
+    if (!isHoloMapActive || !navigationTarget) return
 
     const time = state.clock.elapsedTime
     if (ringRef.current) {
-      ringRef.current.rotation.z = time * 1.2
-      const scale = 1.0 + Math.sin(time * 3) * 0.12
+      ringRef.current.rotation.z = time * 1.5
+      const scale = 1.0 + Math.sin(time * 3) * 0.15
       ringRef.current.scale.set(scale, scale, scale)
     }
 
     if (diamondRef.current) {
-      diamondRef.current.rotation.y = time * 0.8
-      diamondRef.current.position.y = Math.sin(time * 2.5) * 0.4
+      diamondRef.current.rotation.y = time * 1.0
+      diamondRef.current.position.y = Math.sin(time * 2.5) * 0.5
     }
   })
 
-  if (!isHoloMapActive || !navigationTarget || !targetPos3D) return null
+  if (!isHoloMapActive || !navigationTarget) return null
 
   const targetColor = navigationTarget.color || '#38bdf8'
-  const isClose = distance3D < 1200
-  const isArrived = distance3D < 180
+  const isArrived = trueDistance <= 150
+  const isClose = trueDistance <= 1200
 
   return (
-    <group ref={groupRef} position={targetPos3D}>
-      {/* 1. Haz de Luz Vertical / Columna de Energía hacia la estratosfera */}
-      <mesh position={[0, 40, 0]}>
-        <cylinderGeometry args={[0.2, 0.4, 80, 8]} />
+    <group ref={groupRef} position={visualPos3D}>
+      {/* 1. Columna de Luz Vertical de Navegación hacia el firmamento */}
+      <mesh position={[0, 45, 0]}>
+        <cylinderGeometry args={[0.35, 0.8, 90, 8]} />
         <meshBasicMaterial
           color={targetColor}
           transparent
-          opacity={0.35}
+          opacity={0.4}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
       </mesh>
 
-      {/* 2. Faro / Baliza Holográfica Central */}
-      <group position={[0, 2.5, 0]}>
-        {/* Diamante rotatorio en la cumbre */}
+      {/* 2. Baliza Holográfica Central (Diamante + Aro Orbital) */}
+      <group position={[0, 2, 0]}>
         <mesh ref={diamondRef}>
-          <octahedronGeometry args={[0.8, 0]} />
+          <octahedronGeometry args={[1.2, 0]} />
           <meshBasicMaterial
             color={targetColor}
             transparent
-            opacity={0.9}
+            opacity={0.95}
             blending={THREE.AdditiveBlending}
           />
         </mesh>
 
-        {/* Anillo de llegada orbital */}
         <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[1.5, 0.05, 8, 24]} />
+          <torusGeometry args={[2.2, 0.08, 8, 24]} />
           <meshBasicMaterial
             color="#ffffff"
             transparent
-            opacity={0.8}
+            opacity={0.85}
             blending={THREE.AdditiveBlending}
           />
         </mesh>
       </group>
 
-      {/* 3. Etiqueta Holográfica 3D (visible a distancias intermedias y cortas) */}
-      {distance3D < 2200 && (
-        <Html
-          position={[0, 5.5, 0]}
-          center
-          distanceFactor={22}
-          zIndexRange={[90, 0]}
-          style={{ pointerEvents: 'none', userSelect: 'none', whiteSpace: 'nowrap' }}
+      {/* 3. Etiqueta Holográfica 3D con DISTANCIA DESTACADA SIEMPRE VISIBLE */}
+      <Html
+        position={[0, 6.5, 0]}
+        center
+        distanceFactor={28}
+        zIndexRange={[90, 0]}
+        style={{
+          pointerEvents: 'none',
+          userSelect: 'none',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            fontFamily: "'Inter', monospace, -apple-system, sans-serif",
+          }}
         >
+          {/* Card Principal de la Baliza */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              fontFamily: "'Inter', monospace, sans-serif",
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: 'rgba(5, 12, 25, 0.88)',
+              border: `1.5px solid ${targetColor}`,
+              boxShadow: `0 0 24px ${targetColor}cc, inset 0 0 12px ${targetColor}44`,
+              backdropFilter: 'blur(8px)',
+              color: '#ffffff',
             }}
           >
+            {/* Nombre de la Montaña y Cota */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                background: 'rgba(5, 12, 25, 0.82)',
-                border: `1px solid ${targetColor}`,
-                boxShadow: `0 0 20px ${targetColor}aa`,
-                backdropFilter: 'blur(6px)',
-                color: '#ffffff',
                 fontSize: '11px',
                 fontWeight: 700,
-                letterSpacing: '0.6px',
+                letterSpacing: '0.8px',
                 textTransform: 'uppercase',
+                color: targetColor,
               }}
             >
               <span
@@ -169,43 +238,72 @@ export function PeakBeacon3D() {
                 }}
               />
               <span>{navigationTarget.name}</span>
-              <span style={{ color: '#94a3b8', fontSize: '9px' }}>
+              <span style={{ color: '#94a3b8', fontSize: '9px', fontWeight: 400 }}>
                 {navigationTarget.elevation.toLocaleString()} m
               </span>
             </div>
 
-            {isArrived ? (
-              <div
-                style={{
-                  marginTop: '4px',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  background: 'rgba(16, 185, 129, 0.3)',
-                  border: '1px solid #10b981',
-                  color: '#34d399',
-                  fontSize: '9px',
-                  fontWeight: 700,
-                  letterSpacing: '0.8px',
-                  boxShadow: '0 0 10px #10b981',
-                }}
-              >
-                ✓ CUMBRE ALCANZADA
-              </div>
-            ) : isClose ? (
-              <div
-                style={{
-                  marginTop: '2px',
-                  color: '#67e8f9',
-                  fontSize: '9px',
-                  fontFamily: 'monospace',
-                }}
-              >
-                APROXIMACIÓN FINAL · {Math.round(distance3D)} m
-              </div>
-            ) : null}
+            {/* DISTANCIA RESTANTE EN NÚMEROS GRANDES (EL DATO CLAVE) */}
+            <div
+              style={{
+                marginTop: '3px',
+                fontSize: '16px',
+                fontWeight: 900,
+                fontFamily: 'monospace',
+                color: '#ffffff',
+                textShadow: `0 0 12px ${targetColor}`,
+                letterSpacing: '0.5px',
+              }}
+            >
+              {distanceFormatted}
+            </div>
+
+            {/* Subtítulo de Desnivel */}
+            <div
+              style={{
+                fontSize: '8.5px',
+                color: deltaElevation >= 0 ? '#67e8f9' : '#34d399',
+                fontFamily: 'monospace',
+                marginTop: '1px',
+              }}
+            >
+              {deltaElevation >= 0 ? `▲ DESNIVEL: +${Math.round(deltaElevation)} m` : `▼ DESNIVEL: ${Math.round(deltaElevation)} m`}
+            </div>
           </div>
-        </Html>
-      )}
+
+          {/* Badge de Llegada / Proximidad */}
+          {isArrived ? (
+            <div
+              style={{
+                marginTop: '4px',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: 'rgba(16, 185, 129, 0.35)',
+                border: '1px solid #10b981',
+                color: '#34d399',
+                fontSize: '9.5px',
+                fontWeight: 800,
+                letterSpacing: '1px',
+                boxShadow: '0 0 14px #10b981',
+              }}
+            >
+              ✓ CUMBRE ALCANZADA
+            </div>
+          ) : isClose ? (
+            <div
+              style={{
+                marginTop: '3px',
+                color: '#67e8f9',
+                fontSize: '8.5px',
+                fontFamily: 'monospace',
+                letterSpacing: '0.5px',
+              }}
+            >
+              APROXIMACIÓN FINAL
+            </div>
+          ) : null}
+        </div>
+      </Html>
     </group>
   )
 }

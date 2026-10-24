@@ -12,11 +12,24 @@ import {
 
 export function AurenCompassHUD() {
   const isHoloMapActive = useGameStore((state) => state.isHoloMapActive)
+  const currentBiome = useGameStore((state) => state.currentBiome)
   const playerPosition = useGameStore((state) => state.position)
   const playerRotation = useGameStore((state) => state.rotation)
   const navigationTarget = useGameStore((state) => state.navigationTarget)
   const cycleNavigationTarget = useGameStore((state) => state.cycleNavigationTarget)
   const setNavigationTarget = useGameStore((state) => state.setNavigationTarget)
+
+  // Origen geográfico según el bioma activo del jugador
+  const biomeOrigin = useMemo(() => {
+    const BIOME_ORIGINS: Record<string, { lat: number; lon: number; baseAlt: number }> = {
+      antarctica: { lat: -77.722, lon: 162.273, baseAlt: 65 },
+      aconcagua: { lat: -32.653, lon: -70.011, baseAlt: 2800 },
+      titicaca: { lat: -15.800, lon: -69.200, baseAlt: 3812 },
+      easter_island: { lat: -27.120, lon: -109.350, baseAlt: 50 },
+      constellations: { lat: 0, lon: 0, baseAlt: 0 },
+    }
+    return BIOME_ORIGINS[currentBiome] || BIOME_ORIGINS.antarctica
+  }, [currentBiome])
 
   // Rumbo del jugador en grados (0° = Norte, 90° = Este, 180° = Sur, 270° = Oeste)
   // En Three.js, rotación Y = 0 mira hacia -Z (Norte). Rotación horaria positiva.
@@ -25,24 +38,20 @@ export function AurenCompassHUD() {
     return (rawDeg + 360) % 360
   }, [playerRotation])
 
-  // Latitud/longitud aproximada de Auren según su posición en el juego (origen Antártida / Blood Falls)
+  // Latitud/longitud de Auren según su posición en el juego (1 unidad Three.js = 1 metro)
   const playerCoords = useMemo(() => {
-    // 1 metro en Three.js = ~1 metro real
-    const originLat = -77.722
-    const originLon = 162.273
     const earthRadius = 6371000
+    const cosOrigin = Math.cos((biomeOrigin.lat * Math.PI) / 180) || 1.0
 
     const dLat = (-playerPosition[2] / earthRadius) * (180 / Math.PI)
-    const dLon =
-      (playerPosition[0] / (earthRadius * Math.cos((originLat * Math.PI) / 180))) *
-      (180 / Math.PI)
+    const dLon = (playerPosition[0] / (earthRadius * cosOrigin)) * (180 / Math.PI)
 
     return {
-      lat: originLat + dLat,
-      lon: originLon + dLon,
-      alt: Math.max(0, playerPosition[1] * 25 + 65), // Escala a altitud sobre el nivel del mar
+      lat: biomeOrigin.lat + dLat,
+      lon: biomeOrigin.lon + dLon,
+      alt: Math.max(0, playerPosition[1] * 25 + biomeOrigin.baseAlt),
     }
-  }, [playerPosition])
+  }, [playerPosition, biomeOrigin])
 
   // Cálculos de navegación hacia el objetivo seleccionado
   const navData = useMemo(() => {
@@ -66,12 +75,26 @@ export function AurenCompassHUD() {
     const deltaElev = navigationTarget.elevation - playerCoords.alt
     const directDist = Math.hypot(horizDist, deltaElev)
 
-    // Formatear distancias
-    const formatDist = (d: number) => {
-      if (d >= 1000000) return `${(d / 1000000).toFixed(1)}M km`
-      if (d >= 10000) return `${Math.round(d / 1000)} km`
-      if (d >= 1000) return `${(d / 1000).toFixed(1)} km`
-      return `${Math.round(d)} m`
+    // Formatear distancias limpiamente (sin Mega Kilómetros confusos)
+    const formatDist = (meters: number) => {
+      if (meters >= 1000000) {
+        // >= 1.000 km (ej. 7.345 km)
+        return `${Math.round(meters / 1000).toLocaleString('es-ES')} km`
+      }
+      if (meters >= 100000) {
+        // 100 km a 999 km (ej. 115 km)
+        return `${Math.round(meters / 1000)} km`
+      }
+      if (meters >= 10000) {
+        // 10 km a 99 km (ej. 24,5 km)
+        return `${(meters / 1000).toFixed(1).replace('.', ',')} km`
+      }
+      if (meters >= 1000) {
+        // 1 km a 9.9 km (ej. 3,25 km)
+        return `${(meters / 1000).toFixed(2).replace('.', ',')} km`
+      }
+      // < 1 km (ej. 450 m)
+      return `${Math.round(meters)} m`
     }
 
     return {
