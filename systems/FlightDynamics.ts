@@ -331,8 +331,9 @@ export class FlightDynamics {
     this.throttle = approach(this.throttle, throttleTarget, (throttleTarget > this.throttle ? 1.6 : 1.2) * dt)
 
     const abAllowed = input.boost && this.energy > ENERGY_MIN_FOR_AB && !this.overheated
-    const abTarget = abAllowed && this.throttle > 0.15 ? 1 : 0
-    this.afterburner = approach(this.afterburner, abTarget, (abTarget > this.afterburner ? 0.8 : 2.5) * dt)
+    // Postquemador súper velocidad: se activa con Shift si se avanza (forward) o si se asciende/vuela (up / forward)
+    const abTarget = abAllowed && (this.throttle > 0.1 || input.forward || input.up) ? 1 : 0
+    this.afterburner = approach(this.afterburner, abTarget, (abTarget > this.afterburner ? 1.4 : 2.5) * dt)
 
     this.brake = approach(this.brake, input.backward ? 1 : 0, 4 * dt)
 

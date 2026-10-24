@@ -199,7 +199,7 @@ export function useGameControls() {
         case 'KeyE':
         case 'PageUp':
           e.preventDefault()
-          setControls({ up: true })
+          setControls({ up: true, jump: true })
           break
         // BAJAR ALTITUD con Q o AvPág (y SHIFT para los personajes sin postquemador)
         case 'ShiftLeft':
@@ -248,7 +248,7 @@ export function useGameControls() {
           break
         case 'KeyE':
         case 'PageUp':
-          setControls({ up: false })
+          setControls({ up: false, jump: false })
           break
         case 'ShiftLeft':
         case 'ShiftRight':

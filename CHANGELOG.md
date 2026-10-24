@@ -1,5 +1,24 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.32] - 2026-10-24
+
+### ⚡ Perfeccionamiento de Controles: Caminar vs. Correr en Tierra y Despegue con Espacio / E
+
+#### 1. Desacople Limpio de Carrera y Vuelo ([BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx))
+- **Caminar vs. Correr en Tierra Firme**:
+  - `W`: Caminata táctica controlada a velocidad estándar.
+  - `Shift + W`: Carrera en tierra sin despegar involuntariamente ni saltos espurios.
+  - El despegue ahora está vinculado exclusivamente a las órdenes de ascenso deliberado: `Espacio` (salto/ascenso) o `E` (ascenso directo).
+- **Despegue Supersónico Reactivo (`Shift + Espacio` / `Shift + E`)**:
+  - Al saltar o ascender mientras se sostiene `Shift`, el impulso vertical se incrementa a $16\text{ m/s}$ y el forwardSpeed se lanza instantáneamente a $\ge 45\text{ m/s}$ con postquemador activo (`afterburner = 1.0`), preservando e impulsando la inercia de la carrera.
+
+#### 2. Soporte Completo de Ascenso con Tecla E ([useGameControls.ts](file:///c:/Projects/Jarbees_the_game/hooks/useGameControls.ts))
+- Presionar `E` activa `up: true` y `jump: true`, asegurando que el despegue responda de forma idéntica a `Espacio`.
+- Al soltar `E`, se liberan adecuadamente ambos estados.
+
+#### 3. Postquemador en Ascenso Vertical ([FlightDynamics.ts](file:///c:/Projects/Jarbees_the_game/systems/FlightDynamics.ts))
+- `afterburner` ahora se activa tanto en avance (`forward`) como en ascenso vertical (`up`) al presionar `Shift`, permitiendo trepadas verticales y despegues supersónicos a máxima potencia.
+
 ## [0.8.31] - 2026-10-24
 
 ### 🚀 Transición Fluida Tierra-Vuelo: Despegue Reactivo y Vuelo Rasante sin Bloqueo de Controles

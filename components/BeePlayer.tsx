@@ -506,12 +506,12 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
           ? terrainManager.getHeightAt(playerObj.position.x, playerObj.position.z) + 1.4
           : 0.8
         altAboveGround = Math.max(0, playerObj.position.y - floorY)
-        isGrounded = isGroundedFromStore || altAboveGround <= 0.15
+        isGrounded = isGroundedFromStore
       }
 
       // Velocidad real del traje sincronizada a 60 Hz directamente desde FlightDynamics
       const forwardSpeed = flightRuntime.forwardSpeed
-      const isInFlightMode = !isGrounded && altAboveGround > 0.35
+      const isInFlightMode = !isGrounded
       const isFlyingForward = isInFlightMode && (controls.forward || controls.boost || forwardSpeed > 1.8)
 
       // Si el usuario presiona W, S, Boost o Salto, romper de inmediato cualquier impacto, agachado o aterrizaje previo
@@ -1023,23 +1023,28 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
 
       if (isGroundedRef.current) {
         // --- MODO WALK (En tierra firme) ---
-        // Al presionar ESPACIO / E (jump / up), o despegue en carrera (Boost + W), despega con impulso reactivo
-        const isTryingTakeoff = controls.jump || controls.up || (controls.boost && controls.forward)
+        // Al presionar ESPACIO / E (jump / up), despega inmediatamente.
+        // Si además está corriendo con Shift o avanzando con W, se propulsa con súper velocidad.
+        const isTryingTakeoff = controls.jump || controls.up
         if (isTryingTakeoff) {
           isGroundedRef.current = false
           setGrounded(false)
-          takeoffCooldownRef.current = 0.65 // Inmunidad de despegue para evitar re-aterrizaje inmediato
+          takeoffCooldownRef.current = 0.70 // Inmunidad de despegue para evitar re-aterrizaje inmediato
 
-          // Impulso vertical y separación de la cota de tierra
+          // Impulso vertical y separación neta de la superficie
           const hasBoost = controls.boost
-          flight.vy = hasBoost ? 14.5 : 8.5
-          player.position.y = floorY + 0.85
+          flight.vy = hasBoost ? 16.0 : 10.0
+          player.position.y = floorY + 1.1
 
-          // Conservar la inercia de carrera hacia el vuelo y activar propulsores de inmediato
-          const initialSpeed = hasBoost ? Math.max(38.0, velocityRef.current * 2.5) : (controls.forward ? Math.max(16.0, velocityRef.current) : 0)
+          // Conservar inercia de tierra: si venía corriendo con Shift (hasta 15.2 m/s), saltar lo lanza a velocidad de vuelo
+          const forwardIntent = controls.forward ? 1 : 0
+          const initialSpeed = hasBoost
+            ? (forwardIntent ? Math.max(45.0, velocityRef.current * 3.0) : 12.0)
+            : (forwardIntent ? Math.max(18.0, velocityRef.current) : 0)
+
           flight.forwardSpeed = initialSpeed
-          flight.throttle = controls.forward ? 1.0 : 0.4
-          flight.afterburner = hasBoost && controls.forward ? 1.0 : 0
+          flight.throttle = forwardIntent || hasBoost ? 1.0 : 0
+          flight.afterburner = hasBoost && (forwardIntent || controls.up) ? 1.0 : 0
 
           const fx = -Math.sin(player.rotation.y)
           const fz = -Math.cos(player.rotation.y)
