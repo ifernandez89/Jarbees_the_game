@@ -6,6 +6,8 @@ import { Line, Html, Billboard } from '@react-three/drei'
 import * as THREE from 'three'
 import { useGameStore } from '@/store/gameStore'
 import { GeoProjector, type GeoCoordinate, type WorldPoint3D, calculateHaversineDistance } from '@/utils/geoProjection'
+import { getAssetPath } from '@/utils/assetPath'
+import ANTARCTICA_DEFAULT_GUIDE from '@/public/data/guides/antarctica_taylor_guide.json'
 
 interface WaypointData {
   lat: number
@@ -313,26 +315,28 @@ export function HoloTacticalOverlay() {
   const playerPosition = useGameStore((state) => state.position)
   const terrainManager = useGameStore((state) => state.terrainManager)
 
-  const [guide, setGuide] = useState<GuideData | null>(null)
-  const [loading, setLoading] = useState(true)
+  // Cargar guía inicial directamente empaquetada (evita 404 en GitHub Pages y 0ms latency)
+  const [guide, setGuide] = useState<GuideData>(ANTARCTICA_DEFAULT_GUIDE as unknown as GuideData)
+  const [loading, setLoading] = useState(false)
 
-  // Cargar datos de la guía táctica de la Antártida
+  // Opcional: refresco o carga dinámica con resolución de ruta para GitHub Pages (/Jarbees_the_game/...)
   useEffect(() => {
     let mounted = true
-    fetch('/data/guides/antarctica_taylor_guide.json')
+    const guideUrl = getAssetPath('/data/guides/antarctica_taylor_guide.json')
+
+    fetch(guideUrl)
       .then((res) => {
-        if (!res.ok) throw new Error('No se pudo cargar la guía táctica')
+        if (!res.ok) throw new Error(`HTTP error ${res.status} al cargar guía: ${guideUrl}`)
         return res.json()
       })
       .then((data: GuideData) => {
-        if (mounted) {
+        if (mounted && data) {
           setGuide(data)
-          setLoading(false)
         }
       })
       .catch((err) => {
-        console.warn('[HoloTacticalOverlay] Error cargando guía:', err)
-        setLoading(false)
+        // En caso de error de red, ya contamos con la guía inicial empaquetada
+        console.info('[HoloTacticalOverlay] Usando guía táctica bundled base:', err?.message || err)
       })
 
     return () => {

@@ -18,6 +18,7 @@
 - **Transparencia y Mezcla Aditiva (`THREE.AdditiveBlending`)**: Las líneas de caminos no obstruyen ni tapan el suelo, dejando visible la textura y topografía del terreno por debajo.
 - **Pulsos Dinámicos de Luz en Rutas**: Esferas de datos lumínicos que recorren continuamente los vectores en el loop `useFrame`, reproduciendo fielmente el concepto visual de navegación AR.
 - **Pines 3D de Realidad Aumentada**: Estructura de aguja de luz vertical, faro luminoso con aro de energía en rotación constante, y etiquetas flotantes de alta legibilidad que calculan la distancia en tiempo real respecto al jugador en metros o kilómetros.
+- **Compatibilidad Total con GitHub Pages**: La guía táctica se empaqueta estáticamente en el bundle inicial (0ms de latencia sin peticiones de red iniciales) y se resuelve dinámicamente con [getAssetPath()](file:///c:/Projects/Jarbees_the_game/utils/assetPath.ts) para evitar errores 404 al hospedar bajo el subdirectorio `/Jarbees_the_game/`.
 
 #### 3. Integración en UI y Controles
 - **Accionamiento Táctico con Tecla `[M]` o `[N]`**: Alterna de forma instantánea la visibilidad del mapa holográfico tanto a pie como en vuelo.
