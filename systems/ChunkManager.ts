@@ -86,8 +86,8 @@ export class ChunkManager {
   }
 
   /**
-   * Muestrea el relieve real del Aconcagua con interpolación bilineal
-   * y transición suave hacia la cordillera infinita en los límites exteriores
+   * Muestrea el relieve real del Aconcagua con interpolación bilineal,
+   * domain warping geológico y transición suave hacia la cordillera infinita
    */
   private sampleAconcaguaDEM(worldX: number, worldZ: number): number {
     const dem = ChunkManager.aconcaguaDEM
@@ -102,8 +102,15 @@ export class ChunkManager {
     const meterPerPx = 6.0
     const spawnRawElev = 3614.0 // Elevación base en el punto de spawn (px: 182, py: 334)
 
-    const px = Math.max(0, Math.min(510, peakPx + worldX / meterPerPx))
-    const py = Math.max(0, Math.min(510, peakPy + (worldZ - peakWorldZ) / meterPerPx))
+    // Domain warping geológico continuo: quiebra la cuadrícula rígida de píxeles del satélite
+    // y crea líneas de cresta, espolones y contornos rocosos naturales
+    const distFromSpawn = Math.hypot(worldX, worldZ)
+    const warpDamping = Math.min(1.0, distFromSpawn / 35.0) // 0 en spawn para preservar nivel perfecto de orilla
+    const warpX = Math.sin(worldZ * 0.012 + worldX * 0.007) * 4.0 * warpDamping
+    const warpZ = Math.cos(worldX * 0.012 + worldZ * 0.007) * 4.0 * warpDamping
+
+    const px = Math.max(0, Math.min(510, peakPx + (worldX + warpX) / meterPerPx))
+    const py = Math.max(0, Math.min(510, peakPy + ((worldZ + warpZ) - peakWorldZ) / meterPerPx))
 
     const x0 = Math.floor(px)
     const y0 = Math.floor(py)
@@ -126,6 +133,13 @@ export class ChunkManager {
       satH = 2.5 + Math.pow(norm, 1.15) * 125.0
     } else {
       satH = Math.max(1.6, 2.5 + norm * 8.0)
+    }
+
+    // Micro-detalle geológico: rugosidad de estrato rocoso y canales de escorrentía en laderas altas
+    if (satH > 5.0) {
+      const rockNoise = this.noiseGenerator.getHeight(worldX * 0.35, worldZ * 0.35, 1.1)
+      const altitudeFactor = Math.min(1.0, (satH - 5.0) / 25.0)
+      satH += rockNoise * altitudeFactor
     }
 
     // Mezcla suave (blend) hacia el relieve procedural infinito en los bordes (radio 1100m - 1500m)
@@ -163,77 +177,130 @@ export class ChunkManager {
   /**
    * Generar geometría del terreno para un chunk
    */
+  /**
+   * Generar geometría del terreno para un chunk con continuidad perfecta sin costuras
+   */
   private generateChunkGeometry(chunkX: number, chunkZ: number): THREE.BufferGeometry {
-    const { size, resolution, heightMultiplier } = this.config
+    const { size, resolution } = this.config
     
-    // Posición mundial del chunk
+    // Posición mundial del origen del chunk (esquina noroeste / mínima)
     const worldX = chunkX * size
     const worldZ = chunkZ * size
     
     // Número de segmentos
     const segments = Math.floor(size / resolution)
     
-    // Crear geometría de plano
+    // 1. Crear geometría de plano y rotarla horizontalmente al plano XZ (Y hacia arriba)
     const geometry = new THREE.PlaneGeometry(size, size, segments, segments)
+    geometry.rotateX(-Math.PI / 2)
+    // 2. Desplazar para que el origen local sea (0, 0) y los vértices se extiendan de [0, size] en X y Z
+    // Esto garantiza correspondencia 1:1 con la cuadrícula de chunks y elimina desfases con rocas/árboles
+    geometry.translate(size / 2, 0, size / 2)
     
-    // Obtener array de posiciones
+    // Obtener arrays de posiciones y normales
     const positions = geometry.attributes.position.array as Float32Array
-    
-    // Modificar altura de cada vértice según Perlin Noise o DEM real
+    const normals = geometry.attributes.normal.array as Float32Array
     const colors = new Float32Array(positions.length)
-    const colorShore = new THREE.Color('#586e42') // Orilla y valles bajos
-    const colorGrass = new THREE.Color('#3f5e2d') // Pasto andino frondoso
-    const colorHigh = new THREE.Color('#5d6840')  // Pastizal alto / ichu
-    const colorPeak = new THREE.Color('#6d665b')  // Roca de montaña
+    
+    // Paleta naturalista de materiales según altitud y pendiente (roca en acantilados, pasto en valles)
+    const colorValley = new THREE.Color('#3f5a28') // Verde pradera alpina
+    const colorSteppe = new THREE.Color('#58633c') // Ichu / vegetación andina de altura
+    const colorCliffDark = new THREE.Color('#464038') // Granito oscuro en paredes empinadas
+    const colorRockHigh = new THREE.Color('#6c665e') // Pedregal y morrena glaciar
+    const colorIce = new THREE.Color('#b3c8dc') // Hielo glaciar
+    const colorSnow = new THREE.Color('#f5f8fa') // Nieve perpetua
     const tempColor = new THREE.Color()
 
-    for (let i = 0; i < positions.length; i += 3) {
-      const x = positions[i] + worldX
-      const z = positions[i + 1] + worldZ
-      
-      // Y es la altura (index i + 2)
-      let h = 0
-      if (this.biome === 'aconcagua') {
-        h = this.sampleAconcaguaDEM(x, z)
-      } else {
-        h = this.noiseGenerator.getHeight(x, z, heightMultiplier)
-      }
-      positions[i + 2] = h
+    // Paso infinitesimal para cálculo de derivadas centrales continuas de normales
+    const eps = 0.4
 
-      // Coloración natural según altitud y bioma
+    for (let i = 0; i < positions.length; i += 3) {
+      // Tras rotateX(-PI/2) y translate(size/2, 0, size/2):
+      // positions[i] = local X en [0, size]
+      // positions[i + 1] = local Y (altura, inicialmente 0)
+      // positions[i + 2] = local Z en [0, size]
+      const localX = positions[i]
+      const localZ = positions[i + 2]
+      const x = localX + worldX
+      const z = localZ + worldZ
+      
+      const h = this.getHeightAt(x, z)
+      positions[i + 1] = h
+
+      // 3. Normal analítica global: garantiza iluminación continua sin costuras visibles entre chunks
+      // N = normalize(h(x - eps, z) - h(x + eps, z), 2 * eps, h(x, z - eps) - h(x, z + eps))
+      const hL = this.getHeightAt(x - eps, z)
+      const hR = this.getHeightAt(x + eps, z)
+      const hD = this.getHeightAt(x, z - eps)
+      const hU = this.getHeightAt(x, z + eps)
+      const nx = hL - hR
+      const ny = 2 * eps
+      const nz = hD - hU
+      const len = Math.hypot(nx, ny, nz) || 1.0
+
+      const normX = nx / len
+      const normY = ny / len // Pendiente (1.0 = plano, < 0.7 = acantilado)
+      const normZ = nz / len
+
+      normals[i] = normX
+      normals[i + 1] = normY
+      normals[i + 2] = normZ
+
+      // 4. Coloración biológica y geológica naturalista: función conjunta de altitud Y pendiente (slope)
+      const slope = 1.0 - normY // 0 = plano, > 0.3 = pendiente pronunciada, > 0.55 = pared rocosa vertical
+
       if (this.biome === 'aconcagua') {
-        // Paleta realista del macizo del Aconcagua:
-        // Valle andino -> Puna y estepa -> Granito / pared sur -> Morrenas y glaciares -> Cumbres nevadas
-        if (h < 6.0) {
-          tempColor.set('#4e6b42') // Valle y orillas de laguna Horcones
-        } else if (h < 22.0) {
-          const t = (h - 6.0) / 16.0
-          tempColor.set('#4e6b42').lerp(new THREE.Color('#666f48'), t) // Estepa andina / ichu
-        } else if (h < 55.0) {
-          const t = (h - 22.0) / 33.0
-          tempColor.set('#666f48').lerp(new THREE.Color('#544e45'), t) // Paredes de roca oscura y acantilados
-        } else if (h < 95.0) {
-          const t = (h - 55.0) / 40.0
-          tempColor.set('#544e45').lerp(new THREE.Color('#78736b'), t) // Pedregales de altura y morrena glaciar
-        } else if (h < 120.0) {
-          const t = (h - 95.0) / 25.0
-          tempColor.set('#78736b').lerp(new THREE.Color('#b8cce0'), t) // Hielo glaciar y penitentes
+        if (h < 12.0) {
+          // Valle bajo / Orillas: verde pastizal en plano, roca en paredes
+          if (slope > 0.38) {
+            tempColor.set(colorCliffDark)
+          } else {
+            const t = slope / 0.38
+            tempColor.copy(colorValley).lerp(colorSteppe, t * 0.5)
+          }
+        } else if (h < 35.0) {
+          // Estepa andina / Puna
+          if (slope > 0.32) {
+            tempColor.set(colorCliffDark)
+          } else {
+            const t = (h - 12.0) / 23.0
+            tempColor.copy(colorValley).lerp(colorSteppe, t)
+          }
+        } else if (h < 75.0) {
+          // Paredes de roca y acantilados
+          if (slope > 0.25) {
+            tempColor.set(colorCliffDark)
+          } else {
+            tempColor.copy(colorSteppe).lerp(colorRockHigh, (h - 35.0) / 40.0)
+          }
+        } else if (h < 110.0) {
+          // Morrenas y glaciares colgantes
+          if (slope > 0.45) {
+            tempColor.set(colorCliffDark) // Paredes donde la nieve no se sostiene
+          } else {
+            const t = (h - 75.0) / 35.0
+            tempColor.copy(colorRockHigh).lerp(colorIce, t)
+          }
         } else {
-          const t = Math.min(1.0, (h - 120.0) / 20.0)
-          tempColor.set('#b8cce0').lerp(new THREE.Color('#ffffff'), t) // Nieve perpetua de la cumbre
+          // Cumbres nevadas del Aconcagua (>110m)
+          if (slope > 0.52) {
+            tempColor.set(colorCliffDark) // Acantilado vertical sin nieve
+          } else {
+            const t = Math.min(1.0, (h - 110.0) / 25.0)
+            tempColor.copy(colorIce).lerp(colorSnow, t)
+          }
         }
       } else {
         if (h < 2.0) {
-          tempColor.copy(colorShore)
-        } else if (h < 5.0) {
-          const t = (h - 2.0) / 3.0
-          tempColor.copy(colorShore).lerp(colorGrass, t)
-        } else if (h < 9.0) {
-          const t = (h - 5.0) / 4.0
-          tempColor.copy(colorGrass).lerp(colorHigh, t)
+          tempColor.set('#586e42')
+        } else if (h < 6.0) {
+          const t = (h - 2.0) / 4.0
+          tempColor.set('#586e42').lerp(new THREE.Color('#3f5e2d'), t)
+        } else if (h < 12.0) {
+          const t = (h - 6.0) / 6.0
+          tempColor.set('#3f5e2d').lerp(new THREE.Color('#5d6840'), t)
         } else {
-          const t = Math.min(1.0, (h - 9.0) / 4.0)
-          tempColor.copy(colorHigh).lerp(colorPeak, t)
+          tempColor.set('#6d665b')
         }
       }
 
@@ -242,14 +309,14 @@ export class ChunkManager {
       colors[i + 2] = tempColor.b
     }
     
-    // Rotar para que sea horizontal
-    geometry.rotateX(-Math.PI / 2)
-    
     // Asignar colores de vértices
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
     
-    // Recalcular normales para iluminación correcta
-    geometry.computeVertexNormals()
+    // Marcar buffers actualizados y calcular bounds
+    geometry.attributes.position.needsUpdate = true
+    geometry.attributes.normal.needsUpdate = true
+    geometry.computeBoundingBox()
+    geometry.computeBoundingSphere()
     
     return geometry
   }

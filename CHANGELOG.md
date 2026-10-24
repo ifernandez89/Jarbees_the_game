@@ -1,5 +1,40 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.25] - 2026-10-23
+
+### 🏔️ Continuidad Topológica Sin Costuras, Normales Analíticas Globales y Texturizado Bioclimático por Pendiente (Slope-Aware)
+
+#### Diagnóstico del Corte Vertical / "Superposición de Capas de Montañas"
+- **Causa Raíz Matemática (Inversión del Eje Z tras Rotación de Malla)**:
+  - En [ChunkManager.ts](file:///c:/Projects/Jarbees_the_game/systems/ChunkManager.ts), `THREE.PlaneGeometry(size, size, segments, segments)` se creaba originalmente en el plano $XY$.
+  - El bucle de altura muestreaba `z = positions[i + 1] + worldZ` (usando la $Y$ local de Three.js que desciende de $+size/2$ a $-size/2$), y asignaba la altura a $positions[i + 2]$.
+  - Posteriormente, se ejecutaba `geometry.rotateX(-Math.PI / 2)`. Por álgebra matricial de rotación, la coordenada $Z$ resultante en Three.js es $Z_{new} = -Y_{old}$.
+  - **Consecuencia**: El eje $Z$ de cada chunk quedaba invertido respecto al espacio mundial. En el borde entre el Chunk $(x, z)$ y el Chunk $(x, z+1)$, un chunk mostraba la altura de 100m atrás y el contiguo la de 100m adelante, creando un corte vertical de hasta 40 metros de altura ("pared de cartón" o escalón visible en la captura).
+- **Causa Secundaria (Desalineación Origen Local vs Grid Mundial)**:
+  - `PlaneGeometry` se centraba en $(0, 0)$ con rango $[-50, +50]$, mientras que la cuadrícula de chunks, [TreePopulation.tsx](file:///c:/Projects/Jarbees_the_game/components/TreePopulation.tsx) y [RockPopulation.tsx](file:///c:/Projects/Jarbees_the_game/components/RockPopulation.tsx) operaban en $[chunkX \cdot size, (chunkX+1) \cdot size]$.
+  - Esto desfasaba los árboles y rocas 50 metros del centro del chunk, provocando que rocas flotaran en el aire o sobre el agua.
+- **Causa Terciaria (Normales Locales por Chunk)**:
+  - `geometry.computeVertexNormals()` solo promediaba las caras internas del chunk, dejando normales desbalanceadas en los bordes perimetrales que producían sombras y reflejos discontinuos.
+
+#### Solución Integral Aplicada
+- **Continuidad Geométrica 1:1 en [ChunkManager.ts](file:///c:/Projects/Jarbees_the_game/systems/ChunkManager.ts)**:
+  - La geometría se rota primero horizontalmente (`geometry.rotateX(-Math.PI / 2)`) y se traslada inmediatamente a la esquina mínima (`geometry.translate(size / 2, 0, size / 2)`).
+  - Los vértices locales se extienden exactamente de $[0, size]$ en $X$ y $Z$, coincidiendo milimétricamente con el sistema de coordenadas de la cuadrícula.
+  - Al evaluar $h = this.getHeightAt(x, z)$, los bordes compartidos entre chunks adyacentes calculan exactamente la misma cota matemática con 0.000 mm de separación o salto.
+- **Normales Analíticas Globales por Diferencias Centrales**:
+  - En lugar de `computeVertexNormals()`, las normales de cada vértice se calculan analíticamente a partir del gradiente del terreno global:
+    $$N = \text{normalize}(h(x - \epsilon, z) - h(x + \epsilon, z), 2\epsilon, h(x, z - \epsilon) - h(x, z + \epsilon))$$
+  - Al ser una función compartida de coordenadas mundiales, los vértices frontera entre chunks vecinos tienen normales 100% idénticas, eliminando cualquier costura de luz, brillo especular o quiebre de sombra.
+- **Materiales Naturalistas por Pendiente y Altitud (*Slope-Aware*)**:
+  - A partir de la normal analítica $N_y$, se deriva la inclinación real del terreno (`slope = 1.0 - normY`).
+  - Las paredes empinadas y acantilados ($slope > 0.35$) muestran granito oscuro y roca desnuda incluso en altitudes bajas, mientras que los valles y mesetas planas conservan praderas alpinas e ichu.
+  - En cumbres altas (>110m), las crestas y paredes verticales mantienen roca expuesta donde la nieve no se sostiene, mientras que las laderas menos empinadas acumulan hielo y nieve perpetua.
+- **Domain Warping Geológico & Micro-Detalle en [ChunkManager.ts](file:///c:/Projects/Jarbees_the_game/systems/ChunkManager.ts)**:
+  - Implementado *domain warping* sinusoidal continuo para romper la cuadrícula rígida del DEM satelital, generando aristas, espolones y contornos geológicos orgánicos.
+  - Agregado micro-relieve fractal y estrato rocoso en laderas altas amortiguado hacia el spawn para preservar la cota cero en el lago.
+- **Mayor Fidelidad de Malla en [InfiniteTerrain.tsx](file:///c:/Projects/Jarbees_the_game/components/InfiniteTerrain.tsx)**:
+  - Resolución mejorada a 3.125 unidades (32×32 segmentos por chunk), eliminando facetas triangulares marcadas y logrando siluetas suaves en vuelo tanto a baja como a gran altitud.
+
 ## [0.8.24] - 2026-10-23
 
 ### 🏔️ Erradicación de Terrenos Superpuestos & Calibración de Cota Cero en el Spawn del Aconcagua

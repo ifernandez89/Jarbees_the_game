@@ -45,7 +45,7 @@ export function InfiniteTerrain({ biome = 'aconcagua', seed }: InfiniteTerrainPr
   const chunkManager = useMemo(() => {
     const baseConfig: ChunkConfig = {
       size: 100, // Chunks de 100x100
-      resolution: 5, // Un vértice cada 5 unidades
+      resolution: 3.125, // Un vértice cada 3.125 unidades (32x32 segmentos para relieve suave sin facetas triangulares)
       viewDistance: 200, // Renderizar 200 unidades alrededor
       heightMultiplier: 8,
       color: '#7CFC00',
