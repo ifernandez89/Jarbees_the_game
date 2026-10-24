@@ -71,7 +71,9 @@ function Scene() {
       <WaterSurface waterHeight={1.4} />
 
       {/* Santuario Pirámide de Auren a Escala Real de Guiza (Hogar y Punto de Salida/Aparición) */}
-      <AurenPyramidSanctuary />
+      <Suspense fallback={null}>
+        <AurenPyramidSanctuary />
+      </Suspense>
 
       {/* Abeja jugadora con fallback instantáneo y modelo 3D */}
       <BeePlayer />

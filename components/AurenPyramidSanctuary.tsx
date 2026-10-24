@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useMemo, useEffect } from 'react'
+import React, { useRef, useMemo, Component, ReactNode, Suspense } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
@@ -40,6 +40,60 @@ const BASE_GROUND_Y = 1.85
 const PYRAMID_CENTER_X = 0.0
 const PYRAMID_CENTER_Y = BASE_GROUND_Y
 const PYRAMID_CENTER_Z = 118.0
+
+// Radio circunscrito para pirámide cuadrada de lado 230.34 m: R = L / sqrt(2)
+const PYRAMID_CIRCUMSCRIBED_RADIUS = GIZA_REAL_BASE_WIDTH / Math.SQRT2 // ~162.87 m
+
+/**
+ * Error boundary para capturar cualquier fallo de red o parsing del modelo 3D
+ */
+class PyramidErrorBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { fallback: ReactNode; children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: unknown) {
+    console.warn('⚠️ Fallback procedimental de Pirámide Santuario activado:', error)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback
+    }
+    return this.props.children
+  }
+}
+
+/**
+ * Modelo procedimental instantáneo (Fallback 0ms de latencia)
+ * Renderiza la Gran Pirámide a escala exacta 1:1 en nano-obsidiana mientras se descarga el binario HD
+ */
+function ProceduralPyramidMesh() {
+  return (
+    <mesh
+      position={[PYRAMID_CENTER_X, PYRAMID_CENTER_Y + GIZA_REAL_HEIGHT / 2, PYRAMID_CENTER_Z]}
+      rotation={[0, Math.PI / 4, 0]} // Alinear las 4 caras cuadradas con los ejes mundiales X y Z
+      castShadow
+      receiveShadow
+    >
+      <coneGeometry args={[PYRAMID_CIRCUMSCRIBED_RADIUS, GIZA_REAL_HEIGHT, 4]} />
+      <meshStandardMaterial
+        color="#0d1420"
+        roughness={0.32}
+        metalness={0.7}
+        envMapIntensity={1.2}
+      />
+    </mesh>
+  )
+}
 
 /**
  * Obelisco Cuántico Pylon
@@ -82,35 +136,23 @@ function QuantumPylon({ position }: { position: [number, number, number] }) {
 }
 
 /**
- * Santuario Pirámide de Auren (Gran Pirámide a Escala Real 1:1 de Guiza)
- * Acabado y Tratamiento Tecnológico Cuántico NEXO-01 para el Territorio Polar Natal
+ * Subcomponente de carga del modelo 3D GLTF (.jb3d) con Shader Cuántico
  */
-export function AurenPyramidSanctuary() {
+function PyramidGLTFModel({
+  customShaderUniforms,
+}: {
+  customShaderUniforms: {
+    uAurenTime: { value: number }
+    uPulseColor: { value: THREE.Color }
+    uGoldColor: { value: THREE.Color }
+  }
+}) {
   const modelUrl = getAssetPath('/models/pyramid.jb3d')
   const gltf = useSecureGLTF(modelUrl) as GLTFResult
 
-  // Referencias para animación continua
-  const ringsRef = useRef<THREE.Group>(null)
-  const beaconRaysRef = useRef<THREE.Group>(null)
-  const apexEnergyRef = useRef<THREE.Mesh>(null)
-  const daisEmblemRef = useRef<THREE.Mesh>(null)
-  const pyramidMeshGroupRef = useRef<THREE.Group>(null)
-
-  // Uniform temporal compartido para el pulso de energía cuántica en el shader de la pirámide
-  const customShaderUniforms = useMemo(
-    () => ({
-      uAurenTime: { value: 0 },
-      uPulseColor: { value: new THREE.Color('#55F0FF') },
-      uGoldColor: { value: new THREE.Color('#E5A93C') },
-    }),
-    []
-  )
-
   // Clonar la escena y calibrar escala real a la Gran Pirámide de Guiza
-  const { clonedScene, calculatedScale } = useMemo(() => {
-    if (!gltf.scene) {
-      return { clonedScene: null, calculatedScale: new THREE.Vector3(1, 1, 1) }
-    }
+  const clonedScene = useMemo(() => {
+    if (!gltf || !gltf.scene) return null
 
     const sceneClone = clone(gltf.scene)
 
@@ -194,13 +236,42 @@ export function AurenPyramidSanctuary() {
       }
     })
 
-    return {
-      clonedScene: sceneClone,
-      calculatedScale: new THREE.Vector3(sx, sy, sz),
-    }
-  }, [gltf.scene, customShaderUniforms])
+    return sceneClone
+  }, [gltf, customShaderUniforms])
 
-  // Geometría del rayo de luz atmosférico (Cilindro aditivo hacia la ionosfera)
+  if (!clonedScene) {
+    return <ProceduralPyramidMesh />
+  }
+
+  return (
+    <primitive
+      object={clonedScene}
+      position={[PYRAMID_CENTER_X, PYRAMID_CENTER_Y, PYRAMID_CENTER_Z]}
+      rotation={[0, Math.PI, 0]} // Portal orientado hacia el frente (-Z) donde se encuentra Auren
+    />
+  )
+}
+
+/**
+ * Santuario Pirámide de Auren (Gran Pirámide a Escala Real 1:1 de Guiza)
+ * Acabado y Tratamiento Tecnológico Cuántico NEXO-01 para el Territorio Polar Natal
+ */
+export function AurenPyramidSanctuary() {
+  // Referencias para animación continua
+  const ringsRef = useRef<THREE.Group>(null)
+  const apexEnergyRef = useRef<THREE.Mesh>(null)
+  const daisEmblemRef = useRef<THREE.Mesh>(null)
+
+  // Uniform temporal compartido para el pulso de energía cuántica en el shader de la pirámide
+  const customShaderUniforms = useMemo(
+    () => ({
+      uAurenTime: { value: 0 },
+      uPulseColor: { value: new THREE.Color('#55F0FF') },
+      uGoldColor: { value: new THREE.Color('#E5A93C') },
+    }),
+    []
+  )
+
   const apexY = PYRAMID_CENTER_Y + GIZA_REAL_HEIGHT
 
   // Loop de renderizado y animación de energía cuántica
@@ -229,16 +300,13 @@ export function AurenPyramidSanctuary() {
   return (
     <group name="AurenPyramidSanctuary">
       {/* ========================================================================= */}
-      {/* 1. MODELO MONUMENTAL DE LA GRAN PIRÁMIDE DE GUIZA (ESCALA 1:1 REAL)      */}
+      {/* 1. MODELO MONUMENTAL DE LA GRAN PIRÁMIDE (CON FALLBACK PROCEDIMENTAL 0ms) */}
       {/* ========================================================================= */}
-      {clonedScene && (
-        <primitive
-          ref={pyramidMeshGroupRef}
-          object={clonedScene}
-          position={[PYRAMID_CENTER_X, PYRAMID_CENTER_Y, PYRAMID_CENTER_Z]}
-          rotation={[0, Math.PI, 0]} // Portal orientado hacia el frente (-Z) donde se encuentra Auren
-        />
-      )}
+      <PyramidErrorBoundary fallback={<ProceduralPyramidMesh />}>
+        <Suspense fallback={<ProceduralPyramidMesh />}>
+          <PyramidGLTFModel customShaderUniforms={customShaderUniforms} />
+        </Suspense>
+      </PyramidErrorBoundary>
 
       {/* ========================================================================= */}
       {/* 2. PLATAFORMA DE SALIDA / APARICIÓN DE AUREN (SPAWN DAIS AT [0, 2.0, 0]) */}
@@ -424,11 +492,4 @@ export function AurenPyramidSanctuary() {
       </group>
     </group>
   )
-}
-
-// Precarga estática del modelo seguro
-try {
-  useSecureGLTF.preload(getAssetPath('/models/pyramid.jb3d'))
-} catch {
-  // Ignorar errores en preload
 }
