@@ -1,5 +1,33 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.26] - 2026-10-23
+
+### 🏃 Puños de Combate Completos en Carrera (`nexo_run`), Cinemática Biomecánica de Caminata (`nexo_walk`) y Retroceso Táctico (`nexo_walk_back`)
+
+#### 1. Erradicación del Gesto "Pulgar Arriba" en Carrera (`nexo_run`)
+- **Diagnóstico del Gesto Extraño**:
+  - En [generate_nexo_animations.py](file:///c:/Projects/Jarbees_the_game/scripts/generate_nexo_animations.py), la función `curl_fist` flexionaba los dedos índice, medio, anular y meñique a $76^\circ$, pero los huesos del pulgar (`Thumb1`, `Thumb2`, `Thumb3`) solo recibían la mitad del curl (`curl * 0.5 = 34°`) y sin rotación de oposición anatómica sobre la palma.
+  - Esto dejaba el pulgar apuntando hacia arriba como un gesto de autoestopista o "pulgar arriba" mientras el resto de la mano formaba un puño.
+- **Solución Aplicada**:
+  - Rediseño completo de `curl_fist`: Ahora rota el metacarpiano `Thumb1` en oposición ($32^\circ$ X, $\pm 18^\circ$ Y, $\pm 28^\circ$ Z) y flexiona `Thumb2` ($48^\circ$) y `Thumb3` ($55^\circ$), descansando el pulgar firmemente cerrado sobre los nudillos de los dedos índice y medio.
+  - La postura al correr ahora luce atlética, cerrada, aerodinámica y de combate.
+
+#### 2. Corrección Biomecánica de Caminata (`nexo_walk`)
+- **Diagnóstico del "Caminar al Revés"**:
+  - `nexo_walk` arrastraba el mismo error de inversión de fase que tenía antes `nexo_run`: la flexión de rodilla se calculaba con `-c * 40.0` (máxima cuando $c < 0$, fase de apoyo en el suelo) y permanecía rígida a $0^\circ$ en la fase de vuelo hacia adelante ($c > 0$), además de tener signo positivo en lugar del eje sagital negativo de Mixamo.
+  - Al ver al personaje desde atrás, la rodilla parecía doblarse en sentido inverso como si caminara hacia atrás.
+- **Solución Aplicada**:
+  - Cinemática corregida: extensión firme en fase de apoyo (absorción de $10^\circ$ a $16^\circ$) y flexión natural de despeje en fase de vuelo en el aire (hasta $-55^\circ$ en X) para superar el suelo sin arrastrar los pies.
+  - Puños relajados con dedos cerrados en lugar de manos abiertas rígidas.
+
+#### 3. Nueva Animación Dedicada de Retroceso Táctico (`nexo_walk_back`)
+- **Implementación**:
+  - Creada la animación `nexo_walk_back` (36 frames / 1.2s loop) en [generate_nexo_animations.py](file:///c:/Projects/Jarbees_the_game/scripts/generate_nexo_animations.py) con zancada invertida auténtica: apoyo suave sobre el metatarso hacia atrás, extensión de rodilla al recibir el peso, y braceo defensivo compacto.
+  - En [BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx), al presionar la tecla **[S]** (`controls.backward`), el personaje activa prioritariamente `nexo_walk_back` con modulación de velocidad según la aceleración (*boost*).
+- **Compresión y Despliegue**:
+  - El modelo `jarbees_suit.glb` fue horneado en Blender 5.2 con Draco 7 y cifrado a `public/models/jarbees_suit.jb3d`.
+  - Service Worker invalidado a `jarbees-game-v4` en [sw.js](file:///c:/Projects/Jarbees_the_game/public/sw.js) para forzar la actualización inmediata en el cliente sin restos de caché local.
+
 ## [0.8.25] - 2026-10-23
 
 ### 🏔️ Continuidad Topológica Sin Costuras, Normales Analíticas Globales y Texturizado Bioclimático por Pendiente (Slope-Aware)

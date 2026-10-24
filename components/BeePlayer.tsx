@@ -736,7 +736,14 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
           // Despegue / salto desde reposo en tierra
           targetName = actions['nexo_takeoff'] ? 'nexo_takeoff' : 'nexo_jump_start'
         } else if (isMoving) {
-          if (controls.boost || Math.abs(velocity) > 6.0) {
+          const isBack = controls.backward && !controls.forward
+          if (isBack) {
+            // Retroceso táctico auténtico de espaldas
+            targetName = actions['nexo_walk_back'] ? 'nexo_walk_back' : 'nexo_walk'
+            targetAnimSpeed = controls.boost
+              ? Math.max(1.2, Math.min(2.0, Math.abs(velocity) / 4.5))
+              : Math.max(0.85, Math.min(1.5, Math.abs(velocity) / 4.0))
+          } else if (controls.boost || Math.abs(velocity) > 6.0) {
             targetName = actions['nexo_run'] ? 'nexo_run' : 'nexo_walk'
             targetAnimSpeed = Math.max(0.85, Math.min(1.8, Math.abs(velocity) / 6.5))
           } else {

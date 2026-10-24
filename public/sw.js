@@ -1,5 +1,5 @@
 // JarBees: The Game - Service Worker
-const CACHE_NAME = 'jarbees-game-v3'
+const CACHE_NAME = 'jarbees-game-v4'
 
 const PRECACHE_ASSETS = [
   './',
