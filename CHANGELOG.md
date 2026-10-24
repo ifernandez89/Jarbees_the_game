@@ -1,5 +1,23 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.31] - 2026-10-24
+
+### 🚀 Transición Fluida Tierra-Vuelo: Despegue Reactivo y Vuelo Rasante sin Bloqueo de Controles
+
+#### 1. Inmunidad Temporal y Despegue Reactivo ([BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx))
+- **Ventana de Inmunidad (`takeoffCooldownRef: 0.65s`)**:
+  - Se eliminó el bucle donde al saltar desde tierra con `Espacio`, `flight.vy` entraba inmediatamente en $\le 0$ en el sub-paso de física siguiente sobre cotas de terreno elevadas, reactivando falsamente el estado `isGrounded` y reseteando la velocidad a cero.
+- **Conservación y Multiplicador de Momento de Carrera**:
+  - Al despegar mientras se corre (`Shift + W` o `Espacio`), el impulso horizontal no se resetea: la velocidad de carrera táctica (~55 km/h) se transfiere directamente a la propulsión vectorial (`initialSpeed = Math.max(38.0, velocity * 2.5)`), preactivando el acelerador (`throttle = 1.0`) y el postquemador (`afterburner = 1.0`).
+  - Salto y despegue directo con carrera: presionar `Shift + W` ahora también permite despegar inmediatamente sin quedar trabado en el suelo.
+
+#### 2. Vuelo Rasante y Aterrizaje Deliberado
+- **Fin del falso aterrizaje en vuelo horizontal veloz**:
+  - A velocidades supersónicas o de crucero ($v > 50\text{ km/h}$ o con `Shift`), volar cerca del relieve ya no activa el aterrizaje terrestre repentino.
+  - El sistema amortigua suavemente la altura sobre el relieve manteniendo el empuje vectorial y evitando que Auren se frene a cero en pleno vuelo rasante.
+- **Aterrizaje intencional protegido**:
+  - El modo caminar solo se reactiva de forma deliberada al presionar `Q` o `Ctrl` (descenso intencional), o cuando la velocidad horizontal es baja y el descenso es suave.
+
 ## [0.8.30] - 2026-10-24
 
 ### 🧭 Auren Navigation System (ANS) — Brújula Horizontal Dune UI & Baliza Contextual 3D de Cumbres

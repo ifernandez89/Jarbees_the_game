@@ -964,6 +964,7 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
   const flightRef = useRef(new FlightDynamics())
   const flightWasActiveRef = useRef(false)
   const isGroundedRef = useRef(false)
+  const takeoffCooldownRef = useRef(0)
 
   // Estado del juego
   const controls = useGameStore((state) => state.controls)
@@ -1016,15 +1017,36 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
         ? terrainManager.getHeightAt(player.position.x, player.position.z) + 1.4
         : 0.8
 
+      if (takeoffCooldownRef.current > 0) {
+        takeoffCooldownRef.current -= dt
+      }
+
       if (isGroundedRef.current) {
         // --- MODO WALK (En tierra firme) ---
-        // Al presionar ESPACIO (jump o up), salta ligeramente y reactiva los mandos de vuelo
-        if (controls.jump || controls.up) {
+        // Al presionar ESPACIO / E (jump / up), o despegue en carrera (Boost + W), despega con impulso reactivo
+        const isTryingTakeoff = controls.jump || controls.up || (controls.boost && controls.forward)
+        if (isTryingTakeoff) {
           isGroundedRef.current = false
           setGrounded(false)
-          flight.vy = 6.4 // Ligero salto / impulso vertical de despegue
-          player.position.y = floorY + 0.3
-          flight.forwardSpeed = 0
+          takeoffCooldownRef.current = 0.65 // Inmunidad de despegue para evitar re-aterrizaje inmediato
+
+          // Impulso vertical y separación de la cota de tierra
+          const hasBoost = controls.boost
+          flight.vy = hasBoost ? 14.5 : 8.5
+          player.position.y = floorY + 0.85
+
+          // Conservar la inercia de carrera hacia el vuelo y activar propulsores de inmediato
+          const initialSpeed = hasBoost ? Math.max(38.0, velocityRef.current * 2.5) : (controls.forward ? Math.max(16.0, velocityRef.current) : 0)
+          flight.forwardSpeed = initialSpeed
+          flight.throttle = controls.forward ? 1.0 : 0.4
+          flight.afterburner = hasBoost && controls.forward ? 1.0 : 0
+
+          const fx = -Math.sin(player.rotation.y)
+          const fz = -Math.cos(player.rotation.y)
+          flight.vx = fx * initialSpeed
+          flight.vz = fz * initialSpeed
+
+          flightRuntime.active = true
         } else {
           // Mantener al personaje firme sobre la superficie del relieve (amortiguado a 55 km/h)
           player.position.y = THREE.MathUtils.damp(player.position.y, floorY, 28, dt)
@@ -1094,10 +1116,16 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
           player.position.y += flight.vy * subDt
           player.position.z += flight.vz * subDt
 
-          // Detección de suelo: al bajar con Q (controls.down) o tocar el suelo en descenso
-          if (player.position.y <= subFloorY + 0.08) {
-            player.position.y = subFloorY
-            if (controls.down || flight.vy <= 0) {
+          // Detección de aterrizaje:
+          // 1. Si está en período de gracia de despegue (cooldown), no aterriza bajo ninguna circunstancia.
+          // 2. Si vuela rápido (forwardSpeed > 15 m/s o con boost activo), realiza vuelo rasante sin aterrizar ni frenar a cero.
+          // 3. Solo aterriza intencionalmente: con Q/Ctrl (controls.down / crouch) o al descender lentamente a velocidad casi nula.
+          if (player.position.y <= subFloorY + 0.12) {
+            const isAtHighSpeed = flight.forwardSpeed > 14.0 || controls.boost
+            const isIntentionalLanding = controls.down || controls.crouch
+
+            if (takeoffCooldownRef.current <= 0 && (isIntentionalLanding || (!isAtHighSpeed && flight.vy <= -0.5))) {
+              player.position.y = subFloorY
               isGroundedRef.current = true
               setGrounded(true)
               flight.vy = 0
@@ -1107,6 +1135,12 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
               flight.throttle = 0
               flight.afterburner = 0
               break
+            } else {
+              // Vuelo rasante / amortiguación aerodinámica: mantener sobre el suelo sin congelar velocidad
+              player.position.y = Math.max(player.position.y, subFloorY + 0.05)
+              if (flight.vy < 0) {
+                flight.vy = Math.max(flight.vy, -0.2)
+              }
             }
           }
           if (player.position.y > SUIT_CEILING) {
