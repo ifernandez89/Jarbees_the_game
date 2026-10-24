@@ -1,5 +1,25 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.33] - 2026-10-24
+
+### ✈️ Restauración de la Postura de Vuelo Aerodinámica Horizontal ("Acostado") en Vuelo
+
+#### 1. Erradicación del Bloqueo en Salto Terrestre (`nexo_jump_loop`) ([BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx))
+- **Causa Raíz Identificada**:
+  - Al despegar con `Espacio` o `E`, el estado de salto se activaba en tierra (`jumpStateRef = 'start'`), transicionando a los $0.45\text{s}$ a `'loop'`.
+  - Como el personaje ya estaba en el aire (`isGrounded = false`), la condición de aterrizaje nunca se cumplía y la jerarquía de evaluación de animaciones situaba el salto por encima del modo de vuelo (`isInFlightMode`), secuestrando la animación en `nexo_jump_loop` (cuerpo erguido vertical a $-4^\circ$) de forma permanente durante todo el vuelo.
+- **Jerarquía Reestructurada y Limpieza Inmediata de Estados Residuales**:
+  - Al ingresar a `isInFlightMode`, se limpian de inmediato todos los estados terrestres (`jumpStateRef = 'idle'`, `crouchStateRef = 'idle'`, `impactStateRef = 'none'`).
+  - La evaluación de `isInFlightMode` ahora precede directamente a los estados de tierra, garantizando que el personaje adopte siempre la postura de vuelo adecuada:
+    - **Vuelo Crucero / Impulso (`nexo_fly_forward`)**: Inclinación aerodinámica prone estilo torpedo a $78^\circ$ al avanzar con `W` o conservar inercia ($v > 1.8\text{ m/s}$).
+    - **Vuelo Supersónico / Postquemador (`nexo_boost`)**: Postura hipersónica ultra-plana a $84^\circ$ al presionar `Shift` o superar los $40\text{ m/s}$ ($144\text{ km/h}$).
+    - **Virajes en Vuelo (`nexo_bank_left` / `nexo_bank_right`)**: Alabeo dinámico con pelvis a $75^\circ$ y torsión vertebral.
+    - **Suspensión Activa (`nexo_hover`)**: Postura de sustentación y suspensión estacionaria a $42^\circ$ con propulsión de botas.
+    - **Freno Reactivo (`nexo_air_brake`)**: Contragolpe aerodinámico con repulsores al presionar `S`.
+
+#### 2. Sincronización Inmediata de Telemetría al Despegue
+- `flightRuntime.forwardSpeed`, `speed` y `speedKmh` se inicializan en el mismo ciclo del despegue, asegurando que `isFlyingForward` responda en tiempo cero a 60 Hz sin micro-retrasos de postura.
+
 ## [0.8.32] - 2026-10-24
 
 ### ⚡ Perfeccionamiento de Controles: Caminar vs. Correr en Tierra y Despegue con Espacio / E

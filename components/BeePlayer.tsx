@@ -514,8 +514,18 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       const isInFlightMode = !isGrounded
       const isFlyingForward = isInFlightMode && (controls.forward || controls.boost || forwardSpeed > 1.8)
 
-      // Si el usuario presiona W, S, Boost o Salto, romper de inmediato cualquier impacto, agachado o aterrizaje previo
-      if (controls.forward || controls.backward || controls.boost || controls.jump) {
+      // Si el usuario está en modo de vuelo, limpiar de inmediato cualquier estado residual terrestre
+      if (isInFlightMode) {
+        jumpStateRef.current = 'idle'
+        jumpTimerRef.current = 0
+        crouchStateRef.current = 'idle'
+        crouchStandTimerRef.current = 0
+        if (impactStateRef.current !== 'none') {
+          impactStateRef.current = 'none'
+          impactTimerRef.current = 0
+        }
+      } else if (controls.forward || controls.backward || controls.boost || controls.jump) {
+        // Si el usuario presiona controles en tierra, romper de inmediato cualquier impacto, agachado o aterrizaje previo
         if (impactStateRef.current !== 'none') {
           impactStateRef.current = 'none'
           impactTimerRef.current = 0
@@ -561,59 +571,61 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       }
       prevGroundedRef.current = isGrounded
 
-      // Máquina de estados: Impacto Pesado y Recuperación
-      if (impactStateRef.current === 'heavy_land') {
-        impactTimerRef.current -= delta
-        if (impactTimerRef.current <= 0) {
-          impactStateRef.current = 'recovery'
-          impactTimerRef.current = 1.0 // Duración de nexo_recovery
+      // Máquina de estados: Impacto Pesado y Recuperación (solo en tierra)
+      if (!isInFlightMode) {
+        if (impactStateRef.current === 'heavy_land') {
+          impactTimerRef.current -= delta
+          if (impactTimerRef.current <= 0) {
+            impactStateRef.current = 'recovery'
+            impactTimerRef.current = 1.0 // Duración de nexo_recovery
+          }
+        } else if (impactStateRef.current === 'recovery') {
+          impactTimerRef.current -= delta
+          if (impactTimerRef.current <= 0) {
+            impactStateRef.current = 'none'
+          }
         }
-      } else if (impactStateRef.current === 'recovery') {
-        impactTimerRef.current -= delta
-        if (impactTimerRef.current <= 0) {
-          impactStateRef.current = 'none'
-        }
-      }
 
-      // Cuenta regresiva del aterrizaje heroico
-      if (touchdownTimerRef.current > 0) {
-        touchdownTimerRef.current -= delta
-        if (touchdownTimerRef.current <= 0) {
-          touchdownTimerRef.current = 0
+        // Cuenta regresiva del aterrizaje heroico
+        if (touchdownTimerRef.current > 0) {
+          touchdownTimerRef.current -= delta
+          if (touchdownTimerRef.current <= 0) {
+            touchdownTimerRef.current = 0
+          }
         }
-      }
 
-      // Máquina de estados: Salto (Jump Start -> Jump Loop -> Jump Land)
-      if (isGrounded && controls.jump && jumpStateRef.current === 'idle' && impactStateRef.current === 'none') {
-        jumpStateRef.current = 'start'
-        jumpTimerRef.current = 0.45
-      }
-      if (jumpStateRef.current === 'start') {
-        jumpTimerRef.current -= delta
-        if (jumpTimerRef.current <= 0) {
-          jumpStateRef.current = 'loop'
+        // Máquina de estados: Salto en tierra (Jump Start -> Jump Loop -> Jump Land)
+        if (isGrounded && controls.jump && jumpStateRef.current === 'idle' && impactStateRef.current === 'none') {
+          jumpStateRef.current = 'start'
+          jumpTimerRef.current = 0.45
         }
-      } else if (jumpStateRef.current === 'land') {
-        jumpTimerRef.current -= delta
-        if (jumpTimerRef.current <= 0) {
-          jumpStateRef.current = 'idle'
+        if (jumpStateRef.current === 'start') {
+          jumpTimerRef.current -= delta
+          if (jumpTimerRef.current <= 0) {
+            jumpStateRef.current = 'loop'
+          }
+        } else if (jumpStateRef.current === 'land') {
+          jumpTimerRef.current -= delta
+          if (jumpTimerRef.current <= 0) {
+            jumpStateRef.current = 'idle'
+          }
+        } else if (isGrounded && jumpStateRef.current === 'loop') {
+          jumpStateRef.current = 'land'
+          jumpTimerRef.current = 0.60
         }
-      } else if (isGrounded && jumpStateRef.current === 'loop') {
-        jumpStateRef.current = 'land'
-        jumpTimerRef.current = 0.60
-      }
 
-      // Máquina de estados: Agacharse y Levantarse
-      if (isGrounded && controls.crouch && impactStateRef.current === 'none' && jumpStateRef.current === 'idle') {
-        crouchStateRef.current = 'crouching'
-      } else if (crouchStateRef.current === 'crouching' && !controls.crouch) {
-        crouchStateRef.current = 'standing'
-        crouchStandTimerRef.current = 0.66
-      }
-      if (crouchStateRef.current === 'standing') {
-        crouchStandTimerRef.current -= delta
-        if (crouchStandTimerRef.current <= 0) {
-          crouchStateRef.current = 'idle'
+        // Máquina de estados: Agacharse y Levantarse en tierra
+        if (isGrounded && controls.crouch && impactStateRef.current === 'none' && jumpStateRef.current === 'idle') {
+          crouchStateRef.current = 'crouching'
+        } else if (crouchStateRef.current === 'crouching' && !controls.crouch) {
+          crouchStateRef.current = 'standing'
+          crouchStandTimerRef.current = 0.66
+        }
+        if (crouchStateRef.current === 'standing') {
+          crouchStandTimerRef.current -= delta
+          if (crouchStandTimerRef.current <= 0) {
+            crouchStateRef.current = 'idle'
+          }
         }
       }
 
@@ -658,32 +670,7 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       let targetName = 'nexo_idle'
       let targetAnimSpeed = 1.0
 
-      if (impactStateRef.current === 'heavy_land') {
-        targetName = 'nexo_heavy_land'
-      } else if (impactStateRef.current === 'recovery') {
-        targetName = 'nexo_recovery'
-      } else if (touchdownTimerRef.current > 0) {
-        // Aterrizaje Heroico Original JarBees ("Kinetic Strikedown Touchdown")
-        targetName = 'nexo_landing'
-      } else if (jumpStateRef.current === 'start') {
-        targetName = 'nexo_jump_start'
-      } else if (jumpStateRef.current === 'loop') {
-        targetName = 'nexo_jump_loop'
-      } else if (jumpStateRef.current === 'land') {
-        targetName = 'nexo_jump_land'
-      } else if (!isGrounded && worldVerticalSpeed < -6.5 && !controls.up && !controls.boost && !isInFlightMode) {
-        targetName = 'nexo_heavy_fall'
-      } else if (crouchStateRef.current === 'crouching') {
-        const isCrouchMoving = controls.forward || controls.backward || controls.left || controls.right || Math.abs(velocity) > 0.15
-        if (isCrouchMoving && actions['nexo_crouch_walk']) {
-          targetName = 'nexo_crouch_walk'
-          targetAnimSpeed = Math.max(0.8, Math.min(1.4, Math.abs(velocity) / 3.0))
-        } else {
-          targetName = 'nexo_crouch'
-        }
-      } else if (crouchStateRef.current === 'standing') {
-        targetName = 'nexo_crouch_stand'
-      } else if (activeEmote === 'salute') {
+      if (activeEmote === 'salute') {
         targetName = 'nexo_emote_salute'
       } else if (activeEmote === 'thumbs_up') {
         targetName = 'nexo_emote_thumbs_up'
@@ -712,7 +699,7 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       } else if (activeEmote === 'hunter_pounce') {
         targetName = 'nexo_hunter_pounce'
       } else if (isInFlightMode) {
-        // --- VUELO Y SUSPENSIÓN AÉREA (Flujo continuo sin retrocesos ni bloqueos) ---
+        // --- VUELO Y SUSPENSIÓN AÉREA (Flujo continuo y postura horizontal aerodinámica) ---
         idleTimerRef.current = 0
         if (controls.backward) {
           // Frenada reactiva agresiva con repulsores y piernas en cuña
@@ -732,47 +719,72 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
           }
           targetAnimSpeed = 1.0 + Math.min(0.5, Math.abs(forwardSpeed) / 75.0)
         } else {
-          // Suspensión vertical erguida con espalda recta y balanceo orgánico
+          // Suspensión aerodinámica activa en vuelo estacionario
           targetName = 'nexo_hover'
         }
       } else {
-        // --- LOCOMOCIÓN EN TIERRA FIRME ---
-        const isMoving = controls.forward || controls.backward || Math.abs(velocity) > 0.25
-        const isTurning = (controls.left || controls.right) && !isMoving
-
-        if (controls.jump || controls.up) {
-          // Despegue / salto desde reposo en tierra
-          targetName = actions['nexo_takeoff'] ? 'nexo_takeoff' : 'nexo_jump_start'
-        } else if (isMoving) {
-          const isBack = controls.backward && !controls.forward
-          if (isBack) {
-            // Retroceso táctico auténtico de espaldas
-            targetName = actions['nexo_walk_back'] ? 'nexo_walk_back' : 'nexo_walk'
-            targetAnimSpeed = controls.boost
-              ? Math.max(1.2, Math.min(2.0, Math.abs(velocity) / 4.5))
-              : Math.max(0.85, Math.min(1.5, Math.abs(velocity) / 4.0))
-          } else if (controls.boost || Math.abs(velocity) > 5.2) {
-            targetName = actions['nexo_run'] ? 'nexo_run' : 'nexo_walk'
-            // Suave curva cuadrática de cadencia entre 1.4x y 2.2x para sprint de 55 km/h (15.2 m/s):
-            // Erradica el foot-sliding (patinaje sobre hielo) y produce un braceo atlético y contundente
-            const speedRatio = Math.min(1.0, Math.max(0.0, (Math.abs(velocity) - 4.5) / 10.7))
-            targetAnimSpeed = 1.35 + Math.pow(speedRatio, 1.25) * 0.85
+        // --- LOCOMOCIÓN Y ESTADOS EN TIERRA FIRME ---
+        if (impactStateRef.current === 'heavy_land') {
+          targetName = 'nexo_heavy_land'
+        } else if (impactStateRef.current === 'recovery') {
+          targetName = 'nexo_recovery'
+        } else if (touchdownTimerRef.current > 0) {
+          // Aterrizaje Heroico Original JarBees ("Kinetic Strikedown Touchdown")
+          targetName = 'nexo_landing'
+        } else if (jumpStateRef.current === 'start') {
+          targetName = 'nexo_jump_start'
+        } else if (jumpStateRef.current === 'loop') {
+          targetName = 'nexo_jump_loop'
+        } else if (jumpStateRef.current === 'land') {
+          targetName = 'nexo_jump_land'
+        } else if (crouchStateRef.current === 'crouching') {
+          const isCrouchMoving = controls.forward || controls.backward || controls.left || controls.right || Math.abs(velocity) > 0.15
+          if (isCrouchMoving && actions['nexo_crouch_walk']) {
+            targetName = 'nexo_crouch_walk'
+            targetAnimSpeed = Math.max(0.8, Math.min(1.4, Math.abs(velocity) / 3.0))
           } else {
-            targetName = 'nexo_walk'
-            targetAnimSpeed = Math.max(0.95, Math.min(1.4, Math.abs(velocity) / 4.5))
+            targetName = 'nexo_crouch'
           }
-          idleTimerRef.current = 0
-        } else if (isTurning) {
-          targetName = controls.left ? 'nexo_turn_left' : 'nexo_turn_right'
-          idleTimerRef.current = 0
+        } else if (crouchStateRef.current === 'standing') {
+          targetName = 'nexo_crouch_stand'
         } else {
-          // Reposo en tierra: alternar entre respiración nexo_idle y mirada al horizonte nexo_look_around
-          idleTimerRef.current += delta
-          if (idleTimerRef.current > 5.5 && idleTimerRef.current < 8.0 && actions['nexo_look_around']) {
-            targetName = 'nexo_look_around'
+          const isMoving = controls.forward || controls.backward || Math.abs(velocity) > 0.25
+          const isTurning = (controls.left || controls.right) && !isMoving
+
+          if (controls.jump || controls.up) {
+            // Despegue / salto desde reposo en tierra
+            targetName = actions['nexo_takeoff'] ? 'nexo_takeoff' : 'nexo_jump_start'
+          } else if (isMoving) {
+            const isBack = controls.backward && !controls.forward
+            if (isBack) {
+              // Retroceso táctico auténtico de espaldas
+              targetName = actions['nexo_walk_back'] ? 'nexo_walk_back' : 'nexo_walk'
+              targetAnimSpeed = controls.boost
+                ? Math.max(1.2, Math.min(2.0, Math.abs(velocity) / 4.5))
+                : Math.max(0.85, Math.min(1.5, Math.abs(velocity) / 4.0))
+            } else if (controls.boost || Math.abs(velocity) > 5.2) {
+              targetName = actions['nexo_run'] ? 'nexo_run' : 'nexo_walk'
+              // Suave curva cuadrática de cadencia entre 1.4x y 2.2x para sprint de 55 km/h (15.2 m/s):
+              // Erradica el foot-sliding (patinaje sobre hielo) y produce un braceo atlético y contundente
+              const speedRatio = Math.min(1.0, Math.max(0.0, (Math.abs(velocity) - 4.5) / 10.7))
+              targetAnimSpeed = 1.35 + Math.pow(speedRatio, 1.25) * 0.85
+            } else {
+              targetName = 'nexo_walk'
+              targetAnimSpeed = Math.max(0.95, Math.min(1.4, Math.abs(velocity) / 4.5))
+            }
+            idleTimerRef.current = 0
+          } else if (isTurning) {
+            targetName = controls.left ? 'nexo_turn_left' : 'nexo_turn_right'
+            idleTimerRef.current = 0
           } else {
-            if (idleTimerRef.current >= 8.0) idleTimerRef.current = 0
-            targetName = 'nexo_idle'
+            // Reposo en tierra: alternar entre respiración nexo_idle y mirada al horizonte nexo_look_around
+            idleTimerRef.current += delta
+            if (idleTimerRef.current > 5.5 && idleTimerRef.current < 8.0 && actions['nexo_look_around']) {
+              targetName = 'nexo_look_around'
+            } else {
+              if (idleTimerRef.current >= 8.0) idleTimerRef.current = 0
+              targetName = 'nexo_idle'
+            }
           }
         }
       }
@@ -1050,8 +1062,10 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
           const fz = -Math.cos(player.rotation.y)
           flight.vx = fx * initialSpeed
           flight.vz = fz * initialSpeed
-
           flightRuntime.active = true
+          flightRuntime.forwardSpeed = initialSpeed
+          flightRuntime.speed = initialSpeed
+          flightRuntime.speedKmh = initialSpeed * 3.6
         } else {
           // Mantener al personaje firme sobre la superficie del relieve (amortiguado a 55 km/h)
           player.position.y = THREE.MathUtils.damp(player.position.y, floorY, 28, dt)
