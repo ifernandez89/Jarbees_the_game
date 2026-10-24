@@ -10,7 +10,7 @@ import { flightRuntime } from '@/systems/FlightDynamics'
 import { RockPopulation } from './RockPopulation'
 
 interface InfiniteTerrainProps {
-  biome?: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua'
+  biome?: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua' | 'antarctica'
   seed?: number
 }
 
@@ -31,6 +31,10 @@ const BIOME_CONFIGS: Record<string, Partial<ChunkConfig>> = {
   aconcagua: {
     color: '#ffffff', // Multiplicador neutro para vertexColors satelitales (glaciares y granito)
     heightMultiplier: 25,
+  },
+  antarctica: {
+    color: '#e2e8f0', // Hielo polar y grava de valles secos
+    heightMultiplier: 18,
   },
 }
 

@@ -93,7 +93,7 @@ export interface GameState {
   distanceTraveled: number
   altitude: number
   gameTime: number
-  currentBiome: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua'
+  currentBiome: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua' | 'antarctica'
   
   // Configuración de clima y viento
   wind: {
@@ -131,6 +131,11 @@ export interface GameState {
   togglePhaseVeil: () => void
   setPhaseVeil: (active: boolean) => void
 
+  // Mapa Holográfico Táctico AR Flotante
+  isHoloMapActive: boolean
+  toggleHoloMap: () => void
+  setHoloMapActive: (active: boolean) => void
+
   // Acciones
   setFlightMode: (mode: FlightMode) => void
   toggleFlightMode: () => void
@@ -148,7 +153,7 @@ export interface GameState {
   updateAltitude: (altitude: number) => void
   updateGameTime: (delta: number) => void
   setTerrainManager: (manager: ChunkManager | null) => void
-  setBiome: (biome: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua') => void
+  setBiome: (biome: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua' | 'antarctica') => void
   setWind: (wind: { speed: number; direction: [number, number, number] }) => void
   setDayNightEnabled: (enabled: boolean) => void
   setDayNightSpeed: (speed: number) => void
@@ -196,6 +201,7 @@ const initialState = {
   isIronManFlipped: false,
   isGrounded: false,
   isPhaseVeilActive: false,
+  isHoloMapActive: true,
   flightMode: 'assist' as FlightMode,
   flight: INITIAL_FLIGHT_TELEMETRY,
 }
@@ -209,6 +215,8 @@ export const useGameStore = create<GameState>((set) => ({
   setGrounded: (isGrounded) => set({ isGrounded }),
   togglePhaseVeil: () => set((state) => ({ isPhaseVeilActive: !state.isPhaseVeilActive })),
   setPhaseVeil: (isPhaseVeilActive) => set({ isPhaseVeilActive }),
+  toggleHoloMap: () => set((state) => ({ isHoloMapActive: !state.isHoloMapActive })),
+  setHoloMapActive: (isHoloMapActive) => set({ isHoloMapActive }),
   setFlightMode: (flightMode) => set({ flightMode }),
   toggleFlightMode: () =>
     set((state) => ({ flightMode: state.flightMode === 'assist' ? 'sim' : 'assist' })),

@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { PerlinNoiseGenerator } from '@/utils/perlinNoise'
 import { getAssetPath } from '@/utils/assetPath'
 
-export type BiomeType = 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua'
+export type BiomeType = 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua' | 'antarctica'
 
 export interface ChunkData {
   key: string

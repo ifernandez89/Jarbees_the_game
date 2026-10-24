@@ -1,5 +1,29 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.29] - 2026-10-24
+
+### 🗺️ Mapa Holográfico Táctico AR Flotante a la Altura de la Cadera & Despliegue en la Antártida (Blood Falls)
+
+#### 1. Sistema de Guía y Georreferenciación Real de la Antártida
+- **Punto Cero Oficial de Despliegue de Auren**:
+  - Fijado en **Blood Falls / Valle de Taylor** (`77°43'20" S, 162°16'23" E`, lat: `-77.722`, lon: `162.273`, elevación: `65 m`), en los Valles Secos de McMurdo, el enclave rocoso libre de nieve más árido e impactante del planeta.
+- **Base de Datos Curada ([antarctica_taylor_guide.json](file:///c:/Projects/Jarbees_the_game/public/data/guides/antarctica_taylor_guide.json))**:
+  - Hitos geográficos reales: *Blood Falls (Spawn)*, *Lago Bonney*, *Glaciar Canadá*, *Lago Fryxell*, *Costa del Estrecho de McMurdo*, *Base McMurdo (EE.UU.)*, *Base Scott (NZ)*, *Monte Erebus (Volcán Activo a 3.794 m)*, *Monte Discovery*, *Polo Sur Geográfico (Amundsen-Scott)* y *Macizo Vinson (4.892 m)*.
+  - Corredores vectoriales y rutas: *Corredor Táctico Taylor*, *Vector Aéreo de Ascenso Erebus* y *Enlace Logístico Ross Island*.
+- **Motor de Proyección Cartográfica 3D ([geoProjection.ts](file:///c:/Projects/Jarbees_the_game/utils/geoProjection.ts))**:
+  - Conversión de coordenadas WGS84 `(lat, lon, alt)` a ejes de Three.js `(x, y, z)` con cálculo analítico de distancia Haversine y compresión suave de horizonte para hitos continentales ultra-lejanos.
+
+#### 2. Overlay Holográfico Flotante ([HoloTacticalOverlay.tsx](file:///c:/Projects/Jarbees_the_game/components/HoloTacticalOverlay.tsx))
+- **Flotación a la Altura de la Cadera**: Proyectado a $+1.15\text{ m}$ sobre el relieve del terreno dinámico.
+- **Transparencia y Mezcla Aditiva (`THREE.AdditiveBlending`)**: Las líneas de caminos no obstruyen ni tapan el suelo, dejando visible la textura y topografía del terreno por debajo.
+- **Pulsos Dinámicos de Luz en Rutas**: Esferas de datos lumínicos que recorren continuamente los vectores en el loop `useFrame`, reproduciendo fielmente el concepto visual de navegación AR.
+- **Pines 3D de Realidad Aumentada**: Estructura de aguja de luz vertical, faro luminoso con aro de energía en rotación constante, y etiquetas flotantes de alta legibilidad que calculan la distancia en tiempo real respecto al jugador en metros o kilómetros.
+
+#### 3. Integración en UI y Controles
+- **Accionamiento Táctico con Tecla `[M]` o `[N]`**: Alterna de forma instantánea la visibilidad del mapa holográfico tanto a pie como en vuelo.
+- **Reorganización de Atajos de Teclado**: La tecla **`M`** (de **M**apa) acciona el Mapa AR, mientras que el muteo de audio se transfiere a **`U`** (además de clic directo en el HUD).
+- **Nuevo Bioma `❄️ Antártida (Valles Secos)`**: Integrado en el selector de biomas del juego ([GameHUD.tsx](file:///c:/Projects/Jarbees_the_game/components/GameHUD.tsx), [InfiniteTerrain.tsx](file:///c:/Projects/Jarbees_the_game/components/InfiniteTerrain.tsx), [types/game.ts](file:///c:/Projects/Jarbees_the_game/types/game.ts)), con paleta de roca oscura, salmuera roja, hielo polar y cero densidad arbórea.
+
 ## [0.8.28] - 2026-10-23
 
 ### ⚡ Sprint Supersónico Táctico 55 km/h y 🌌 Aurelium Phase Veil (Velo de Fase Cuántico)

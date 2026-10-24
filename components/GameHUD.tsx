@@ -24,6 +24,8 @@ export function GameHUD() {
   const triggerEmote = useGameStore((state) => state.triggerEmote)
   const isPhaseVeilActive = useGameStore((state) => state.isPhaseVeilActive)
   const togglePhaseVeil = useGameStore((state) => state.togglePhaseVeil)
+  const isHoloMapActive = useGameStore((state) => state.isHoloMapActive)
+  const toggleHoloMap = useGameStore((state) => state.toggleHoloMap)
 
   const [fps, setFps] = useState(60)
   const [showTactical, setShowTactical] = useState(false)
@@ -127,16 +129,16 @@ export function GameHUD() {
             border: `1px solid ${audioEnabled ? 'rgba(255, 215, 0, 0.5)' : 'rgba(255, 60, 60, 0.5)'}`,
             color: audioEnabled ? '#FFD700' : '#ff8888',
           }}
-          title="Presiona 'M' para activar/silenciar sonido"
+          title="Presiona 'U' para activar/silenciar sonido"
         >
           <span>{audioEnabled ? '🔊 ON' : '🔇 OFF'}</span>
-          <span style={{ opacity: 0.6 }}>[M]</span>
+          <span style={{ opacity: 0.6 }}>[U]</span>
         </button>
 
         {/* Selector de Bioma / Relieve Real */}
         <button
           onClick={() => {
-            const biomes = ['aconcagua', 'titicaca', 'easter_island', 'constellations'] as const
+            const biomes = ['aconcagua', 'titicaca', 'easter_island', 'constellations', 'antarctica'] as const
             const current = useGameStore.getState().currentBiome
             const next = biomes[(biomes.indexOf(current) + 1) % biomes.length]
             useGameStore.getState().setBiome(next)
@@ -144,15 +146,17 @@ export function GameHUD() {
           className="hud-audio-btn"
           style={{
             marginTop: 4,
-            background: currentBiome === 'aconcagua' ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255, 255, 255, 0.08)',
-            border: `1px solid ${currentBiome === 'aconcagua' ? 'rgba(56, 189, 248, 0.7)' : 'rgba(255, 255, 255, 0.2)'}`,
-            color: currentBiome === 'aconcagua' ? '#38BDF8' : '#e2e8f0',
+            background: currentBiome === 'aconcagua' || currentBiome === 'antarctica' ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255, 255, 255, 0.08)',
+            border: `1px solid ${currentBiome === 'aconcagua' || currentBiome === 'antarctica' ? 'rgba(56, 189, 248, 0.7)' : 'rgba(255, 255, 255, 0.2)'}`,
+            color: currentBiome === 'aconcagua' || currentBiome === 'antarctica' ? '#38BDF8' : '#e2e8f0',
           }}
           title="Cambiar bioma / entorno de vuelo [B]"
         >
           <span>
             {currentBiome === 'aconcagua'
               ? '🏔️ Aconcagua (DEM Real)'
+              : currentBiome === 'antarctica'
+              ? '❄️ Antártida (Valles Secos)'
               : currentBiome === 'titicaca'
               ? '🌿 Lago Titicaca'
               : currentBiome === 'easter_island'
@@ -385,6 +389,19 @@ export function GameHUD() {
                     <span>Velo {isPhaseVeilActive ? 'ACTIVO' : 'OFF'}</span>
                   </button>
                   <span className="hud-kbd-divider" />
+                  <button
+                    className={`hud-kbd-toggle ${isHoloMapActive ? 'active' : ''}`}
+                    onClick={toggleHoloMap}
+                    title="Alternar Mapa Holográfico Táctico AR Flotante [M o N]"
+                    style={{
+                      borderColor: isHoloMapActive ? '#00f0ff' : undefined,
+                      color: isHoloMapActive ? '#00f0ff' : undefined,
+                    }}
+                  >
+                    <kbd className="hud-kbd">M</kbd>
+                    <span>MAPA AR {isHoloMapActive ? 'ON' : 'OFF'}</span>
+                  </button>
+                  <span className="hud-kbd-divider" />
                   <span className="hud-kbd-group">
                     <kbd className="hud-kbd">1-5</kbd>
                     <span className="hud-kbd-label">Emotes</span>
@@ -434,6 +451,19 @@ export function GameHUD() {
                     <span>Velo {isPhaseVeilActive ? 'ACTIVO' : 'OFF'}</span>
                   </button>
                   <span className="hud-kbd-divider" />
+                  <button
+                    className={`hud-kbd-toggle ${isHoloMapActive ? 'active' : ''}`}
+                    onClick={toggleHoloMap}
+                    title="Alternar Mapa Holográfico Táctico AR Flotante [M o N]"
+                    style={{
+                      borderColor: isHoloMapActive ? '#00f0ff' : undefined,
+                      color: isHoloMapActive ? '#00f0ff' : undefined,
+                    }}
+                  >
+                    <kbd className="hud-kbd">M</kbd>
+                    <span>MAPA AR {isHoloMapActive ? 'ON' : 'OFF'}</span>
+                  </button>
+                  <span className="hud-kbd-divider" />
                   <span className="hud-kbd-group">
                     <kbd className="hud-kbd">1-5</kbd>
                     <span className="hud-kbd-label">Emotes</span>
@@ -461,8 +491,21 @@ export function GameHUD() {
                   <span className="hud-kbd-label">Subir / Bajar</span>
                 </span>
                 <span className="hud-kbd-divider" />
-                <span className="hud-kbd-group">
+                <button
+                  className={`hud-kbd-toggle ${isHoloMapActive ? 'active' : ''}`}
+                  onClick={toggleHoloMap}
+                  title="Alternar Mapa Holográfico Táctico AR Flotante [M o N]"
+                  style={{
+                    borderColor: isHoloMapActive ? '#00f0ff' : undefined,
+                    color: isHoloMapActive ? '#00f0ff' : undefined,
+                  }}
+                >
                   <kbd className="hud-kbd">M</kbd>
+                  <span>MAPA AR {isHoloMapActive ? 'ON' : 'OFF'}</span>
+                </button>
+                <span className="hud-kbd-divider" />
+                <span className="hud-kbd-group">
+                  <kbd className="hud-kbd">U</kbd>
                   <span className="hud-kbd-label">Audio</span>
                 </span>
               </>

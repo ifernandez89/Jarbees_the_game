@@ -9,7 +9,7 @@ interface RockPopulationProps {
   chunkX: number
   chunkZ: number
   chunkSize: number
-  biome?: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua'
+  biome?: 'titicaca' | 'easter_island' | 'constellations' | 'aconcagua' | 'antarctica'
 }
 
 // Densidad de rocas por bioma
@@ -18,6 +18,7 @@ const BIOME_ROCK_DENSITY = {
   easter_island: 0.9,   // Alta densidad de rocas volcánicas
   constellations: 0.2,  // Rocas cósmicas / meteoritos
   aconcagua: 0.75,      // Bloques andinos de granito, pedregales y morrenas
+  antarctica: 0.85,     // Rocas polares de valles secos y morrenas glaciares
 }
 
 export function RockPopulation({

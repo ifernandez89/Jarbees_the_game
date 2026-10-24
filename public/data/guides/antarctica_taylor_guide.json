@@ -1,0 +1,171 @@
+{
+  "region": "antarctica_taylor",
+  "name": "Antártida - Valles Secos de McMurdo & Región Ross",
+  "origin": {
+    "id": "spawn_blood_falls",
+    "name": "Blood Falls (Cuna de Auren)",
+    "coordinates": {
+      "lat": -77.722,
+      "lon": 162.273,
+      "elevation": 65
+    },
+    "description": "Cascadas de salmuera carmesí rica en hierro. Punto de arranque del traje JarBees."
+  },
+  "places": [
+    {
+      "id": "blood_falls",
+      "name": "Blood Falls [Spawn]",
+      "type": "origin",
+      "elevation": 65,
+      "coordinates": { "lat": -77.722, "lon": 162.273 },
+      "color": "#ff2a5f",
+      "highlight": true,
+      "description": "Falla geológica activa y punto cero de despliegue de Auren."
+    },
+    {
+      "id": "lake_bonney",
+      "name": "Lago Bonney",
+      "type": "lake",
+      "elevation": 57,
+      "coordinates": { "lat": -77.717, "lon": 162.450 },
+      "color": "#00f0ff",
+      "highlight": false,
+      "description": "Lago perennemente cubierto de hielo en el lecho del Valle de Taylor."
+    },
+    {
+      "id": "canada_glacier",
+      "name": "Glaciar Canadá",
+      "type": "glacier",
+      "elevation": 280,
+      "coordinates": { "lat": -77.616, "lon": 162.983 },
+      "color": "#00e5ff",
+      "highlight": true,
+      "description": "Muralla vertical de hielo azul compactado de 30 metros de altura."
+    },
+    {
+      "id": "lake_fryxell",
+      "name": "Lago Fryxell",
+      "type": "lake",
+      "elevation": 18,
+      "coordinates": { "lat": -77.608, "lon": 163.155 },
+      "color": "#00d4ff",
+      "highlight": false,
+      "description": "Cuenca lacustre seca protegida por morrenas glaciares."
+    },
+    {
+      "id": "mcmurdo_sound_coast",
+      "name": "Costa del Estrecho de McMurdo",
+      "type": "coast",
+      "elevation": 2,
+      "coordinates": { "lat": -77.580, "lon": 163.500 },
+      "color": "#38bdf8",
+      "highlight": true,
+      "description": "Salida marítima del valle hacia las plataformas de hielo marino."
+    },
+    {
+      "id": "mcmurdo_station",
+      "name": "Base McMurdo (EE.UU.)",
+      "type": "facility",
+      "elevation": 24,
+      "coordinates": { "lat": -77.847, "lon": 166.668 },
+      "color": "#f59e0b",
+      "highlight": true,
+      "description": "El complejo de investigación científica más grande del continente antártico."
+    },
+    {
+      "id": "scott_base",
+      "name": "Base Scott (Nueva Zelanda)",
+      "type": "facility",
+      "elevation": 10,
+      "coordinates": { "lat": -77.850, "lon": 166.760 },
+      "color": "#10b981",
+      "highlight": false,
+      "description": "Puesto de observación polar en la Península de Hut Point."
+    },
+    {
+      "id": "mount_erebus",
+      "name": "Monte Erebus (Volcán Activo)",
+      "type": "volcano",
+      "elevation": 3794,
+      "coordinates": { "lat": -77.533, "lon": 167.167 },
+      "color": "#ff3838",
+      "highlight": true,
+      "description": "Estratovolcán activo con lago de magma fonolítico persistente en el cráter."
+    },
+    {
+      "id": "mount_discovery",
+      "name": "Monte Discovery",
+      "type": "peak",
+      "elevation": 2681,
+      "coordinates": { "lat": -78.367, "lon": 165.017 },
+      "color": "#a855f7",
+      "highlight": false,
+      "description": "Volcán extinto que domina la barrera de hielo de Ross."
+    },
+    {
+      "id": "south_pole_station",
+      "name": "Polo Sur Geográfico (Amundsen-Scott)",
+      "type": "waypoint",
+      "elevation": 2835,
+      "coordinates": { "lat": -90.000, "lon": 0.000 },
+      "color": "#e0e7ff",
+      "highlight": true,
+      "description": "Punto de convergencia axial de la Tierra. Distancia: ~1.365 km al sur."
+    },
+    {
+      "id": "mount_vinson",
+      "name": "Macizo Vinson (4.892 m)",
+      "type": "peak",
+      "elevation": 4892,
+      "coordinates": { "lat": -78.525, "lon": -85.617 },
+      "color": "#ec4899",
+      "highlight": true,
+      "description": "Cima más alta de la Antártida en la cordillera Sentinel."
+    }
+  ],
+  "routes": [
+    {
+      "id": "route_taylor_valley",
+      "name": "Corredor Táctico Taylor",
+      "type": "ground_tactical",
+      "color": "#ff2a5f",
+      "pulseColor": "#ffffff",
+      "width": 3,
+      "waypoints": [
+        { "lat": -77.722, "lon": 162.273, "name": "Blood Falls [Spawn]" },
+        { "lat": -77.717, "lon": 162.450, "name": "Paso Bonney" },
+        { "lat": -77.680, "lon": 162.680, "name": "Cañón Central Taylor" },
+        { "lat": -77.616, "lon": 162.983, "name": "Frente Glaciar Canadá" },
+        { "lat": -77.608, "lon": 163.155, "name": "Vereda Fryxell" },
+        { "lat": -77.580, "lon": 163.500, "name": "Salida Estrecho McMurdo" }
+      ]
+    },
+    {
+      "id": "route_erebus_flight_vector",
+      "name": "Vector Aéreo Erebus (Ascenso)",
+      "type": "flight_vector",
+      "color": "#00f0ff",
+      "pulseColor": "#7000ff",
+      "width": 2,
+      "waypoints": [
+        { "lat": -77.580, "lon": 163.500, "name": "Despegue Litoral" },
+        { "lat": -77.630, "lon": 164.800, "name": "Cruce Marítimo McMurdo" },
+        { "lat": -77.680, "lon": 165.900, "name": "Aproximación Cabo Bird" },
+        { "lat": -77.533, "lon": 167.167, "name": "Cráter Activo Erebus" }
+      ]
+    },
+    {
+      "id": "route_mcmurdo_transit",
+      "name": "Enlace Logístico Ross Island",
+      "type": "logistics",
+      "color": "#f59e0b",
+      "pulseColor": "#ffffff",
+      "width": 2,
+      "waypoints": [
+        { "lat": -77.847, "lon": 166.668, "name": "Base McMurdo" },
+        { "lat": -77.850, "lon": 166.760, "name": "Base Scott" },
+        { "lat": -77.750, "lon": 166.900, "name": "Paso Erebus Sur" }
+      ]
+    }
+  ]
+}

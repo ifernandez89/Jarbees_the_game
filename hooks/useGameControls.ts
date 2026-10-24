@@ -15,22 +15,30 @@ export function useGameControls() {
         return
       }
 
-      // Mutear / desmutear audio con M
-      if (e.code === 'KeyM') {
+      // Mutear / desmutear audio con U
+      if (e.code === 'KeyU') {
         e.preventDefault()
         const currentAudio = useGameStore.getState().audioEnabled
         useGameStore.getState().setAudioEnabled(!currentAudio)
         return
       }
 
+      // Mapa Holográfico Táctico AR Flotante con M (Mapa) o N (Nav)
+      if (e.code === 'KeyM' || e.code === 'KeyN') {
+        e.preventDefault()
+        useGameStore.getState().toggleHoloMap()
+        return
+      }
+
       // Cambiar de bioma con B
       if (e.code === 'KeyB') {
         e.preventDefault()
-        const biomes: Array<'aconcagua' | 'titicaca' | 'easter_island' | 'constellations'> = [
+        const biomes: Array<'aconcagua' | 'titicaca' | 'easter_island' | 'constellations' | 'antarctica'> = [
           'aconcagua',
           'titicaca',
           'easter_island',
           'constellations',
+          'antarctica',
         ]
         const current = useGameStore.getState().currentBiome
         const next = biomes[(biomes.indexOf(current) + 1) % biomes.length]

@@ -21,6 +21,7 @@ import * as THREE from 'three'
 import { useDayNightCycle } from '@/hooks/useDayNightCycle'
 
 import { AmbientWildlife } from './AmbientWildlife'
+import { HoloTacticalOverlay } from './HoloTacticalOverlay'
 
 // Componente de la escena 3D
 function Scene() {
@@ -71,6 +72,9 @@ function Scene() {
 
       {/* Efectos audiovisuales de vuelo aerodinámico (estelas, cono Mach, ondas de choque y audio procedural) */}
       <FlightEffects />
+
+      {/* Mapa Holográfico Táctico AR Flotante a la altura de la cadera (Guía de Rutas y Sitios Reales) */}
+      <HoloTacticalOverlay />
 
       {/* Cámara en tercera persona */}
       <FollowCamera />

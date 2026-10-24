@@ -98,4 +98,18 @@ export const BIOMES: Record<string, Biome> = {
       types: ['rock', 'sparse_grass', 'ice'],
     },
   },
+  antarctica: {
+    id: 'antarctica',
+    name: 'Antártida - Valles Secos (Taylor / Blood Falls)',
+    colors: {
+      sky: '#7dd3fc',
+      ground: '#334155', // Roca oscura seca y grava polar
+      water: '#b91c1c',  // Salmuera roja Blood Falls
+    },
+    vegetation: {
+      density: 0.05,
+      types: ['rock', 'ice', 'cryo_salt'],
+    },
+  },
 }
+

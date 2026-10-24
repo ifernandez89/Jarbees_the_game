@@ -344,5 +344,17 @@ export const PREDEFINED_REGIONS: Record<string, DEMRegion> = {
     },
     resolution: 30,
     source: 'copernicus'
+  },
+  
+  antarctica_taylor: {
+    name: 'antarctica_taylor',
+    bounds: {
+      north: -77.400,
+      south: -78.100,
+      east: 167.500,
+      west: 161.500,
+    },
+    resolution: 30,
+    source: 'copernicus'
   }
 }
