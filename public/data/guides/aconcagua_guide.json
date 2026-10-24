@@ -1,0 +1,92 @@
+{
+  "region": "aconcagua",
+  "name": "Parque Provincial Aconcagua · Mendoza (Argentina)",
+  "origin": {
+    "id": "spawn_plaza_de_mulas",
+    "name": "Plaza de Mulas (Campamento Base)",
+    "coordinates": {
+      "lat": -32.651,
+      "lon": -70.065,
+      "elevation": 4300
+    },
+    "description": "Campamento base principal en la cara oeste hacia la cumbre del Aconcagua."
+  },
+  "places": [
+    {
+      "id": "plaza_de_mulas",
+      "name": "Plaza de Mulas [Base]",
+      "type": "camp",
+      "elevation": 4300,
+      "coordinates": { "lat": -32.651, "lon": -70.065 },
+      "color": "#38bdf8",
+      "highlight": true,
+      "description": "Campamento base neurálgico a 4.300 msnm."
+    },
+    {
+      "id": "nido_de_condores",
+      "name": "Nido de Cóndores",
+      "type": "camp",
+      "elevation": 5560,
+      "coordinates": { "lat": -32.654, "lon": -70.045 },
+      "color": "#00f0ff",
+      "highlight": true,
+      "description": "Campamento intermedio en una amplia meseta expuesta."
+    },
+    {
+      "id": "refugio_berlin",
+      "name": "Refugio Berlín",
+      "type": "camp",
+      "elevation": 5930,
+      "coordinates": { "lat": -32.656, "lon": -70.028 },
+      "color": "#fb923c",
+      "highlight": false,
+      "description": "Último refugio de madera antes del asalto final a la cumbre."
+    },
+    {
+      "id": "cumbre_aconcagua",
+      "name": "Cumbre Cerro Aconcagua",
+      "type": "peak",
+      "elevation": 6961,
+      "coordinates": { "lat": -32.6532, "lon": -70.0109 },
+      "color": "#ffffff",
+      "highlight": true,
+      "description": "El Techo de América y la mayor altura del planeta fuera de Asia (6.961 m)."
+    },
+    {
+      "id": "glaciar_polacos",
+      "name": "Glaciar de los Polacos",
+      "type": "glacier",
+      "elevation": 6200,
+      "coordinates": { "lat": -32.650, "lon": -70.005 },
+      "color": "#67e8f9",
+      "highlight": true,
+      "description": "Imponente campo de hielo colgado en la cara este."
+    },
+    {
+      "id": "laguna_horcones",
+      "name": "Laguna de Horcones",
+      "type": "lake",
+      "elevation": 2950,
+      "coordinates": { "lat": -32.810, "lon": -69.940 },
+      "color": "#10b981",
+      "highlight": false,
+      "description": "Portal de acceso al valle de Horcones."
+    }
+  ],
+  "routes": [
+    {
+      "id": "ruta_normal_aconcagua",
+      "name": "Ruta Normal de Ascenso",
+      "type": "climb_route",
+      "color": "#38bdf8",
+      "pulseColor": "#ffffff",
+      "width": 3,
+      "waypoints": [
+        { "lat": -32.651, "lon": -70.065, "name": "Plaza de Mulas" },
+        { "lat": -32.654, "lon": -70.045, "name": "Nido de Cóndores" },
+        { "lat": -32.656, "lon": -70.028, "name": "Refugio Berlín" },
+        { "lat": -32.6532, "lon": -70.0109, "name": "Cumbre Aconcagua" }
+      ]
+    }
+  ]
+}

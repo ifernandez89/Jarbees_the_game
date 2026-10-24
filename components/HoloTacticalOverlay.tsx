@@ -8,6 +8,7 @@ import { useGameStore } from '@/store/gameStore'
 import { GeoProjector, type GeoCoordinate, type WorldPoint3D, calculateHaversineDistance } from '@/utils/geoProjection'
 import { getAssetPath } from '@/utils/assetPath'
 import ANTARCTICA_DEFAULT_GUIDE from '@/public/data/guides/antarctica_taylor_guide.json'
+import ACONCAGUA_DEFAULT_GUIDE from '@/public/data/guides/aconcagua_guide.json'
 
 interface WaypointData {
   lat: number
@@ -312,17 +313,34 @@ function HoloRoute({
  */
 export function HoloTacticalOverlay() {
   const isHoloMapActive = useGameStore((state) => state.isHoloMapActive)
+  const currentBiome = useGameStore((state) => state.currentBiome)
   const playerPosition = useGameStore((state) => state.position)
   const terrainManager = useGameStore((state) => state.terrainManager)
 
-  // Cargar guía inicial directamente empaquetada (evita 404 en GitHub Pages y 0ms latency)
-  const [guide, setGuide] = useState<GuideData>(ANTARCTICA_DEFAULT_GUIDE as unknown as GuideData)
+  // Seleccionar guía empaquetada según el bioma activo del jugador
+  const initialGuide = useMemo(() => {
+    if (currentBiome === 'aconcagua') {
+      return ACONCAGUA_DEFAULT_GUIDE as unknown as GuideData
+    }
+    return ANTARCTICA_DEFAULT_GUIDE as unknown as GuideData
+  }, [currentBiome])
+
+  const [guide, setGuide] = useState<GuideData>(initialGuide)
   const [loading, setLoading] = useState(false)
+
+  // Actualizar guía al cambiar de bioma
+  useEffect(() => {
+    setGuide(initialGuide)
+  }, [initialGuide])
 
   // Opcional: refresco o carga dinámica con resolución de ruta para GitHub Pages (/Jarbees_the_game/...)
   useEffect(() => {
     let mounted = true
-    const guideUrl = getAssetPath('/data/guides/antarctica_taylor_guide.json')
+    const fileName =
+      currentBiome === 'aconcagua'
+        ? 'aconcagua_guide.json'
+        : 'antarctica_taylor_guide.json'
+    const guideUrl = getAssetPath(`/data/guides/${fileName}`)
 
     fetch(guideUrl)
       .then((res) => {
@@ -335,14 +353,13 @@ export function HoloTacticalOverlay() {
         }
       })
       .catch((err) => {
-        // En caso de error de red, ya contamos con la guía inicial empaquetada
         console.info('[HoloTacticalOverlay] Usando guía táctica bundled base:', err?.message || err)
       })
 
     return () => {
       mounted = false
     }
-  }, [])
+  }, [currentBiome])
 
   // Inicializar proyector geográfico centrado en el origen de despliegue (Blood Falls)
   const projector = useMemo(() => {
