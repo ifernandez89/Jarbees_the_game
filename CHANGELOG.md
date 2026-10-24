@@ -1,5 +1,34 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.35] - 2026-10-24
+
+### 🏔️ Geología Polar Ultra-Realista de la Antártida, Estratovolcán Monte Erebus y Aurora Australis
+
+#### 1. Geomorfología Realista de la Antártida y Monte Erebus ([ChunkManager.ts](file:///c:/Projects/Jarbees_the_game/systems/ChunkManager.ts))
+- **Erradicación del Terreno Verde en la Antártida**:
+  - Se eliminó el degradado genérico verde de pastizal (`#586e42`) en la Antártida.
+  - Se implementó una paleta geológica PBR polar auténtica: nieve perpetua compacta (`#f8fafc`), hielo azul glacial comprimido (`#7dd3fc` / `#38bdf8`), acantilados de basalto volcánico oscuro (`#0f172a` / `#1e293b`), grava seca de morrena de los Valles de Taylor y salmuera carmesí en Blood Falls (`#991b1b`).
+- **Gran Estratovolcán Monte Erebus (3.794m)**:
+  - Modelado tridimensional auténtico del volcán activo más austral del mundo: cono volcánico imponente que asciende hasta 142m en escala del motor.
+  - **Caldera Activa y Lago de Magma**: En la cumbre se esculpió una caldera circular con borde elevado a 144m, paredes interiores de basalto volcánico que descienden 20m, y en el fondo un lago de magma fonolítico incandescente activo (`#fef08a` / `#f97316` / `#dc2626`).
+  - Modelado tanto en coordenadas geodésicas reales (115 km) como en el azimut visual regional para exploración inmediata.
+- **Topografía del Valle Seco de Taylor y Glaciar Canadá**:
+  - Cañón profundo flanqueado por escarpadas murallas rocosas andesíticas/basálticas, con la lengua frontal del Glaciar Canadá (38m de hielo azul vertical) y el lecho liso del Lago Bonney.
+- **Materiales PBR Reflectivos**:
+  - `roughness: 0.65` y `metalness: 0.12` para capturar destellos y reflejos especulares de luz sobre la nieve y el hielo polar.
+
+#### 2. Aurora Australis (Luces del Sur) e Iluminación Nocturna Polar ([DynamicSky.tsx](file:///c:/Projects/Jarbees_the_game/components/DynamicSky.tsx), [useDayNightCycle.ts](file:///c:/Projects/Jarbees_the_game/hooks/useDayNightCycle.ts))
+- **Aurora Australis Shimmering**:
+  - Se añadió un sistema de cortinas de plasma atmosférico ondulante con gradientes de verde esmeralda (`#10b981`), cian eléctrico (`#06b6d4`) y violeta (`#8b5cf6`) con animación en tiempo real de ondas de plasma.
+- **Fin del Vacío Negro a Medianoche**:
+  - Se calibraron los keyframes nocturnos del firmamento para reflejar la auténtica noche polar / crepúsculo austral: horizonte índigo y azul zafiro profundo (`#122c54`), eliminando la oscuridad plana.
+  - La luz lunar direccional (`#cde2ff` a intensidad 0.85 con sombras nítidas) y la luz ambiental polar (`#223c63`) garantizan que el exotraje y los glaciares resalten con reflejos metálicos y siluetas cristalinas.
+- **Niebla Atmosférica Polar ([WeatherSystem.tsx](file:///c:/Projects/Jarbees_the_game/components/WeatherSystem.tsx))**:
+  - Se amplió la distancia de visión atmosférica a 720m, permitiendo contemplar cordilleras y picos lejanos con perspectiva aérea realista.
+
+#### 3. Baliza Volcánica y Anclaje Real a la Cumbre ([PeakBeacon3D.tsx](file:///c:/Projects/Jarbees_the_game/components/PeakBeacon3D.tsx))
+- Anclaje exacto de la baliza 3D a la cota real del cráter volcánico (`groundY + 3.5m`), complementada con un foco de iluminación cálida de magma volcánico (`pointLight` naranja/fuego de 150m de alcance) sobre la caldera activa.
+
 ## [0.8.34] - 2026-10-24
 
 ### ⚡ Disponibilidad Permanente e Ilimitada de Vuelo Supersónico con Shift

@@ -111,10 +111,10 @@ export function PeakBeacon3D() {
       groundY = terrainManager.getHeightAt(targetX, targetZ)
     }
 
-    // Si es local (< 380m), se ubica en su cumbre; si está en el horizonte lejano, se eleva visiblemente
+    // Si es local (< 380m), se ubica exactamente en la cumbre del relieve 3D; si está en el horizonte, se eleva visiblemente
     const visualY =
       trueDistance <= 380
-        ? Math.max(groundY + 10, navigationTarget.elevation / 35)
+        ? groundY + 3.5
         : Math.max(playerPosition[1] + 18, groundY + 25)
 
     return new THREE.Vector3(targetX, visualY, targetZ)
@@ -145,6 +145,11 @@ export function PeakBeacon3D() {
 
   return (
     <group ref={groupRef} position={visualPos3D}>
+      {/* Resplandor cálido de la caldera volcánica / cumbre si el objetivo es un volcán */}
+      {navigationTarget.category === 'volcano' && (
+        <pointLight color="#ff5a1f" intensity={3.5} distance={150} decay={2} position={[0, -1, 0]} />
+      )}
+
       {/* 1. Columna de Luz Vertical de Navegación hacia el firmamento */}
       <mesh position={[0, 45, 0]}>
         <cylinderGeometry args={[0.35, 0.8, 90, 8]} />

@@ -37,8 +37,8 @@ export function WeatherSystem({ enabled = true }: WeatherSystemProps) {
     fog.color.lerp(targetColor, Math.min(1, delta * 3))
 
     const baseDensity = timeOfDay.fogDensity
-    const targetNear = 140 - baseDensity * 40
-    const targetFar = 540 - baseDensity * 120
+    const targetNear = 180 - baseDensity * 40
+    const targetFar = 720 - baseDensity * 120
 
     fog.near = THREE.MathUtils.lerp(fog.near, targetNear, delta * 3)
     fog.far = THREE.MathUtils.lerp(fog.far, targetFar, delta * 3)

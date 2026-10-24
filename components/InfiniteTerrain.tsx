@@ -33,8 +33,8 @@ const BIOME_CONFIGS: Record<string, Partial<ChunkConfig>> = {
     heightMultiplier: 25,
   },
   antarctica: {
-    color: '#e2e8f0', // Hielo polar y grava de valles secos
-    heightMultiplier: 18,
+    color: '#ffffff', // Multiplicador neutro para vertexColors de nieve, hielo azul, basalto y magma
+    heightMultiplier: 25,
   },
 }
 

@@ -33,30 +33,30 @@ interface SkyKeyframe {
 
 // Keyframes continuos de 24 horas con balance de color cinematográfico
 const SKY_TIMELINE: SkyKeyframe[] = [
-  // Medianoche profunda (00:00)
-  { hour: 0.0,  skyColor: '#050716', horizonColor: '#0b0f26', ambientColor: '#121838', ambientIntensity: 0.12, sunIntensity: 0.0,  moonIntensity: 0.85, starsOpacity: 1.0,  fogDensity: 0.42, period: 'night' },
+  // Medianoche profunda (00:00) — Noche polar iluminada por luna y bóveda celeste
+  { hour: 0.0,  skyColor: '#0a1632', horizonColor: '#122c54', ambientColor: '#223c63', ambientIntensity: 0.35, sunIntensity: 0.0,  moonIntensity: 1.25, starsOpacity: 1.0,  fogDensity: 0.28, period: 'night' },
   // Madrugada estrellada (04:30)
-  { hour: 4.5,  skyColor: '#080a22', horizonColor: '#141432', ambientColor: '#141a3a', ambientIntensity: 0.13, sunIntensity: 0.0,  moonIntensity: 0.75, starsOpacity: 0.95, fogDensity: 0.45, period: 'night' },
+  { hour: 4.5,  skyColor: '#0c1b3a', horizonColor: '#15325c', ambientColor: '#20395e', ambientIntensity: 0.32, sunIntensity: 0.0,  moonIntensity: 1.15, starsOpacity: 0.95, fogDensity: 0.30, period: 'night' },
   // Primer resplandor del alba (05:30)
-  { hour: 5.5,  skyColor: '#161945', horizonColor: '#4f244b', ambientColor: '#2b2342', ambientIntensity: 0.22, sunIntensity: 0.15, moonIntensity: 0.35, starsOpacity: 0.55, fogDensity: 0.48, period: 'dawn' },
+  { hour: 5.5,  skyColor: '#161945', horizonColor: '#4f244b', ambientColor: '#2b2342', ambientIntensity: 0.38, sunIntensity: 0.18, moonIntensity: 0.45, starsOpacity: 0.55, fogDensity: 0.34, period: 'dawn' },
   // Amanecer dorado sobre las cumbres (06:30)
-  { hour: 6.5,  skyColor: '#2b558f', horizonColor: '#f3823f', ambientColor: '#6e4530', ambientIntensity: 0.48, sunIntensity: 0.65, moonIntensity: 0.05, starsOpacity: 0.15, fogDensity: 0.38, period: 'dawn' },
+  { hour: 6.5,  skyColor: '#2b558f', horizonColor: '#f3823f', ambientColor: '#6e4530', ambientIntensity: 0.55, sunIntensity: 0.75, moonIntensity: 0.05, starsOpacity: 0.15, fogDensity: 0.28, period: 'dawn' },
   // Mañana soleada (08:00)
-  { hour: 8.0,  skyColor: '#4a8ece', horizonColor: '#f7d382', ambientColor: '#8a7d60', ambientIntensity: 0.75, sunIntensity: 0.95, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.30, period: 'day' },
+  { hour: 8.0,  skyColor: '#4a8ece', horizonColor: '#f7d382', ambientColor: '#8a7d60', ambientIntensity: 0.78, sunIntensity: 1.05, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.22, period: 'day' },
   // Mediodía radiante (12:00)
-  { hour: 12.0, skyColor: '#4892e6', horizonColor: '#bde0ff', ambientColor: '#96a7b8', ambientIntensity: 0.90, sunIntensity: 1.25, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.22, period: 'day' },
+  { hour: 12.0, skyColor: '#4892e6', horizonColor: '#bde0ff', ambientColor: '#96a7b8', ambientIntensity: 0.95, sunIntensity: 1.35, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.18, period: 'day' },
   // Tarde despejada (16:00)
-  { hour: 16.0, skyColor: '#468ad4', horizonColor: '#c5e2fc', ambientColor: '#929fae', ambientIntensity: 0.85, sunIntensity: 1.10, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.24, period: 'day' },
+  { hour: 16.0, skyColor: '#468ad4', horizonColor: '#c5e2fc', ambientColor: '#929fae', ambientIntensity: 0.90, sunIntensity: 1.20, moonIntensity: 0.0,  starsOpacity: 0.0,  fogDensity: 0.20, period: 'day' },
   // Atardecer dorado / hora dorada (18:00)
-  { hour: 18.0, skyColor: '#395394', horizonColor: '#f78d38', ambientColor: '#7a4e32', ambientIntensity: 0.60, sunIntensity: 0.75, moonIntensity: 0.05, starsOpacity: 0.10, fogDensity: 0.32, period: 'dusk' },
+  { hour: 18.0, skyColor: '#395394', horizonColor: '#f78d38', ambientColor: '#7a4e32', ambientIntensity: 0.65, sunIntensity: 0.85, moonIntensity: 0.05, starsOpacity: 0.10, fogDensity: 0.26, period: 'dusk' },
   // Puesta de sol rojiza y crepúsculo (19:15)
-  { hour: 19.25, skyColor: '#222350', horizonColor: '#c84439', ambientColor: '#4d2d38', ambientIntensity: 0.35, sunIntensity: 0.25, moonIntensity: 0.30, starsOpacity: 0.45, fogDensity: 0.38, period: 'dusk' },
+  { hour: 19.25, skyColor: '#222350', horizonColor: '#c84439', ambientColor: '#4d2d38', ambientIntensity: 0.42, sunIntensity: 0.30, moonIntensity: 0.40, starsOpacity: 0.45, fogDensity: 0.30, period: 'dusk' },
   // Anochecer azul índigo (20:30)
-  { hour: 20.5, skyColor: '#0e1132', horizonColor: '#271a42', ambientColor: '#1d1a36', ambientIntensity: 0.18, sunIntensity: 0.02, moonIntensity: 0.65, starsOpacity: 0.80, fogDensity: 0.42, period: 'night' },
-  // Noche plena (22:00)
-  { hour: 22.0, skyColor: '#050716', horizonColor: '#0b0f26', ambientColor: '#121838', ambientIntensity: 0.12, sunIntensity: 0.0,  moonIntensity: 0.85, starsOpacity: 1.0,  fogDensity: 0.42, period: 'night' },
+  { hour: 20.5, skyColor: '#0e1b3d', horizonColor: '#22325c', ambientColor: '#213354', ambientIntensity: 0.34, sunIntensity: 0.02, moonIntensity: 0.95, starsOpacity: 0.80, fogDensity: 0.30, period: 'night' },
+  // Noche plena (22:00) — Atmósfera polar lúcida y resplandeciente
+  { hour: 22.0, skyColor: '#0a1632', horizonColor: '#122c54', ambientColor: '#223c63', ambientIntensity: 0.35, sunIntensity: 0.0,  moonIntensity: 1.25, starsOpacity: 1.0,  fogDensity: 0.28, period: 'night' },
   // Cierre de ciclo 24:00 (mismo que 00:00)
-  { hour: 24.0, skyColor: '#050716', horizonColor: '#0b0f26', ambientColor: '#121838', ambientIntensity: 0.12, sunIntensity: 0.0,  moonIntensity: 0.85, starsOpacity: 1.0,  fogDensity: 0.42, period: 'night' },
+  { hour: 24.0, skyColor: '#0a1632', horizonColor: '#122c54', ambientColor: '#223c63', ambientIntensity: 0.35, sunIntensity: 0.0,  moonIntensity: 1.25, starsOpacity: 1.0,  fogDensity: 0.28, period: 'night' },
 ]
 
 export function useDayNightCycle(

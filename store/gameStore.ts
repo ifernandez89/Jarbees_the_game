@@ -208,7 +208,7 @@ const initialState = {
   isGrounded: false,
   isPhaseVeilActive: false,
   isHoloMapActive: true,
-  navigationTarget: WORLD_TARGETS[0] as NavigationTarget | null,
+  navigationTarget: (WORLD_TARGETS.find((t) => t.id === 'mount_erebus') || WORLD_TARGETS[0]) as NavigationTarget | null,
   flightMode: 'assist' as FlightMode,
   flight: INITIAL_FLIGHT_TELEMETRY,
 }
@@ -270,7 +270,16 @@ export const useGameStore = create<GameState>((set) => ({
   
   setTerrainManager: (terrainManager) => set({ terrainManager }),
   
-  setBiome: (currentBiome) => set({ currentBiome }),
+  setBiome: (currentBiome) =>
+    set((state) => {
+      let target = state.navigationTarget
+      if (currentBiome === 'antarctica') {
+        target = WORLD_TARGETS.find((t) => t.id === 'mount_erebus') || target
+      } else if (currentBiome === 'aconcagua') {
+        target = WORLD_TARGETS.find((t) => t.id === 'aconcagua') || target
+      }
+      return { currentBiome, navigationTarget: target }
+    }),
   
   setWind: (wind) => set({ wind }),
   

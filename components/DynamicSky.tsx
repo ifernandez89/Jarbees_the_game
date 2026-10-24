@@ -6,6 +6,7 @@ import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { useDayNightCycle, getSunPosition, getMoonPosition } from '@/hooks/useDayNightCycle'
 import { getAssetPath } from '@/utils/assetPath'
+import { useGameStore } from '@/store/gameStore'
 import { Clouds } from './Clouds'
 
 interface DynamicSkyProps {
@@ -193,24 +194,35 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
         />
       </mesh>
 
-      {/* Luz lunar nocturna con sombras suaves */}
+      {/* Luz lunar nocturna con sombras suaves y destellos sobre nieve/hielo */}
       <directionalLight
         ref={moonLightRef}
         position={[moonX, moonY, moonZ]}
-        intensity={Math.max(0.0, timeOfDay.moonIntensity * 0.35)}
-        color="#b0c8ff"
+        intensity={Math.max(0.0, timeOfDay.moonIntensity * 0.85)}
+        color="#cde2ff"
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-far={550}
+        shadow-camera-left={-100}
+        shadow-camera-right={100}
+        shadow-camera-top={100}
+        shadow-camera-bottom={-100}
       />
 
-      {/* Luz hemisférica reactiva al color ambiental del ciclo */}
+      {/* Luz hemisférica reactiva al color ambiental del ciclo y reflejo polar */}
       <hemisphereLight
-        args={[timeOfDay.skyColor, timeOfDay.horizonColor, Math.max(0.15, timeOfDay.ambientIntensity * 0.65)]}
+        args={[timeOfDay.skyColor, timeOfDay.horizonColor, Math.max(0.35, timeOfDay.ambientIntensity * 0.95)]}
       />
 
-      {/* Luz ambiental adaptativa día/noche */}
+      {/* Luz ambiental adaptativa día/noche para visualización nítida permanente del exotraje y terreno */}
       <ambientLight
         color={timeOfDay.ambientColor}
-        intensity={Math.max(0.10, timeOfDay.ambientIntensity * 0.55)}
+        intensity={Math.max(0.28, timeOfDay.ambientIntensity * 0.85)}
       />
+
+      {/* Aurora Australis (Luces del Sur): cortinas de plasma verde y violeta en el firmamento */}
+      <AuroraAustralis opacity={timeOfDay.starsOpacity} />
 
       {/* Nubes dinámicas reactivas al viento y al ciclo */}
       <Clouds timeOfDay={timeOfDay} />
@@ -219,6 +231,87 @@ export function DynamicSky({ enabled = true, speed = 1 }: DynamicSkyProps) {
       <ConstellationsAndStars opacity={timeOfDay.starsOpacity} />
     </group>
   )
+}
+
+/**
+ * Aurora Australis (Luces del Sur): cortinas celestes ondulantes de plasma esmeralda y violeta
+ */
+function AuroraAustralis({ opacity }: { opacity: number }) {
+  const meshRef = useRef<THREE.Mesh>(null!)
+  const currentBiome = useGameStore((state) => state.currentBiome)
+
+  const { geometry, material } = useMemo(() => {
+    // Sinuosidad en cilindro invertido amplio que envuelve el cielo polar
+    const geo = new THREE.CylinderGeometry(410, 430, 110, 64, 16, true, Math.PI * 0.25, Math.PI * 1.5)
+    const mat = new THREE.ShaderMaterial({
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: {
+        uTime: { value: 0 },
+        uOpacity: { value: 0 },
+        uColorA: { value: new THREE.Color('#10b981') }, // Verde esmeralda polar
+        uColorB: { value: new THREE.Color('#06b6d4') }, // Cian eléctrico
+        uColorC: { value: new THREE.Color('#8b5cf6') }, // Violeta / magenta
+      },
+      vertexShader: `
+        uniform float uTime;
+        varying vec2 vUv;
+        varying float vWave;
+        void main() {
+          vUv = uv;
+          vec3 pos = position;
+          // Ondulaciones sinuosas de cortina de plasma auroral
+          float wave1 = sin(pos.x * 0.015 + uTime * 0.7) * cos(pos.z * 0.015 + uTime * 0.45) * 16.0;
+          float wave2 = sin(pos.x * 0.035 - uTime * 0.9) * 7.0;
+          pos.y += wave1 + wave2;
+          pos.x += sin(pos.y * 0.03 + uTime * 0.5) * 8.0;
+          vWave = wave1 + wave2;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uOpacity;
+        uniform vec3 uColorA;
+        uniform vec3 uColorB;
+        uniform vec3 uColorC;
+        varying vec2 vUv;
+        varying float vWave;
+        void main() {
+          float h = vUv.y;
+          vec3 col = mix(uColorA, uColorB, smoothstep(0.12, 0.60, h));
+          col = mix(col, uColorC, smoothstep(0.60, 0.95, h));
+          
+          float edgeFade = smoothstep(0.0, 0.22, h) * smoothstep(1.0, 0.65, h);
+          float horizFade = smoothstep(0.0, 0.15, vUv.x) * smoothstep(1.0, 0.85, vUv.x);
+          float curtainRibs = (0.70 + 0.30 * sin(vUv.x * 48.0 + vWave * 0.35));
+          
+          float alpha = uOpacity * edgeFade * horizFade * curtainRibs * 0.75;
+          gl_FragColor = vec4(col, alpha);
+        }
+      `,
+    })
+    return { geometry: geo, material: mat }
+  }, [])
+
+  useFrame((state) => {
+    if (!material) return
+    const time = state.clock.getElapsedTime()
+    material.uniforms.uTime.value = time
+
+    const isPolarOrNight = currentBiome === 'antarctica' ? opacity * 1.35 : opacity * 0.6
+    material.uniforms.uOpacity.value = THREE.MathUtils.lerp(
+      material.uniforms.uOpacity.value,
+      isPolarOrNight,
+      0.08
+    )
+    if (meshRef.current) {
+      meshRef.current.visible = material.uniforms.uOpacity.value > 0.01
+    }
+  })
+
+  return <mesh ref={meshRef} position={[0, 90, 0]} geometry={geometry} material={material} />
 }
 
 /**

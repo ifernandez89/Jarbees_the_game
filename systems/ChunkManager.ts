@@ -159,6 +159,99 @@ export class ChunkManager {
   }
 
   /**
+   * Muestreo geomorfológico polar ultra-realista para la Antártida:
+   * - Valle Seco de Taylor (Blood Falls, Glaciar Canadá, Lago Bonney) en la zona de inicio
+   * - Cordillera Transantártica con fiordos rocosos y nunataks alpinos
+   * - Plataforma de hielo marino de Ross
+   * - Gran Estratovolcán Monte Erebus (3.794m) con cono simétrico, aristas de lava y cráter con caldera activa
+   */
+  private sampleAntarcticaTerrain(worldX: number, worldZ: number): number {
+    // 1. Relieve de fondo: Glaciar y cordillera transantártica
+    const baseNoise = this.noiseGenerator.getHeight(worldX * 0.45, worldZ * 0.45, 14.0)
+    // Crestas afiladas de nunatak (estilo alpino polar)
+    const ridgeNoise = Math.abs(this.noiseGenerator.getHeight(worldX * 0.22, worldZ * 0.22, 28.0))
+    const sastrugi = Math.sin(worldX * 0.15 + worldZ * 0.08) * 0.45 // Ondulaciones de nieve compactada por viento
+
+    let h = 2.5 + baseNoise * 0.5 + ridgeNoise + sastrugi
+
+    // 2. Zona de Inicio: Valle Seco de Taylor (alrededor de spawn X: 0, Z: 0)
+    // El valle corre de Oeste a Este (eje X). A los costados (Z) se levantan murallas rocosas escarpadas.
+    const distFromOrigin = Math.hypot(worldX, worldZ)
+    if (distFromOrigin < 4500.0) {
+      const valleyZ = Math.abs(worldZ)
+      // Piso del valle llano entre -140 y +140 en Z
+      if (valleyZ < 150.0) {
+        const floorT = valleyZ / 150.0
+        // Cuna de Blood Falls en (0, 0) nivelada a 2.5m sobre morrena
+        const spawnDamping = Math.min(1.0, distFromOrigin / 70.0)
+        h = 2.0 + floorT * 3.5 * spawnDamping
+      } else if (valleyZ < 900.0) {
+        // Paredes del cañón del Valle de Taylor
+        const wallT = (valleyZ - 150.0) / 750.0
+        h = 5.5 + Math.pow(wallT, 1.3) * 75.0 + ridgeNoise * 0.8
+      }
+
+      // Glaciar Canadá (alrededor de X: 1200, Z: -220): muralla vertical de hielo azul
+      const distCanadaGlacier = Math.hypot(worldX - 1200.0, worldZ + 220.0)
+      if (distCanadaGlacier < 400.0) {
+        const glacierT = Math.max(0, 1.0 - distCanadaGlacier / 400.0)
+        h = Math.max(h, 4.0 + Math.pow(glacierT, 0.4) * 38.0)
+      }
+
+      // Lago Bonney (alrededor de X: 600, Z: 0): lecho de hielo liso
+      const distBonney = Math.hypot(worldX - 600.0, worldZ)
+      if (distBonney < 240.0) {
+        h = 2.2
+      }
+    }
+
+    // 3. Gran Estratovolcán Monte Erebus (3.794m)
+    // Evaluamos proximidad a Monte Erebus: tanto en las coordenadas geodésicas reales (115708, -20981)
+    // como en una réplica visual local en el rumbo hacia Erebus (azimut ~79° NNE a 2400m)
+    const EREBUS_GEO_X = 115708.0
+    const EREBUS_GEO_Z = -20981.0
+    const distToErebusGeo = Math.hypot(worldX - EREBUS_GEO_X, worldZ - EREBUS_GEO_Z)
+
+    const EREBUS_LOCAL_X = 2350.0
+    const EREBUS_LOCAL_Z = -460.0
+    const distToErebusLocal = Math.hypot(worldX - EREBUS_LOCAL_X, worldZ - EREBUS_LOCAL_Z)
+
+    const distErebus = Math.min(distToErebusGeo, distToErebusLocal)
+
+    if (distErebus < 2600.0) {
+      const coneR = 2600.0
+      const normDist = distErebus / coneR // 0 en centro, 1 en borde
+      const coneHeight = Math.pow(1.0 - normDist, 1.45) * 142.0 // Cónica volcánica de 142m
+
+      // Estrías y aristas radiales de lava y morrenas
+      const angle = Math.atan2(worldZ, worldX)
+      const radialRibs = Math.cos(angle * 14.0 + baseNoise * 0.1) * 6.5 * (1.0 - normDist)
+
+      let volcanoH = 4.0 + coneHeight + radialRibs
+
+      // Caldera del cráter activo en la cumbre (radio 130m)
+      if (distErebus < 130.0) {
+        const rimHeight = 144.0
+        if (distErebus > 75.0) {
+          // Borde / cresta de la caldera
+          volcanoH = rimHeight + Math.sin(((distErebus - 75.0) / 55.0) * Math.PI) * 4.0
+        } else if (distErebus > 38.0) {
+          // Pared interior del cráter que desciende hacia el lago de lava
+          const craterWallT = (distErebus - 38.0) / 37.0
+          volcanoH = 124.0 + Math.pow(craterWallT, 1.2) * 20.0
+        } else {
+          // Lago de magma activo en el fondo del cráter (plano a 124m)
+          volcanoH = 124.0 + Math.sin(worldX * 0.2 + worldZ * 0.2) * 0.3
+        }
+      }
+
+      h = Math.max(h, volcanoH)
+    }
+
+    return Math.max(1.8, h)
+  }
+
+  /**
    * Generar clave única para un chunk basada en su posición en el grid
    */
   private getChunkKey(chunkX: number, chunkZ: number): string {
@@ -290,6 +383,70 @@ export class ChunkManager {
             tempColor.copy(colorIce).lerp(colorSnow, t)
           }
         }
+      } else if (this.biome === 'antarctica') {
+        const distErebusGeo = Math.hypot(x - 115708.0, z - (-20981.0))
+        const distErebusLocal = Math.hypot(x - 2350.0, z - (-460.0))
+        const distErebus = Math.min(distErebusGeo, distErebusLocal)
+
+        // 1. Cráter y Lago de Magma Activo de Monte Erebus
+        if (distErebus < 38.0) {
+          // Lago de lava ardiente en el fondo de la caldera
+          const magmaDist = distErebus / 38.0
+          const coreColor = new THREE.Color('#fef08a') // Núcleo amarillo incandescente
+          const lavaColor = new THREE.Color('#f97316') // Magma naranja
+          const crustColor = new THREE.Color('#dc2626') // Costra basáltica carmesí
+          if (magmaDist < 0.45) {
+            tempColor.copy(coreColor).lerp(lavaColor, magmaDist / 0.45)
+          } else {
+            tempColor.copy(lavaColor).lerp(crustColor, (magmaDist - 0.45) / 0.55)
+          }
+        } else if (distErebus < 110.0) {
+          // Paredes interiores del cráter: basalto volcánico oscuro con ceniza y fisuras
+          const basaltColor = new THREE.Color('#0f172a')
+          const sulfurColor = new THREE.Color('#78350f')
+          const t = (distErebus - 38.0) / 72.0
+          tempColor.copy(sulfurColor).lerp(basaltColor, t)
+        } else if (Math.hypot(x, z) < 40.0 && h < 12.0) {
+          // 2. Cascada de Sangre (Blood Falls - óxido de hierro sobre glaciar)
+          const bloodColor = new THREE.Color('#991b1b')
+          const ironRed = new THREE.Color('#dc2626')
+          tempColor.copy(ironRed).lerp(bloodColor, Math.random() * 0.4)
+        } else {
+          // 3. Geología Antártica Polar General
+          const colorPolarSnow = new THREE.Color('#f8fafc') // Nieve perpetua
+          const colorPureIce = new THREE.Color('#e0f2fe') // Hielo blanco polar
+          const colorBlueIce = new THREE.Color('#7dd3fc') // Hielo azul glaciar
+          const colorDeepGlacier = new THREE.Color('#38bdf8') // Hielo de grieta profunda
+          const colorBasalt = new THREE.Color('#1e293b') // Roca basáltica oscura
+          const colorDarkCliff = new THREE.Color('#0f172a') // Acantilado escarpado sin nieve
+          const colorDryGravel = new THREE.Color('#475569') // Grava seca de los Valles de Taylor
+
+          if (slope > 0.48) {
+            // Acantilados verticales: el viento catabático barre la nieve, roca expuesta
+            tempColor.set(colorDarkCliff)
+          } else if (slope > 0.32) {
+            // Pendientes pronunciadas: mezcla de roca basáltica y hielo
+            const t = (slope - 0.32) / 0.16
+            tempColor.copy(colorBasalt).lerp(colorDarkCliff, t)
+          } else if (h < 6.0 && Math.abs(z) < 140.0 && Math.hypot(x, z) < 3000.0) {
+            // Piso del Valle de Taylor: grava polar seca
+            tempColor.copy(colorDryGravel).lerp(colorBlueIce, 0.25)
+          } else if (h < 18.0) {
+            // Tierras bajas y plataformas de hielo marino
+            if (slope < 0.15) {
+              tempColor.copy(colorDeepGlacier).lerp(colorBlueIce, h / 18.0)
+            } else {
+              tempColor.copy(colorBlueIce).lerp(colorPureIce, (h - 6.0) / 12.0)
+            }
+          } else if (h < 65.0) {
+            // Laderas medias y glaciares colgantes
+            const t = (h - 18.0) / 47.0
+            tempColor.copy(colorBlueIce).lerp(colorPolarSnow, t)
+          } else {
+            // Altas cumbres y cono nevado de Monte Erebus
+            tempColor.copy(colorPolarSnow)
+          }
+        }
       } else {
         if (h < 2.0) {
           tempColor.set('#586e42')
@@ -342,13 +499,13 @@ export class ChunkManager {
       chunk.geometry.dispose()
       chunk.geometry = this.generateChunkGeometry(chunkX, chunkZ)
     } else {
-      // Crear nuevo chunk
+      // Crear nuevo chunk con propiedades PBR realistas de roca, nieve y hielo
       const geometry = this.generateChunkGeometry(chunkX, chunkZ)
       const material = new THREE.MeshStandardMaterial({
         color: this.config.color,
         vertexColors: true,
-        roughness: 0.85,
-        metalness: 0.05,
+        roughness: 0.65,
+        metalness: 0.12,
         flatShading: false,
       })
       
@@ -449,6 +606,9 @@ export class ChunkManager {
   getHeightAt(worldX: number, worldZ: number): number {
     if (this.biome === 'aconcagua') {
       return this.sampleAconcaguaDEM(worldX, worldZ)
+    }
+    if (this.biome === 'antarctica') {
+      return this.sampleAntarcticaTerrain(worldX, worldZ)
     }
     return this.noiseGenerator.getHeight(worldX, worldZ, this.config.heightMultiplier)
   }
