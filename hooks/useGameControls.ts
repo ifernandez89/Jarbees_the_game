@@ -56,6 +56,15 @@ export function useGameControls() {
         return
       }
 
+      // Velo de Fase (Aurelium Phase Veil) con V
+      if (e.code === 'KeyV') {
+        e.preventDefault()
+        if (useGameStore.getState().selectedCharacter === 'iron_man') {
+          useGameStore.getState().togglePhaseVeil()
+        }
+        return
+      }
+
       // Evitar controles de vuelo si está pausado
       if (isPaused) return
 

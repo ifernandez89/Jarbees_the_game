@@ -10,6 +10,7 @@ import { getAudioManager } from '@/hooks/useAudio'
 import { getAssetPath } from '@/utils/assetPath'
 import { CHARACTER_PROFILES, CharacterId } from '@/types/characters'
 import { FlightDynamics, flightRuntime } from '@/systems/FlightDynamics'
+import { AureliumPhaseController, injectAureliumPhaseVeil } from '@/systems/AureliumPhaseShader'
 import type { GLTF } from 'three-stdlib'
 
 type GLTFResult = GLTF & {
@@ -265,6 +266,7 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
   const currentActionRef = useRef<THREE.AnimationAction | null>(null)
   const actionsMapRef = useRef<Record<string, THREE.AnimationAction>>({})
   const idleTimerRef = useRef(0)
+  const phaseControllerRef = useRef(new AureliumPhaseController())
 
   // Estados de animación de Fase 2 (Peso, Impacto, Agacharse, Gestos)
   const crouchStateRef = useRef<'idle' | 'crouching' | 'standing'>('idle')
@@ -400,6 +402,12 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
               mat.metalness = 0.40
             }
           }
+
+          // Inyectar Aurelium Phase Veil (Velo de Fase Cuántico) en materiales PBR visibles
+          if (!isObsoleteInternal) {
+            injectAureliumPhaseVeil(mat, phaseControllerRef.current.uniforms)
+          }
+
           mat.needsUpdate = true
         }
       }
@@ -743,12 +751,15 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
             targetAnimSpeed = controls.boost
               ? Math.max(1.2, Math.min(2.0, Math.abs(velocity) / 4.5))
               : Math.max(0.85, Math.min(1.5, Math.abs(velocity) / 4.0))
-          } else if (controls.boost || Math.abs(velocity) > 6.0) {
+          } else if (controls.boost || Math.abs(velocity) > 5.2) {
             targetName = actions['nexo_run'] ? 'nexo_run' : 'nexo_walk'
-            targetAnimSpeed = Math.max(0.85, Math.min(1.8, Math.abs(velocity) / 6.5))
+            // Suave curva cuadrática de cadencia entre 1.4x y 2.2x para sprint de 55 km/h (15.2 m/s):
+            // Erradica el foot-sliding (patinaje sobre hielo) y produce un braceo atlético y contundente
+            const speedRatio = Math.min(1.0, Math.max(0.0, (Math.abs(velocity) - 4.5) / 10.7))
+            targetAnimSpeed = 1.35 + Math.pow(speedRatio, 1.25) * 0.85
           } else {
             targetName = 'nexo_walk'
-            targetAnimSpeed = Math.max(0.9, Math.min(1.6, Math.abs(velocity) / 4.5))
+            targetAnimSpeed = Math.max(0.95, Math.min(1.4, Math.abs(velocity) / 4.5))
           }
           idleTimerRef.current = 0
         } else if (isTurning) {
@@ -783,6 +794,18 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       }
 
       mixerRef.current.update(delta * targetAnimSpeed)
+
+      // Actualizar dinámica y shader injection del Aurelium Phase Veil (Velo de Fase Cuántico)
+      const isPhaseVeilActive = useGameStore.getState().isPhaseVeilActive || flightRuntime.aureliumPhase > 0.3
+      const isGroundSprint = isGrounded && (controls.boost || Math.abs(velocity) > 5.5)
+      const hasDamageOrFlinch = activeEmote === 'flinch_torso' || activeEmote === 'flinch_head' || activeEmote === 'stumble'
+      phaseControllerRef.current.update(delta, {
+        isActive: isPhaseVeilActive,
+        isGroundSprint,
+        isFlying: isInFlightMode,
+        forwardSpeed: isInFlightMode ? forwardSpeed : velocity,
+        hasDamageOrFlinch,
+      })
     }
 
     // Suave giro acrobático de 180° sobre el eje longitudinal al hacer touch o clic sobre Iron Man:
@@ -1003,8 +1026,8 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
           player.position.y = floorY + 0.3
           flight.forwardSpeed = 0
         } else {
-          // Mantener al personaje firme sobre la superficie del relieve
-          player.position.y = floorY
+          // Mantener al personaje firme sobre la superficie del relieve (amortiguado a 55 km/h)
+          player.position.y = THREE.MathUtils.damp(player.position.y, floorY, 28, dt)
           flight.vy = 0
           flight.vx = 0
           flight.vz = 0
@@ -1021,7 +1044,8 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
           }
 
           // Locomoción a pie con W (adelante) y S (retroceso)
-          const walkSpeed = controls.boost ? 7.6 : 5.0
+          // Sprint Supersónico Táctico duplicado a 15.2 m/s (~55 km/h) con Shift (Boost)
+          const walkSpeed = controls.boost ? 15.2 : 5.0
           let moveDir = 0
           if (controls.forward) moveDir += 1
           if (controls.backward) moveDir -= 0.65
@@ -1039,17 +1063,17 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
           }
           velocityRef.current = currentVelocity
 
-          // Mantener telemetría de vuelo apagada en tierra
+          // Mantener telemetría de vuelo apagada en tierra, reflejando velocidad real y Velo de Fase
           flightRuntime.active = false
-          flightRuntime.speed = 0
+          flightRuntime.speed = Math.abs(currentVelocity)
           flightRuntime.speedKmh = Math.abs(currentVelocity) * 3.6
-          flightRuntime.mach = 0
-          flightRuntime.regime = 'hover'
-          flightRuntime.thrustPct = 0
+          flightRuntime.mach = Math.abs(currentVelocity) / 340.0
+          flightRuntime.regime = controls.boost && Math.abs(currentVelocity) > 5.0 ? 'transonic' : 'hover'
+          flightRuntime.thrustPct = controls.boost ? 85 : controls.forward ? 35 : 0
           flightRuntime.afterburner = 0
-          flightRuntime.throttle = 0
-          flightRuntime.dustKick = 0
-          flightRuntime.aureliumPhase = 0
+          flightRuntime.throttle = controls.forward ? 1.0 : 0
+          flightRuntime.dustKick = controls.boost && Math.abs(currentVelocity) > 6.0 ? 0.75 : 0
+          flightRuntime.aureliumPhase = useGameStore.getState().isPhaseVeilActive ? 1.0 : 0
           flightRuntime.groundAltitude = 0
         }
       } else {

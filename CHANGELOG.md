@@ -1,5 +1,46 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.28] - 2026-10-23
+
+### ⚡ Sprint Supersónico Táctico 55 km/h y 🌌 Aurelium Phase Veil (Velo de Fase Cuántico)
+
+#### 1. Sprint Supersónico a Doble Velocidad (15.2 m/s / ~55 km/h)
+- **Cinemática Terrestre del Exotraje**:
+  - En [BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx), se duplicó la velocidad punta de carrera terrestre con Boost (`Shift` + `W`) de **7.6 m/s (~27.3 km/h)** a **15.2 m/s (~54.7 km/h)**, transformando la sensación de juego de un trote de infantería a un sprint táctico supersónico de exotraje biónico.
+  - La velocidad de retroceso defensivo con `S` escala proporcionalmente a ~9.9 m/s (~35.5 km/h).
+- **Erradicación del "Foot-Sliding" (Patinaje sobre Hielo)**:
+  - Se calibró dinámicamente la velocidad del AnimationMixer de `nexo_run` mediante una curva exponencial armónica:
+    $$\text{animSpeed} = 1.35 + \left(\frac{|\text{velocity}| - 4.5}{10.7}\right)^{1.25} \times 0.85$$
+    Pasando de $1.35\times$ en el arranque a $2.20\times$ al correr a 55 km/h. La frecuencia de zancadas y el braceo cerrado de combate se sincronizan con milimétrica precisión con el suelo.
+- **Cinemática Dinámica de Cámara ([FollowCamera.tsx](file:///c:/Projects/Jarbees_the_game/components/FollowCamera.tsx))**:
+  - **FOV Dinámico**: Se expande suavemente de $65^\circ$ en reposo/caminata hasta $78^\circ$ al esprintar a fondo, transmitiendo una aceleración gravitatoria y visión periférica sin causar mareo.
+  - **CamPull en Tierra**: La cámara se aleja suavemente ($0.35\times$ pull y $0.40\times$ retroceso $Z$) elevándose sutilmente para ampliar el horizonte táctico.
+  - **Micro-Vibración Cinética**: Se inyecta un suave temblor estructural ($0.08\times$ sprint ratio) que simula el impacto contundente de las botas acorazadas contra el terreno.
+- **Seguimiento Continuo del Relieve**:
+  - Se implementó amortiguación vertical exponencial analítica (`THREE.MathUtils.damp(player.position.y, floorY, 28, dt)`), eliminando cualquier micro-vibración o desfase al galopar a 55 km/h sobre las crestas y laderas del Aconcagua.
+
+#### 2. Aurelium Phase Veil (Velo de Fase Cuántico — [AureliumPhaseShader.ts](file:///c:/Projects/Jarbees_the_game/systems/AureliumPhaseShader.ts))
+- **Resolución del Z-Sorting con Screen-Door Dithering (Alpha Hashing)**:
+  - Three.js genera fallos graves de ordenamiento de profundidad (mallas internas que se superponen erróneamente) al emplear `transparent: true` con `opacity < 1` en geometrías complejas.
+  - Solución de arquitectura: El shader mantiene `depthWrite: true` y ejecuta un *early discard* combinando una **Matriz de Bayer 4x4** en espacio de pantalla con ruido procedural analítico 3D anclado a coordenadas locales de armadura (`vAureliumLocalPos`). La armadura se disuelve en microestructuras hexagonales fotónicas sin un solo error de Z-buffer.
+- **Pulso Fotónico Hex-Core de Activación**:
+  - Al activar o desactivar el velo, se detona una onda esférica de choque electromagnético nacida en el reactor pectoral Hex-Core ($y \approx 0.88$, $z \approx 0.10$ en espacio local) que recorre la armadura hacia las extremidades a lo largo de 0.65 segundos, iluminando la frontera de disolución con plasma cian de alta emisión ($4.8\times$).
+- **Contorno Nacarado / Iridiscente (Fresnel Cuántico)**:
+  - En estado velado, se calcula el contorno tangencial:
+    $$\text{Fresnel} = \left(1.0 - \max(0.0, \vec{n} \cdot \vec{v})\right)^{3.5}$$
+  - Modulado por una paleta espectral desde azul cian translúcido (`#55F0FF`) hasta un blanco nacarado perlado (`#F8FAFC`). Esto mantiene la silueta heroica del personaje perfectamente legible y nítida para el jugador incluso al 94% de invisibilidad.
+- **Reactividad Biomecánica al Estado**:
+  - **Reposo / Estático**: Camuflaje al 94% con micro-parpadeo cuántico en aristas.
+  - **Caminata**: Ondas de interferencia sutiles en articulaciones.
+  - **Sprint a 55 km/h**: El arrastre cinético de aire perturba el campo de fase; la silueta se vuelve un 30% más visible y emite micro-chispas fotónicas de fricción cuántica.
+  - **Vuelo Supersónico**: Ionización y distorsión continua del velo.
+  - **Daño / Impacto Cinético**: Ruptura dieléctrica violenta (pico de perturbación a 1.0) con destello lumínico y relajación gradual hacia el camuflaje.
+- **Controles e Integración de UI**:
+  - Tecla dedicada **`[V]`** en teclado para alternar instantáneamente el Velo de Fase en [useGameControls.ts](file:///c:/Projects/Jarbees_the_game/hooks/useGameControls.ts).
+  - Botón interactivo `✨ [V] Velo` en el Cybernetic Dock de controles y badge `✨ VELO DE FASE` en la telemetría en [GameHUD.tsx](file:///c:/Projects/Jarbees_the_game/components/GameHUD.tsx).
+  - Botón táctil dedicado `✨` en la barra superior móvil en [MobileTouchControls.tsx](file:///c:/Projects/Jarbees_the_game/components/MobileTouchControls.tsx).
+  - Estado global centralizado en [gameStore.ts](file:///c:/Projects/Jarbees_the_game/store/gameStore.ts) (`isPhaseVeilActive`, `togglePhaseVeil`).
+
 ## [0.8.27] - 2026-10-23
 
 ### 🥋 Puños Completamente Cerrados (Erradicación Total de Pulgares Arriba) y Biomecánica Contralateral de Caminata (`nexo_walk`)

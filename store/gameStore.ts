@@ -126,6 +126,11 @@ export interface GameState {
   isGrounded: boolean
   setGrounded: (grounded: boolean) => void
 
+  // Aurelium Phase Veil (Velo de Fase)
+  isPhaseVeilActive: boolean
+  togglePhaseVeil: () => void
+  setPhaseVeil: (active: boolean) => void
+
   // Acciones
   setFlightMode: (mode: FlightMode) => void
   toggleFlightMode: () => void
@@ -190,6 +195,7 @@ const initialState = {
   isSpecsModalOpen: false,
   isIronManFlipped: false,
   isGrounded: false,
+  isPhaseVeilActive: false,
   flightMode: 'assist' as FlightMode,
   flight: INITIAL_FLIGHT_TELEMETRY,
 }
@@ -199,8 +205,10 @@ export const useGameStore = create<GameState>((set) => ({
   
   triggerEmote: (activeEmote) => set({ activeEmote }),
   setSelectedCharacter: (selectedCharacter) =>
-    set({ selectedCharacter, isIronManFlipped: false, isGrounded: false, flight: INITIAL_FLIGHT_TELEMETRY }),
+    set({ selectedCharacter, isIronManFlipped: false, isGrounded: false, isPhaseVeilActive: false, flight: INITIAL_FLIGHT_TELEMETRY }),
   setGrounded: (isGrounded) => set({ isGrounded }),
+  togglePhaseVeil: () => set((state) => ({ isPhaseVeilActive: !state.isPhaseVeilActive })),
+  setPhaseVeil: (isPhaseVeilActive) => set({ isPhaseVeilActive }),
   setFlightMode: (flightMode) => set({ flightMode }),
   toggleFlightMode: () =>
     set((state) => ({ flightMode: state.flightMode === 'assist' ? 'sim' : 'assist' })),

@@ -22,6 +22,8 @@ export function GameHUD() {
   const toggleFlightMode = useGameStore((state) => state.toggleFlightMode)
   const isGrounded = useGameStore((state) => state.isGrounded)
   const triggerEmote = useGameStore((state) => state.triggerEmote)
+  const isPhaseVeilActive = useGameStore((state) => state.isPhaseVeilActive)
+  const togglePhaseVeil = useGameStore((state) => state.togglePhaseVeil)
 
   const [fps, setFps] = useState(60)
   const [showTactical, setShowTactical] = useState(false)
@@ -185,21 +187,22 @@ export function GameHUD() {
             </div>
 
             <div style={{ fontSize: '0.66rem', marginBottom: 4, textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
-              {flight.aureliumPhase && (
+              {(flight.aureliumPhase || isPhaseVeilActive) && (
                 <span
                   style={{
                     padding: '1px 6px',
                     borderRadius: '3px',
-                    background: 'rgba(217, 70, 239, 0.25)',
-                    border: '1px solid #D946EF',
-                    color: '#F0ABFC',
+                    background: 'rgba(56, 189, 248, 0.25)',
+                    border: '1px solid #38BDF8',
+                    color: '#E0F2FE',
                     fontWeight: 700,
                     letterSpacing: '0.5px',
+                    boxShadow: '0 0 10px rgba(56, 189, 248, 0.45)',
                     animation: 'pulse 1.2s infinite',
                   }}
-                  title="Envoltura de control de flujo activada: resistencia de onda colapsada"
+                  title="Aurelium Phase Veil: Camuflaje cuántico de disolución y colapso de onda"
                 >
-                  ✨ AURELIUM
+                  ✨ VELO DE FASE
                 </span>
               )}
               {flight.gcasActive && (
@@ -355,15 +358,32 @@ export function GameHUD() {
                   </span>
                   <span className="hud-kbd-divider" />
                   <span className="hud-kbd-group">
+                    <kbd className="hud-kbd">Shift</kbd>
+                    <span className="hud-kbd-label">Sprint 55 km/h</span>
+                  </span>
+                  <span className="hud-kbd-divider" />
+                  <span className="hud-kbd-group">
                     <kbd className="hud-kbd">Ctrl</kbd>
                     <span className="hud-kbd-label">Agachar</span>
-                    <span className="hud-kbd-combo">(+WASD Sigilo)</span>
                   </span>
                   <span className="hud-kbd-divider" />
                   <span className="hud-kbd-group">
                     <kbd className="hud-kbd">Espacio</kbd>
                     <span className="hud-kbd-label">Salto / Despegar</span>
                   </span>
+                  <span className="hud-kbd-divider" />
+                  <button
+                    className={`hud-kbd-toggle ${isPhaseVeilActive ? 'active' : ''}`}
+                    onClick={togglePhaseVeil}
+                    title="Alternar Velo de Fase Cuántico (Aurelium Phase Veil)"
+                    style={{
+                      borderColor: isPhaseVeilActive ? '#38BDF8' : undefined,
+                      color: isPhaseVeilActive ? '#38BDF8' : undefined,
+                    }}
+                  >
+                    <kbd className="hud-kbd">V</kbd>
+                    <span>Velo {isPhaseVeilActive ? 'ACTIVO' : 'OFF'}</span>
+                  </button>
                   <span className="hud-kbd-divider" />
                   <span className="hud-kbd-group">
                     <kbd className="hud-kbd">1-5</kbd>
@@ -400,6 +420,19 @@ export function GameHUD() {
                     <kbd className="hud-kbd">Esp/Q</kbd>
                     <span className="hud-kbd-label">Altitud</span>
                   </span>
+                  <span className="hud-kbd-divider" />
+                  <button
+                    className={`hud-kbd-toggle ${isPhaseVeilActive ? 'active' : ''}`}
+                    onClick={togglePhaseVeil}
+                    title="Alternar Velo de Fase Cuántico (Aurelium Phase Veil)"
+                    style={{
+                      borderColor: isPhaseVeilActive ? '#38BDF8' : undefined,
+                      color: isPhaseVeilActive ? '#38BDF8' : undefined,
+                    }}
+                  >
+                    <kbd className="hud-kbd">V</kbd>
+                    <span>Velo {isPhaseVeilActive ? 'ACTIVO' : 'OFF'}</span>
+                  </button>
                   <span className="hud-kbd-divider" />
                   <span className="hud-kbd-group">
                     <kbd className="hud-kbd">1-5</kbd>

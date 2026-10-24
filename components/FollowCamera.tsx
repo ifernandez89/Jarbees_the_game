@@ -46,7 +46,13 @@ export function FollowCamera() {
 
     const rt = flightRuntime
     const useRelative = selectedCharacter === 'iron_man' && rt.active
-    const camPull = useRelative ? rt.camPull : 0
+
+    // Sprint terrestre a 55 km/h (15.2 m/s): ratio entre velocidad base (5 m/s) y sprint (15.2 m/s)
+    const velocity = useGameStore.getState().velocity
+    const groundSprintRatio = selectedCharacter === 'iron_man' && !rt.active
+      ? Math.min(1.0, Math.max(0.0, (Math.abs(velocity) - 4.8) / 10.4))
+      : 0
+    const camPull = useRelative ? rt.camPull : groundSprintRatio * 0.35
 
     // Si Auren está agachado en tierra, descender suavemente la perspectiva de cámara
     const isCrouching = selectedCharacter === 'iron_man' && controls.crouch && !rt.active
@@ -62,7 +68,8 @@ export function FollowCamera() {
     const [lOffX, lOffY, lOffZ] = profile.camera.lookOffset
 
     // A mayor velocidad la cámara se aleja y se eleva ligeramente (sensación de velocidad)
-    cameraOffset.current.set(cOffX, cOffY - crouchCamDrop + 0.28 * camPull, cOffZ * (1 + 0.55 * camPull))
+    const zPullMul = useRelative ? 0.55 : 0.40
+    cameraOffset.current.set(cOffX, cOffY - crouchCamDrop + 0.28 * camPull, cOffZ * (1 + zPullMul * camPull))
     cameraOffset.current.applyMatrix4(rotationMatrix.current)
 
     // Posición objetivo de la cámara
@@ -117,8 +124,9 @@ export function FollowCamera() {
 
     camera.position.copy(currentPosition.current)
 
-    // JARBEES FLIGHT SYSTEM: vibración de cámara en zona transónica / postquemador / estampido
-    const shake = useRelative ? rt.shake : 0
+    // JARBEES FLIGHT SYSTEM & SPRINT TERRESTRE: vibración de cámara
+    const groundShake = groundSprintRatio * 0.08
+    const shake = useRelative ? rt.shake : groundShake
     const time = performance.now() / 1000
     if (shake > 0.002) {
       camera.position.x += (Math.sin(time * 43) + Math.sin(time * 71 + 1.0)) * 0.5 * 0.07 * shake
@@ -132,10 +140,10 @@ export function FollowCamera() {
       camera.rotateZ(Math.sin(time * 37) * 0.014 * shake)
     }
 
-    // Campo de visión dinámico: se abre con la velocidad y da un tirón al cruzar Mach 1
+    // Campo de visión dinámico: se abre con la velocidad de vuelo o con sprint terrestre (65° -> 78°)
     const perspective = camera as THREE.PerspectiveCamera
     if (perspective.isPerspectiveCamera) {
-      const targetFov = BASE_FOV + (useRelative ? rt.fovBoost : 0)
+      const targetFov = BASE_FOV + (useRelative ? rt.fovBoost : groundSprintRatio * 13.0)
       if (Math.abs(perspective.fov - targetFov) > 0.01) {
         perspective.fov += (targetFov - perspective.fov) * (1 - Math.exp(-6 * clampedDelta))
         perspective.updateProjectionMatrix()

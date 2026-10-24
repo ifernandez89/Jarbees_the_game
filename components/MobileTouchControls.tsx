@@ -14,6 +14,8 @@ export function MobileTouchControls() {
   const selectedCharacter = useGameStore((state) => state.selectedCharacter)
   const flightMode = useGameStore((state) => state.flightMode)
   const toggleFlightMode = useGameStore((state) => state.toggleFlightMode)
+  const isPhaseVeilActive = useGameStore((state) => state.isPhaseVeilActive)
+  const togglePhaseVeil = useGameStore((state) => state.togglePhaseVeil)
 
   useEffect(() => {
     setShowControls(isTouchScreen())
@@ -95,6 +97,25 @@ export function MobileTouchControls() {
             title={`Modo: ${flightMode === 'sim' ? 'Simulación Inercial' : 'Vuelo Asistido'}`}
           >
             {flightMode === 'sim' ? '🕹️' : '🛡️'}
+          </button>
+        )}
+
+        {selectedCharacter === 'iron_man' && (
+          <button
+            onClick={togglePhaseVeil}
+            style={{
+              ...btnStyle,
+              width: '38px',
+              height: '38px',
+              fontSize: '0.85rem',
+              borderColor: isPhaseVeilActive ? '#38BDF8' : 'rgba(56, 189, 248, 0.4)',
+              color: isPhaseVeilActive ? '#38BDF8' : '#BAE6FD',
+              boxShadow: isPhaseVeilActive ? '0 0 10px rgba(56, 189, 248, 0.6)' : undefined,
+            }}
+            aria-label="Velo de Fase Cuántico (Aurelium Phase Veil)"
+            title={`Velo de Fase: ${isPhaseVeilActive ? 'ACTIVO' : 'DESACTIVADO'}`}
+          >
+            ✨
           </button>
         )}
 
