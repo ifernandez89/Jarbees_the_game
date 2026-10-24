@@ -1,5 +1,39 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.30] - 2026-10-24
+
+### 🧭 Auren Navigation System (ANS) — Brújula Horizontal Dune UI & Baliza Contextual 3D de Cumbres
+
+#### 1. Brújula Horizontal Minimalista Estilo Dune UI ([AurenCompassHUD.tsx](file:///c:/Projects/Jarbees_the_game/components/AurenCompassHUD.tsx))
+- **Posición y Diseño Sci-Fi**:
+  - Ubicada en la parte superior central de la pantalla ocupando ~30% del ancho con estética *glassmorphism* oscura y acentos en cian holográfico (`#00f0ff` / `#38bdf8`).
+  - Cinta de brújula horizontal de $90^\circ$ de campo visual con subdivisiones cada $15^\circ$, marcas cardinales (`N`, `E`, `S`, `W`) y lectura numérica en tiempo real del rumbo de Auren (ej: `015° NNE`).
+- **Navegación Relativa con Marcador y Chevrons Fuera de Pantalla**:
+  - Diamante holográfico que se desplaza fluidamente sobre la cinta de rumbo indicando la dirección exacta hacia la cumbre seleccionada.
+  - Indicadores laterales dinámicos con chevrons (`◀ 128° [Aconcagua]` o `[Aconcagua] 94° ▶`) cuando el objetivo queda fuera del campo visual frontal, indicando exactamente hacia dónde girar.
+- **Doble Distancia (Horizontal vs. Directa 3D)**:
+  - Distingue la distancia horizontal en superficie terrestre de la distancia directa tridimensional euclidiana en vuelo:
+    $$d_{3D} = \sqrt{d_{\text{horiz}}^2 + \Delta h^2}$$
+  - Muestra el desnivel vertical restante en tiempo real ($\Delta H$, ej. `+4.161 m`).
+
+#### 2. Baliza Contextual 3D en la Cumbre ([PeakBeacon3D.tsx](file:///c:/Projects/Jarbees_the_game/components/PeakBeacon3D.tsx))
+- **Optimización Extrema de Recursos (LOD Visual Dinámico)**:
+  - **A gran distancia**: Sutil haz de luz cilíndrico aditivo proyectado hacia la estratosfera sin sobrecargar el renderizador.
+  - **A distancia media (<2.200 m)**: Diamante flotante en rotación sobre la cumbre con aro orbital de energía y etiqueta holográfica con la cota oficial en metros.
+  - **En proximidad (<180 m)**: Notificación y halo verde esmeralda `✓ CUMBRE ALCANZADA`.
+
+#### 3. Catálogo Inicial de Expediciones ([NavigationService.ts](file:///c:/Projects/Jarbees_the_game/services/NavigationService.ts))
+- **Destinos Geográficos Curados**:
+  - **Cerro Aconcagua** (`6.961 m` · *Techo de América / Cumbre más alta fuera de Asia*).
+  - **Nevado Ojos del Salado** (`6.893 m` · *Volcán activo más alto del planeta Tierra*).
+  - **Volcán Chimborazo** (`6.263 m` · *Punto más alejado del centro de la Tierra*).
+  - **Monte Everest** (`8.848,86 m` · *Máxima elevación sobre el nivel del mar*).
+  - **Monte Erebus** (`3.794 m` · *Volcán activo polar con lago de lava*).
+  - **Blood Falls** (`65 m` · *Cuna y Spawn oficial de Auren en la Antártida*).
+- **Control Integrado con Tecla `[M]` y `[O]`**:
+  - Toda la interfaz táctica (Brújula Dune, Mapa AR y Baliza 3D) se activa/desactiva limpiamente con **`[M]`**, manteniendo el vuelo 100% cinematográfico al cerrarse.
+  - Se puede alternar entre las diferentes cumbres del catálogo con la tecla **`[O]`** o haciendo clic en las flechas del HUD.
+
 ## [0.8.29] - 2026-10-24
 
 ### 🗺️ Mapa Holográfico Táctico AR Flotante a la Altura de la Cadera & Despliegue en la Antártida (Blood Falls)

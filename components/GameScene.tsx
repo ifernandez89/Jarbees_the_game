@@ -22,6 +22,8 @@ import { useDayNightCycle } from '@/hooks/useDayNightCycle'
 
 import { AmbientWildlife } from './AmbientWildlife'
 import { HoloTacticalOverlay } from './HoloTacticalOverlay'
+import { PeakBeacon3D } from './PeakBeacon3D'
+import { AurenCompassHUD } from './AurenCompassHUD'
 
 // Componente de la escena 3D
 function Scene() {
@@ -76,6 +78,9 @@ function Scene() {
       {/* Mapa Holográfico Táctico AR Flotante a la altura de la cadera (Guía de Rutas y Sitios Reales) */}
       <HoloTacticalOverlay />
 
+      {/* Baliza Holográfica 3D sobre la Cumbre Objetivo del Auren Navigation System (ANS) */}
+      <PeakBeacon3D />
+
       {/* Cámara en tercera persona */}
       <FollowCamera />
     </>
@@ -126,6 +131,9 @@ export default function GameScene() {
 
       {/* HUD del juego */}
       <GameHUD />
+
+      {/* Brújula Horizontal Táctica Auren Navigation System (ANS - Dune UI Concept) */}
+      <AurenCompassHUD />
 
       {/* Controles táctiles para móvil */}
       <MobileTouchControls />

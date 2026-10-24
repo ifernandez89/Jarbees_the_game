@@ -30,6 +30,13 @@ export function useGameControls() {
         return
       }
 
+      // Ciclar destino de expedición ANS (Aconcagua, Chimborazo, etc.) con O
+      if (e.code === 'KeyO') {
+        e.preventDefault()
+        useGameStore.getState().cycleNavigationTarget(1)
+        return
+      }
+
       // Cambiar de bioma con B
       if (e.code === 'KeyB') {
         e.preventDefault()

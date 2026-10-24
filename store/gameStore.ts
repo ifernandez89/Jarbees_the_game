@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { ChunkManager } from '@/systems/ChunkManager'
 import type { CharacterId } from '@/types/characters'
 import type { FlightMode, FlightRegime } from '@/systems/FlightDynamics'
+import { WORLD_TARGETS, type NavigationTarget } from '@/services/NavigationService'
 
 /** Telemetría del JARBEES FLIGHT SYSTEM sincronizada con el HUD (~10 Hz) */
 export interface FlightTelemetry {
@@ -136,6 +137,11 @@ export interface GameState {
   toggleHoloMap: () => void
   setHoloMapActive: (active: boolean) => void
 
+  // Auren Navigation System (ANS) - Destino activo
+  navigationTarget: NavigationTarget | null
+  setNavigationTarget: (target: NavigationTarget | null) => void
+  cycleNavigationTarget: (direction?: 1 | -1) => void
+
   // Acciones
   setFlightMode: (mode: FlightMode) => void
   toggleFlightMode: () => void
@@ -202,6 +208,7 @@ const initialState = {
   isGrounded: false,
   isPhaseVeilActive: false,
   isHoloMapActive: true,
+  navigationTarget: WORLD_TARGETS[0] as NavigationTarget | null,
   flightMode: 'assist' as FlightMode,
   flight: INITIAL_FLIGHT_TELEMETRY,
 }
@@ -217,6 +224,16 @@ export const useGameStore = create<GameState>((set) => ({
   setPhaseVeil: (isPhaseVeilActive) => set({ isPhaseVeilActive }),
   toggleHoloMap: () => set((state) => ({ isHoloMapActive: !state.isHoloMapActive })),
   setHoloMapActive: (isHoloMapActive) => set({ isHoloMapActive }),
+  
+  setNavigationTarget: (navigationTarget) => set({ navigationTarget }),
+  cycleNavigationTarget: (direction = 1) =>
+    set((state) => {
+      const current = state.navigationTarget
+      const index = current ? WORLD_TARGETS.findIndex((t) => t.id === current.id) : -1
+      const nextIndex = (index + direction + WORLD_TARGETS.length) % WORLD_TARGETS.length
+      return { navigationTarget: WORLD_TARGETS[nextIndex] }
+    }),
+
   setFlightMode: (flightMode) => set({ flightMode }),
   toggleFlightMode: () =>
     set((state) => ({ flightMode: state.flightMode === 'assist' ? 'sim' : 'assist' })),
