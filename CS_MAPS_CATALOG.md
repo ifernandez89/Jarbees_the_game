@@ -380,17 +380,19 @@ Modo Zombie Mod: Humanos vs Zombies infectados.
 
 ---
 
-## 📝 Notas
+## 📝 Notas & Laboratorio Espacial
 
-- Muchos mapas tienen archivos `.nav` (navegación para bots)
-- Archivos `.txt` contienen información del mapa
-- Archivos `.res` listan recursos necesarios
-- Archivos `.zip` son versiones comprimidas alternativas
-- Algunos mapas tienen variantes `_cz` (Condition Zero) con mejores gráficos
-- Los archivos `.ztmp` son temporales y pueden ignorarse
+- Muchos mapas tienen archivos `.nav` (navegación para bots de Turtle Rock Studios / Valve, formato binario 0xFEEDFACE).
+- Archivos `.txt` contienen información del mapa.
+- Archivos `.res` listan recursos necesarios (texturas WAD, modelos MDL, sonidos).
+- Archivos `.zip` son versiones comprimidas alternativas.
+- Algunos mapas tienen variantes `_cz` (Condition Zero) con mejores gráficos.
+- Los archivos `.ztmp` son temporales y pueden ignorarse.
+- **Investigación de Inteligencia Espacial:** Véase [docs/AUREN_WORLDLAB_SPATIAL_NAVIGATION.md](file:///c:/Projects/Jarbees_the_game/docs/AUREN_WORLDLAB_SPATIAL_NAVIGATION.md) para el análisis de áreas de navegación, pipeline de conversión BSP a GLB y la arquitectura del motor cinemático multimodal de Auren.
 
 ---
 
-**Última actualización:** 22 de Octubre de 2026  
-**Fuente:** Counter-Strike 1.6 installation directory  
+**Última actualización:** 25 de Octubre de 2026  
+**Fuente:** Counter-Strike 1.6 installation directory & Auren WorldLab Analysis  
 **Formato:** Markdown (.md)
+

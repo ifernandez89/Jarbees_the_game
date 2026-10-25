@@ -71,6 +71,7 @@ export type CSMapId =
   | 'cs_siege'
   | 'de_aztec'
   | 'de_chateau'
+  | 'de_vertigo'
 
 export interface CSMapInfo {
   id: CSMapId
@@ -171,6 +172,17 @@ export const CS_MAPS: Record<CSMapId, CSMapInfo> = {
     description: 'Gran mansión señorial, jardines franceses y catacumbas',
     skyColor: '#8ca0b3',
     fogColor: '#7f93a6',
+    isCommunity: false,
+  },
+  de_vertigo: {
+    id: 'de_vertigo',
+    name: 'Vertigo',
+    label: '🏗️ de_vertigo.bsp (Rascacielos)',
+    bspName: 'de_vertigo.bsp',
+    spawnPosition: [27.64, 20.30, -29.26],
+    description: 'Rascacielos en construcción con verticalidad extrema de dos pisos',
+    skyColor: '#7ba0b8',
+    fogColor: '#8caebf',
     isCommunity: false,
   },
 }
@@ -361,6 +373,7 @@ export const useGameStore = create<GameState>((set) => ({
         'cs_siege',
         'de_aztec',
         'de_chateau',
+        'de_vertigo',
       ]
       const currentIndex = mapKeys.indexOf(state.activeCsMap)
       const nextIndex = (currentIndex + 1) % mapKeys.length

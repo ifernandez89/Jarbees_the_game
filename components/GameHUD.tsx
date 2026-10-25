@@ -288,7 +288,7 @@ export function GameHUD() {
                     title={`Cargar ${m.label} (Local)`}
                   >
                     <span>
-                      {m.id === 'cs_assault' ? '🏢 Assault' : m.id === 'cs_siege' ? '🏜️ Siege' : m.id === 'de_aztec' ? '🌿 Aztec' : '🏰 Château'}
+                      {m.label.split(' ')[0]} {m.name}
                     </span>
                     {isSelected && <span style={{ color: '#F97316', fontSize: '0.65rem' }}>●</span>}
                   </button>

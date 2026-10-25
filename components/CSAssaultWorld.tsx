@@ -387,6 +387,52 @@ function IceworldScene() {
 }
 
 // =========================================================================
+// 9. ESCENA DE_VERTIGO (Rascacielos en construcción con verticalidad extrema)
+// =========================================================================
+function VertigoScene() {
+  const gltf = useSecureGLTF(getAssetPath('/models/de_vertigo.glb')) as GLTFResult
+
+  useEffect(() => {
+    if (gltf.scene) {
+      setGroundCollider(gltf.scene)
+    }
+  }, [gltf.scene])
+
+  return (
+    <group>
+      {/* Atmósfera ventosa de gran altitud en rascacielos */}
+      <fog attach="fog" args={['#8caebf', 40, 240]} />
+      <ambientLight intensity={0.92} color="#b4cee0" />
+      <directionalLight position={[50, 95, 20]} intensity={2.1} color="#ffffff" castShadow />
+      <directionalLight position={[-30, 30, -50]} intensity={0.4} color="#688a9e" />
+
+      {gltf.scene && <primitive object={gltf.scene} castShadow receiveShadow />}
+
+      {/* Reflectores de obra en construcción y balizas amarillas */}
+      <pointLight position={[27.64, 22.0, -29.26]} color="#FBBF24" intensity={4.0} distance={30} />
+      <pointLight position={[4.06, 13.5, -28.45]} color="#EF4444" intensity={3.5} distance={25} />
+      <pointLight position={[0.0, 22.0, 0.0]} color="#38BDF8" intensity={3.0} distance={30} />
+
+      {/* Rótulo Nivel Superior Vertigo */}
+      <Html position={[27.64, 21.2, -29.26]} center distanceFactor={26}>
+        <div style={{ background: 'rgba(25, 25, 30, 0.94)', border: '2px solid #F59E0B', borderRadius: '6px', padding: '6px 14px', color: '#FFFBEB', fontFamily: 'monospace', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', boxShadow: '0 0 16px rgba(245, 158, 11, 0.7)', textTransform: 'uppercase', textAlign: 'center' }}>
+          <div style={{ color: '#FBBF24' }}>▲ CT SPAWN // PISO 51 (AZOTEA DE OBRA)</div>
+          <div style={{ color: '#FDE68A', fontSize: '9px' }}>DE_VERTIGO • VERTICALIDAD EXTREMA & BOMBSITE B</div>
+        </div>
+      </Html>
+
+      {/* Rótulo Nivel Inferior Vertigo */}
+      <Html position={[4.06, 12.8, -28.45]} center distanceFactor={26}>
+        <div style={{ background: 'rgba(20, 22, 28, 0.94)', border: '2px solid #EF4444', borderRadius: '6px', padding: '6px 14px', color: '#FEE2E2', fontFamily: 'monospace', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', boxShadow: '0 0 16px rgba(239, 68, 68, 0.7)', textTransform: 'uppercase', textAlign: 'center' }}>
+          <div style={{ color: '#F87171' }}>PISO 50 // ENCOFRADO & BOMBSITE A</div>
+          <div style={{ color: '#FECACA', fontSize: '9px' }}>DESNIVEL DIRECTO & RIESGO DE PRECIPICIO</div>
+        </div>
+      </Html>
+    </group>
+  )
+}
+
+// =========================================================================
 // COMPONENTE PRINCIPAL: Visor Dinámico de Mapas de la Comunidad y CS
 // =========================================================================
 export function CSAssaultWorld() {
@@ -402,6 +448,7 @@ export function CSAssaultWorld() {
       {activeCsMap === 'de_aztec' && <AztecScene />}
       {activeCsMap === 'de_chateau' && <ChateauScene />}
       {activeCsMap === 'cs_assault' && <AssaultScene />}
+      {activeCsMap === 'de_vertigo' && <VertigoScene />}
     </Suspense>
   )
 }
