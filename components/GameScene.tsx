@@ -24,7 +24,7 @@ import { AmbientWildlife } from './AmbientWildlife'
 import { HoloTacticalOverlay } from './HoloTacticalOverlay'
 import { PeakBeacon3D } from './PeakBeacon3D'
 import { AurenCompassHUD } from './AurenCompassHUD'
-import { AurenPyramidSanctuary } from './AurenPyramidSanctuary'
+import { AurenMansionHub } from './AurenMansionHub'
 import { CSAssaultWorld } from './CSAssaultWorld'
 
 // Componente de la escena 3D
@@ -75,9 +75,9 @@ function Scene() {
           {/* Superficie de agua cristalina para lagos y valles */}
           <WaterSurface waterHeight={1.4} />
 
-          {/* Santuario Pirámide de Auren a Escala Real de Guiza (Hogar y Punto de Salida/Aparición) */}
+          {/* La Mansión Auren · Residencia de PAGES & Centro de Operaciones CS 1.6 */}
           <Suspense fallback={null}>
-            <AurenPyramidSanctuary />
+            <AurenMansionHub />
           </Suspense>
         </>
       ) : (

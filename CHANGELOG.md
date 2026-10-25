@@ -1,5 +1,31 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.38] - 2026-10-25
+
+### 🏰 La Mansión Auren · Residencia de PAGES & Cuartel General de JarBees (Reemplazo Oficial de la Pirámide)
+
+#### 1. Integración del Modelo Real de Château con 130 Texturas ([AurenMansionHub.tsx](file:///c:/Projects/Jarbees_the_game/components/AurenMansionHub.tsx), [GameScene.tsx](file:///c:/Projects/Jarbees_the_game/components/GameScene.tsx))
+- **Arquitectura Señorial Auténtica de CS 1.6 (`de_chateau.glb`)**:
+  - Reemplazo de geometrías primitivas por la icónica mansión señorial de Valve: 130 materiales con mapas de texturas originales (piedra de sillería, mampostería, ladrillo con mortero, maderas talladas, cristales, chimenea y tejas de pizarra).
+  - **Escaleras, Rampas y Techos Reales**: Todas las escaleras, balcones y cornisas del château poseen geometría y colisión física precisa.
+  - **Spawn en el Patio Principal**: Dais hexagonal de titanio y Aurelium Gold situado en el patio del Château (`[8.08, 7.84, -54.04]`).
+  - **Bodega / Catacumbas NEXO**: En el subsuelo (`[-15.0, 7.5, 25.0]`) reside el Núcleo Cuántico de Aurelium flotante y el Portal Holográfico Sintonizador de Mundos.
+
+#### 2. Corrección de Colisión en Escaleras/Rampas y Nivelación de Terreno ([BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx), [ChunkManager.ts](file:///c:/Projects/Jarbees_the_game/systems/ChunkManager.ts))
+- **Prioridad de Malla 3D en la Locomoción**:
+  - Se corrigió el cálculo de suelo en `BeePlayer.tsx`: anteriormente, la presencia de `terrainManager` anulaba el raycast de colisión, provocando que el personaje atravesara rampas y escaleras. Ahora, si el rayo impacta cualquier suelo o peldaño del modelo 3D, esa cota se prioriza de inmediato.
+- **Explanada de Asentamiento Anti-Entierro**:
+  - En `ChunkManager.ts`, dentro de un radio de `60m` alrededor del origen, el terreno de todos los biomas (Titicaca, Aconcagua, Isla de Pascua, etc.) se nivela a `0.2m`, evitando que colinas o montículos procedurales penetren las habitaciones o entierren la mansión.
+  - Transición suave Hermite entre `60m` y `100m` hacia la topografía natural del bioma activo.
+
+#### 3. Capa Semántica JSON & Navegación AR en Tiempo Real ([auren_mansion_nodes.json](file:///c:/Projects/Jarbees_the_game/public/data/auren_mansion_nodes.json))
+- **Indexación Espacial Completa**:
+  - Bounding boxes 3D de todas las salas, niveles de piso, nodos de interacción y puntos de aparición.
+- **HUD AR Flotante de Sala**:
+  - Detección en tiempo real por `useFrame` que muestra en pantalla la sala exacta por la que navega Auren con badges de color específicos.
+
+---
+
 ## [0.8.37] - 2026-10-25
 
 ### 🌐 Laboratorio Multimapa Táctico, Tolerancia de Colisión en Túneles/Mesas y Blindaje de Copyright

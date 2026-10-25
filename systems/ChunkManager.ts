@@ -604,13 +604,30 @@ export class ChunkManager {
    * Obtener altura del terreno en una posición específica
    */
   getHeightAt(worldX: number, worldZ: number): number {
+    let naturalH = 0
     if (this.biome === 'aconcagua') {
-      return this.sampleAconcaguaDEM(worldX, worldZ)
+      naturalH = this.sampleAconcaguaDEM(worldX, worldZ)
+    } else if (this.biome === 'antarctica') {
+      naturalH = this.sampleAntarcticaTerrain(worldX, worldZ)
+    } else {
+      naturalH = this.noiseGenerator.getHeight(worldX, worldZ, this.config.heightMultiplier)
     }
-    if (this.biome === 'antarctica') {
-      return this.sampleAntarcticaTerrain(worldX, worldZ)
+
+    // Explanada de asentamiento de La Mansión Auren en el punto central (0, 0):
+    // Dentro de 60m (huella de 105 × 114m de la finca), el terreno está nivelado a 0.2m
+    // para evitar que colinas o ruido del bioma penetren las habitaciones o el sótano.
+    const dist = Math.hypot(worldX, worldZ)
+    if (dist < 60.0) {
+      return 0.2
     }
-    return this.noiseGenerator.getHeight(worldX, worldZ, this.config.heightMultiplier)
+    if (dist < 100.0) {
+      // Transición Hermite suave entre la base y las montañas del bioma
+      const t = (dist - 60.0) / 40.0
+      const smooth = t * t * (3.0 - 2.0 * t)
+      return 0.2 * (1.0 - smooth) + naturalH * smooth
+    }
+
+    return naturalH
   }
 
   /**

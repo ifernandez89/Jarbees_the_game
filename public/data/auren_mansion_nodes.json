@@ -1,0 +1,69 @@
+{
+  "zoneId": "mansion_auren_chateau_hub",
+  "version": "2.0.0",
+  "name": "La Mansión Auren · Château Central de PAGES & JarBees",
+  "description": "Cuartel general y residencia oficial de Auren en la escena infinita. Mansión señorial francesa de CS 1.6 (de_chateau.glb) con 130 texturas originales, escaleras transitables paso a paso, ventanales, catacumbas NEXO y jardines.",
+  "author": "PAGES & JarBees Core",
+  "spawnPoints": [
+    {
+      "id": "spawn_courtyard_dais",
+      "name": "Dais de Salida · Patio Principal del Château",
+      "position": [8.08, 7.84, -54.04],
+      "rotation": [0, 0, 0],
+      "isPrimary": true,
+      "description": "Plataforma hexagonal de titanio y Aurelium con emblema rotatorio en el patio del Château."
+    },
+    {
+      "id": "spawn_nexo_catacombs",
+      "name": "Cámara Cuántica · Bodega Subterránea NEXO",
+      "position": [-15.0, 7.5, 25.0],
+      "rotation": [0, 1.57, 0],
+      "isPrimary": false,
+      "description": "Núcleo de Aurelium flotante a 432 Hz y portal dimensional hacia mapas de CS."
+    }
+  ],
+  "rooms": [
+    {
+      "id": "courtyard_spawn",
+      "name": "Patio Principal & Jardines del Château",
+      "floor": "PB",
+      "bounds": { "min": [-25, 4.0, -65], "max": [30, 12.0, -38] },
+      "features": ["Dais de spawn JarBees", "Farolas de luz cálida", "Adoquinado histórico"]
+    },
+    {
+      "id": "grand_salon",
+      "name": "Gran Vestíbulo & Salón Señorial",
+      "floor": "PB",
+      "bounds": { "min": [-22, 6.0, -15], "max": [22, 12.0, 18] },
+      "features": ["Chimenea monumental", "Escaleras señoriales de piedra", "Mampostería histórica"]
+    },
+    {
+      "id": "upper_gallery",
+      "name": "Galería Superior & Ventanales del Château",
+      "floor": "P1",
+      "bounds": { "min": [-22, 12.0, -15], "max": [22, 22.0, 18] },
+      "features": ["Vistas interiores al salón", "Pasarelas altas", "Ventanales panorámicos"]
+    },
+    {
+      "id": "nexo_catacombs",
+      "name": "Bodega Subterránea · Núcleo Cuántico NEXO",
+      "floor": "S1",
+      "bounds": { "min": [-38, 0.0, 12], "max": [-4, 10.0, 48] },
+      "features": ["Núcleo de Aurelium flotante", "Giroscopios cuánticos", "Portal de mundos CS 1.6"]
+    },
+    {
+      "id": "terrace_gardens",
+      "name": "Terraza Interior & Pasadizos de Piedra",
+      "floor": "EXT",
+      "bounds": { "min": [-50, 4.0, -35], "max": [50, 15.0, -16] },
+      "features": ["Balcones exteriores", "Caminos de piedra", "Arcos de entrada"]
+    },
+    {
+      "id": "chateau_rooftops",
+      "name": "Azotea & Tejados de Pizarra (Vuelo Mach)",
+      "floor": "ROOF",
+      "bounds": { "min": [-55, 16.0, -60], "max": [55, 30.0, 60] },
+      "features": ["Tejados transitables a dos aguas", "Chimeneas altas", "Plataforma de observación celeste"]
+    }
+  ]
+}

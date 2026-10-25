@@ -181,12 +181,12 @@ export function GameHUD() {
             color: activeWorldScenario === 'cs_assault' ? '#FDBA74' : '#FEF08A',
             fontWeight: 'bold',
           }}
-          title="Alternar entre el Santuario Infinito y los mapas de la comunidad / CS [Y]"
+          title="Alternar entre La Mansión Auren y los mapas satélite de CS [Y]"
         >
           <span>
             {activeWorldScenario === 'cs_assault'
               ? `🎮 ${CS_MAPS[activeCsMap]?.name || 'Arena'} [M]`
-              : '🏛️ Santuario (Infinito)'}
+              : '🏰 Mansión Auren [Y]'}
           </span>
           <span style={{ opacity: 0.7 }}>[Y]</span>
         </button>

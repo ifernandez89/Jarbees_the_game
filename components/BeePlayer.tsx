@@ -503,9 +503,10 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
       let altAboveGround = 10.0
 
       if (playerObj) {
-        const floorY = terrainManager
-          ? terrainManager.getHeightAt(playerObj.position.x, playerObj.position.z) + 1.4
-          : 0.8
+        const isGroundedFromStore = useGameStore.getState().isGrounded
+        const colliderY = getGroundHeight(playerObj.position.x, playerObj.position.y, playerObj.position.z, -99999, isGroundedFromStore)
+        const groundY = colliderY > -90000 ? colliderY : (terrainManager ? terrainManager.getHeightAt(playerObj.position.x, playerObj.position.z) : -0.6)
+        const floorY = groundY + 1.4
         altAboveGround = Math.max(0, playerObj.position.y - floorY)
         isGrounded = isGroundedFromStore
       }
@@ -1026,9 +1027,15 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       }
       const dt = Math.min(delta, 0.05)
 
-      const surfaceY = terrainManager
-        ? terrainManager.getHeightAt(player.position.x, player.position.z)
-        : getGroundHeight(player.position.x, player.position.y, player.position.z, 1.22, isGroundedRef.current)
+      const colliderHeight = getGroundHeight(player.position.x, player.position.y, player.position.z, -99999, isGroundedRef.current)
+      let surfaceY: number
+      if (colliderHeight > -90000) {
+        surfaceY = colliderHeight
+      } else if (terrainManager) {
+        surfaceY = terrainManager.getHeightAt(player.position.x, player.position.z)
+      } else {
+        surfaceY = 1.22
+      }
 
       const floorY = surfaceY + 1.05
 
@@ -1137,9 +1144,8 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
         const subDt = dt / steps
 
         for (let i = 0; i < steps; i++) {
-          const subSurfaceY = terrainManager
-            ? terrainManager.getHeightAt(player.position.x, player.position.z)
-            : getGroundHeight(player.position.x, player.position.y, player.position.z, 1.22)
+          const subColliderY = getGroundHeight(player.position.x, player.position.y, player.position.z, -99999)
+          const subSurfaceY = subColliderY > -90000 ? subColliderY : (terrainManager ? terrainManager.getHeightAt(player.position.x, player.position.z) : 1.22)
           const subFloorY = subSurfaceY + 1.05
           const subAlt = Math.max(0, player.position.y - subFloorY)
 
@@ -1232,7 +1238,10 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       }
 
       let minHeight = 0.8
-      if (terrainManager) {
+      const colliderY = getGroundHeight(player.position.x, player.position.y, player.position.z, -99999)
+      if (colliderY > -90000) {
+        minHeight = colliderY + 0.6
+      } else if (terrainManager) {
         const terrainHeight = terrainManager.getHeightAt(player.position.x, player.position.z)
         minHeight = terrainHeight + 0.6
       } else {
