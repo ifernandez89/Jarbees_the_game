@@ -30,11 +30,14 @@ export function GameHUD() {
   const toggleHoloMap = useGameStore((state) => state.toggleHoloMap)
   const activeWorldScenario = useGameStore((state) => state.activeWorldScenario)
   const toggleWorldScenario = useGameStore((state) => state.toggleWorldScenario)
+  const setWorldScenario = useGameStore((state) => state.setWorldScenario)
   const activeCsMap = useGameStore((state) => state.activeCsMap || 'cs_assault')
   const setCsMap = useGameStore((state) => state.setCsMap)
+  const cycleCsMap = useGameStore((state) => state.cycleCsMap)
 
   const [fps, setFps] = useState(60)
   const [showTactical, setShowTactical] = useState(false)
+  const [isMapGridOpen, setIsMapGridOpen] = useState(false)
   const timeOfDay = useDayNightCycle(dayNightEnabled)
 
   const currentProfile = CHARACTER_PROFILES[selectedCharacter] || CHARACTER_PROFILES.bee
@@ -95,114 +98,181 @@ export function GameHUD() {
         })}
       </div>
 
-      {/* HUD superior izquierdo */}
+      {/* HUD superior izquierdo: Panel compacto y simplificado */}
       <div className="hud-card hud-panel-top-left">
-        <div className="hud-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span>{currentProfile.icon}</span>
-          <span>{currentProfile.name}</span>
-        </div>
-        <div className="hud-desktop-only" style={{ fontSize: '0.68rem', color: currentProfile.badgeColor, marginBottom: 2 }}>
-          {currentProfile.title} • {currentProfile.realMetrics.heightOrLength}
-        </div>
-        <div className="hud-status">
-          {isPaused
-            ? '⏸ PAUSADO'
-            : selectedCharacter === 'iron_man' && isIronManFlipped
-            ? Math.abs(velocity) > 0.5
-              ? '🔄 Boca Arriba (Cielo)'
-              : '🔄 Mirando al Usuario'
-            : selectedCharacter === 'iron_man' && isGrounded
-            ? Math.abs(velocity) > 0.3
-              ? '🚶 Caminando'
-              : '🧍 En Tierra (Modo Walk)'
-            : Math.abs(velocity) > 0.5
-            ? '▶ Volando'
-            : '🌸 Suspendido'}
-        </div>
-        {dayNightEnabled && (
-          <div className="hud-clock">
-            {timeIcons[timeOfDay.timeOfDay]} {String(timeOfDay.hours).padStart(2, '0')}:{String(timeOfDay.minutes).padStart(2, '0')}
+        {/* Cabecera compacta: Icono + Nombre + Reloj */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 2 }}>
+          <div className="hud-title" style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 0 }}>
+            <span>{currentProfile.icon}</span>
+            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentProfile.name}</span>
           </div>
-        )}
-        <button
-          onClick={() => {
-            const current = useGameStore.getState().audioEnabled
-            useGameStore.getState().setAudioEnabled(!current)
-          }}
-          className="hud-audio-btn"
-          style={{
-            background: audioEnabled ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255, 60, 60, 0.2)',
-            border: `1px solid ${audioEnabled ? 'rgba(255, 215, 0, 0.5)' : 'rgba(255, 60, 60, 0.5)'}`,
-            color: audioEnabled ? '#FFD700' : '#ff8888',
-          }}
-          title="Presiona 'U' para activar/silenciar sonido"
-        >
-          <span>{audioEnabled ? '🔊 ON' : '🔇 OFF'}</span>
-          <span style={{ opacity: 0.6 }}>[U]</span>
-        </button>
+          {dayNightEnabled && (
+            <div className="hud-clock" style={{ marginBottom: 0, whiteSpace: 'nowrap' }}>
+              {timeIcons[timeOfDay.timeOfDay]} {String(timeOfDay.hours).padStart(2, '0')}:{String(timeOfDay.minutes).padStart(2, '0')}
+            </div>
+          )}
+        </div>
 
-        {/* Bioma Único: Base de Auren en la Antártida Polar */}
-        <button
-          onClick={() => {
-            // Re-centrar en la Base de Auren (0, 2.0, 0)
-            useGameStore.getState().setPosition([0, 2.0, 0])
-          }}
-          className="hud-audio-btn"
-          style={{
-            marginTop: 4,
-            background: 'rgba(56, 189, 248, 0.25)',
-            border: '1px solid rgba(56, 189, 248, 0.7)',
-            color: '#38BDF8',
-          }}
-          title="Base de Auren · Antártida Polar (Valle de Taylor) [B]"
-        >
-          <span>❄️ Base Auren • Antártida</span>
-          <span style={{ opacity: 0.6 }}>[B]</span>
-        </button>
+        {/* Subcabecera: Estado de movimiento + Estatura */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.66rem', color: '#94a3b8', marginBottom: 5 }}>
+          <span className="hud-status" style={{ marginBottom: 0 }}>
+            {isPaused
+              ? '⏸ PAUSADO'
+              : selectedCharacter === 'iron_man' && isIronManFlipped
+              ? Math.abs(velocity) > 0.5
+                ? '🔄 Boca Arriba'
+                : '🔄 Mirando Usuario'
+              : selectedCharacter === 'iron_man' && isGrounded
+              ? Math.abs(velocity) > 0.3
+                ? '🚶 Caminando'
+                : '🧍 En Tierra'
+              : Math.abs(velocity) > 0.5
+              ? '▶ Volando'
+              : '🌸 Suspendido'}
+          </span>
+          <span className="hud-desktop-only" style={{ color: currentProfile.badgeColor, opacity: 0.85, fontSize: '0.64rem' }}>
+            {currentProfile.realMetrics.heightOrLength}
+          </span>
+        </div>
 
-        {/* Selector de Escenario: Santuario Keops vs Mapas Clásicos / Comunidad (Sólo habilitado en entorno local) */}
+        {/* Fila de Micro-acciones rápidas (Audio + Base Antártida) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginBottom: 5 }}>
+          <button
+            type="button"
+            onClick={() => {
+              const current = useGameStore.getState().audioEnabled
+              useGameStore.getState().setAudioEnabled(!current)
+            }}
+            className="hud-micro-btn"
+            style={{
+              background: audioEnabled ? 'rgba(255, 215, 0, 0.12)' : 'rgba(255, 60, 60, 0.15)',
+              border: `1px solid ${audioEnabled ? 'rgba(255, 215, 0, 0.45)' : 'rgba(255, 60, 60, 0.45)'}`,
+              color: audioEnabled ? '#FFD700' : '#ff8888',
+            }}
+            title="Presiona 'U' para activar/silenciar sonido"
+          >
+            <span>{audioEnabled ? '🔊 ON' : '🔇 OFF'}</span>
+            <span style={{ opacity: 0.6, fontSize: '0.6rem' }}>[U]</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => useGameStore.getState().setPosition([0, 2.0, 0])}
+            className="hud-micro-btn"
+            style={{
+              background: 'rgba(56, 189, 248, 0.15)',
+              border: '1px solid rgba(56, 189, 248, 0.5)',
+              color: '#38BDF8',
+            }}
+            title="Base de Auren · Antártida Polar (Valle de Taylor) [B]"
+          >
+            <span>❄️ Antártida</span>
+            <span style={{ opacity: 0.6, fontSize: '0.6rem' }}>[B]</span>
+          </button>
+        </div>
+
+        {/* Panel de Mapas Simplificado y Compacto */}
         {isLocal && (
-          <>
-            <button
-              onClick={() => toggleWorldScenario()}
-              className="hud-audio-btn"
-              style={{
-                marginTop: 4,
-                background: activeWorldScenario === 'cs_assault' ? 'rgba(249, 115, 22, 0.25)' : 'rgba(234, 179, 8, 0.2)',
-                border: `1px solid ${activeWorldScenario === 'cs_assault' ? '#F97316' : '#EAB308'}`,
-                color: activeWorldScenario === 'cs_assault' ? '#FDBA74' : '#FEF08A',
-                fontWeight: 'bold',
-              }}
-              title="Alternar entre La Mansión Auren y los mapas satélite de CS [Y]"
-            >
-              <span>
-                {activeWorldScenario === 'cs_assault'
-                  ? `🎮 ${CS_MAPS[activeCsMap]?.name || 'Arena'} [M]`
-                  : '🏰 Mansión Auren [Y]'}
-              </span>
-              <span style={{ opacity: 0.7 }}>[Y]</span>
-            </button>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: 3, pointerEvents: 'auto' }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {/* Barra principal compacta de selector de mapa */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              {/* Dropdown nativo/estilizado de mapa */}
+              <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+                <select
+                  value={activeWorldScenario === 'sanctuary_infinite' ? 'sanctuary' : activeCsMap}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (val === 'sanctuary') {
+                      setWorldScenario('sanctuary_infinite')
+                    } else {
+                      setCsMap(val as CSMapId)
+                    }
+                  }}
+                  className="hud-map-dropdown"
+                  title="Cambiar mapa o escenario [Y]"
+                >
+                  <option value="sanctuary">🏰 Mansión Auren</option>
+                  <optgroup label="── 🌐 COMUNIDAD ──">
+                    {Object.values(CS_MAPS).filter((m) => m.isCommunity).map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.label.split(' ')[0]} {m.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="── 🏢 CLÁSICOS CS 1.6 ──">
+                    {Object.values(CS_MAPS).filter((m) => !m.isCommunity).map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.label.split(' ')[0]} {m.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
 
-            {/* Botones tácticos directos de mapas */}
-            {activeWorldScenario === 'cs_assault' && (
-              <div
+              {/* Botón rápido ciclar mapa [M] */}
+              <button
+                type="button"
+                onClick={() => cycleCsMap()}
+                className="hud-map-quick-btn"
+                title="Siguiente mapa satélite [M]"
                 style={{
-                  marginTop: 6,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 4,
-                  pointerEvents: 'auto',
+                  background: 'rgba(249, 115, 22, 0.2)',
+                  border: '1px solid rgba(249, 115, 22, 0.5)',
+                  color: '#FDBA74',
                 }}
-                onPointerDown={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
               >
-                {/* Sección Comunidad (Open Source - Apta para Pages) */}
-                <div style={{ fontSize: '0.62rem', color: '#38BDF8', fontWeight: 'bold', letterSpacing: '0.04em' }}>
-                  🌐 COMUNIDAD (OPEN SOURCE / PAGES)
+                [M] ❯
+              </button>
+
+              {/* Botón expandir/colapsar catálogo completo */}
+              <button
+                type="button"
+                onClick={() => setIsMapGridOpen(!isMapGridOpen)}
+                className="hud-map-quick-btn"
+                title={isMapGridOpen ? 'Cerrar catálogo' : 'Ver todos los mapas (cuadrícula)'}
+                style={{
+                  background: isMapGridOpen ? 'rgba(56, 189, 248, 0.35)' : 'rgba(15, 23, 42, 0.85)',
+                  border: `1px solid ${isMapGridOpen ? '#38BDF8' : 'rgba(255, 255, 255, 0.2)'}`,
+                  color: isMapGridOpen ? '#38BDF8' : '#94A3B8',
+                }}
+              >
+                {isMapGridOpen ? '▲' : '⊞'}
+              </button>
+            </div>
+
+            {/* Catálogo en cuadrícula opcional (colapsado por defecto) */}
+            {isMapGridOpen && (
+              <div className="hud-map-grid-popover">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWorldScenario('sanctuary_infinite')
+                    setIsMapGridOpen(false)
+                  }}
+                  className="hud-map-grid-btn"
+                  style={{
+                    width: '100%',
+                    marginBottom: 3,
+                    background: activeWorldScenario === 'sanctuary_infinite' ? 'rgba(234, 179, 8, 0.3)' : 'rgba(15, 23, 42, 0.85)',
+                    border: `1px solid ${activeWorldScenario === 'sanctuary_infinite' ? '#EAB308' : 'rgba(255, 255, 255, 0.15)'}`,
+                    color: activeWorldScenario === 'sanctuary_infinite' ? '#FEF08A' : '#E2E8F0',
+                    fontWeight: activeWorldScenario === 'sanctuary_infinite' ? 'bold' : 'normal',
+                  }}
+                >
+                  <span>🏰 Mansión Auren [Y]</span>
+                  {activeWorldScenario === 'sanctuary_infinite' && <span style={{ color: '#EAB308' }}>●</span>}
+                </button>
+
+                <div style={{ fontSize: '0.58rem', color: '#38BDF8', fontWeight: 'bold', margin: '2px 0 1px', letterSpacing: '0.03em' }}>
+                  🌐 COMUNIDAD
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                   {Object.values(CS_MAPS).filter((m) => m.isCommunity).map((m) => {
-                    const isSelected = m.id === activeCsMap
+                    const isSelected = activeWorldScenario === 'cs_assault' && m.id === activeCsMap
                     return (
                       <button
                         key={m.id}
@@ -210,45 +280,32 @@ export function GameHUD() {
                         onClick={(e) => {
                           e.stopPropagation()
                           setCsMap(m.id)
+                          setIsMapGridOpen(false)
                         }}
-                        onPointerDown={(e) => e.stopPropagation()}
+                        className="hud-map-grid-btn"
                         style={{
-                          pointerEvents: 'auto',
                           background: isSelected ? 'rgba(56, 189, 248, 0.35)' : 'rgba(15, 23, 42, 0.85)',
-                          border: isSelected ? '1.5px solid #38BDF8' : '1px solid rgba(56, 189, 248, 0.22)',
-                          borderRadius: 4,
+                          border: isSelected ? '1px solid #38BDF8' : '1px solid rgba(56, 189, 248, 0.22)',
                           color: isSelected ? '#FFFFFF' : '#BAE6FD',
-                          padding: '4px 3px',
-                          fontSize: '0.67rem',
-                          fontFamily: 'monospace, sans-serif',
                           fontWeight: isSelected ? 'bold' : 'normal',
-                          cursor: 'pointer',
-                          textAlign: 'center',
-                          boxShadow: isSelected ? '0 0 10px rgba(56, 189, 248, 0.65)' : 'none',
-                          transition: 'all 0.12s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 2,
                         }}
-                        title={`Cargar ${m.label} (Apto para GitHub Pages)`}
+                        title={`Cargar ${m.label}`}
                       >
-                        <span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {m.label.split(' ')[0]} {m.name}
                         </span>
-                        {isSelected && <span style={{ color: '#38BDF8', fontSize: '0.65rem' }}>●</span>}
+                        {isSelected && <span style={{ color: '#38BDF8', fontSize: '0.6rem' }}>●</span>}
                       </button>
                     )
                   })}
                 </div>
 
-                {/* Sección Clásicos CS 1.6 (Local) */}
-                <div style={{ fontSize: '0.62rem', color: '#F97316', fontWeight: 'bold', letterSpacing: '0.04em', marginTop: 2 }}>
-                  🏢 CLÁSICOS CS 1.6 (LOCAL)
+                <div style={{ fontSize: '0.58rem', color: '#F97316', fontWeight: 'bold', margin: '3px 0 1px', letterSpacing: '0.03em' }}>
+                  🏢 CLÁSICOS CS 1.6
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                   {Object.values(CS_MAPS).filter((m) => !m.isCommunity).map((m) => {
-                    const isSelected = m.id === activeCsMap
+                    const isSelected = activeWorldScenario === 'cs_assault' && m.id === activeCsMap
                     return (
                       <button
                         key={m.id}
@@ -256,40 +313,28 @@ export function GameHUD() {
                         onClick={(e) => {
                           e.stopPropagation()
                           setCsMap(m.id)
+                          setIsMapGridOpen(false)
                         }}
-                        onPointerDown={(e) => e.stopPropagation()}
+                        className="hud-map-grid-btn"
                         style={{
-                          pointerEvents: 'auto',
                           background: isSelected ? 'rgba(249, 115, 22, 0.35)' : 'rgba(15, 23, 42, 0.85)',
-                          border: isSelected ? '1.5px solid #F97316' : '1px solid rgba(255, 255, 255, 0.15)',
-                          borderRadius: 4,
+                          border: isSelected ? '1px solid #F97316' : '1px solid rgba(255, 255, 255, 0.15)',
                           color: isSelected ? '#FFFFFF' : '#FED7AA',
-                          padding: '4px 3px',
-                          fontSize: '0.67rem',
-                          fontFamily: 'monospace, sans-serif',
                           fontWeight: isSelected ? 'bold' : 'normal',
-                          cursor: 'pointer',
-                          textAlign: 'center',
-                          boxShadow: isSelected ? '0 0 10px rgba(249, 115, 22, 0.65)' : 'none',
-                          transition: 'all 0.12s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 2,
                         }}
-                        title={`Cargar ${m.label} (Local)`}
+                        title={`Cargar ${m.label}`}
                       >
-                        <span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {m.label.split(' ')[0]} {m.name}
                         </span>
-                        {isSelected && <span style={{ color: '#F97316', fontSize: '0.65rem' }}>●</span>}
+                        {isSelected && <span style={{ color: '#F97316', fontSize: '0.6rem' }}>●</span>}
                       </button>
                     )
                   })}
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
 

@@ -123,31 +123,148 @@ canvas {
   z-index: 30;
 }
 
-/* Panel superior izquierdo (Título, estado, ciclo, audio) */
+/* Panel superior izquierdo (Título, estado, ciclo, audio, mapas) */
 .hud-panel-top-left {
   top: 14px;
   left: 14px;
-  padding: 9px 12px;
-  font-size: 0.8rem;
+  padding: 7px 9px;
+  font-size: 0.74rem;
   pointer-events: auto;
+  width: 232px;
+  max-width: calc(100vw - 28px);
+  background: rgba(10, 15, 25, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 7px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
 }
 
 .hud-panel-top-left .hud-title {
   font-weight: bold;
-  font-size: 0.82rem;
-  margin-bottom: 4px;
+  font-size: 0.78rem;
+  color: #FFD700;
 }
 
 .hud-panel-top-left .hud-status {
-  color: #aaa;
-  font-size: 0.75rem;
-  margin-bottom: 3px;
+  color: #94A3B8;
+  font-size: 0.68rem;
 }
 
 .hud-panel-top-left .hud-clock {
-  color: #aaa;
-  font-size: 0.72rem;
-  margin-bottom: 6px;
+  color: #94A3B8;
+  font-size: 0.68rem;
+}
+
+.hud-micro-btn {
+  pointer-events: auto;
+  border-radius: 4px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 2px 6px;
+  font-size: 0.65rem;
+  font-family: monospace, sans-serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+}
+
+.hud-micro-btn:hover {
+  filter: brightness(1.2);
+}
+
+.hud-map-dropdown {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(15, 23, 42, 0.88) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338BDF8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 6px center / 10px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 4px;
+  color: #38BDF8;
+  font-family: monospace, sans-serif;
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 3px 20px 3px 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.hud-map-dropdown:hover, .hud-map-dropdown:focus {
+  border-color: #38BDF8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
+.hud-map-dropdown option, .hud-map-dropdown optgroup {
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: monospace, sans-serif;
+}
+
+.hud-map-dropdown optgroup {
+  font-weight: bold;
+  color: #38BDF8;
+}
+
+.hud-map-quick-btn {
+  pointer-events: auto;
+  border-radius: 4px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 2px 5px;
+  font-size: 0.64rem;
+  font-family: monospace, sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.hud-map-quick-btn:hover {
+  filter: brightness(1.2);
+}
+
+.hud-map-grid-popover {
+  margin-top: 3px;
+  padding: 5px;
+  background: rgba(10, 15, 25, 0.95);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 5px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  max-height: 200px;
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+.hud-map-grid-btn {
+  pointer-events: auto;
+  border-radius: 3px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 2px 4px;
+  font-size: 0.62rem;
+  font-family: monospace, sans-serif;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  transition: all 0.12s ease;
+}
+
+.hud-map-grid-btn:hover {
+  filter: brightness(1.25);
+  transform: translateY(-0.5px);
 }
 
 .hud-audio-btn {
@@ -332,25 +449,41 @@ canvas {
   .hud-panel-top-left {
     top: 8px;
     left: 8px;
-    padding: 6px 9px;
-    font-size: 0.68rem;
+    padding: 5px 7px;
+    font-size: 0.66rem;
     border-radius: 6px;
+    width: 175px;
     max-width: 175px;
   }
 
   .hud-panel-top-left .hud-title {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     margin-bottom: 2px;
   }
 
   .hud-panel-top-left .hud-status {
-    font-size: 0.64rem;
+    font-size: 0.62rem;
     margin-bottom: 2px;
   }
 
   .hud-panel-top-left .hud-clock {
     font-size: 0.62rem;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+  }
+
+  .hud-micro-btn {
+    font-size: 0.6rem;
+    padding: 2px 4px;
+  }
+
+  .hud-map-dropdown {
+    font-size: 0.6rem;
+    padding: 2px 16px 2px 4px;
+  }
+
+  .hud-map-quick-btn {
+    font-size: 0.6rem;
+    padding: 2px 4px;
   }
 
   .hud-audio-btn {

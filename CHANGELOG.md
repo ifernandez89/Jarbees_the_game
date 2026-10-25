@@ -1,5 +1,29 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.44] - 2026-10-25
+
+### 🗺️ Rediseño Compacto y Simplificación del Panel de Mapas (HUD)
+- **Reducción del 75% del Espacio en Esquina Superior ([components/GameHUD.tsx](file:///d:/Projects/Jarbees_the_game/components/GameHUD.tsx), [app/globals.css](file:///d:/Projects/Jarbees_the_game/app/globals.css))**:
+  - El panel superior izquierdo pasó de medir ~450 px de alto a solo **~85 px**, despejando el campo de visión de la cámara para apreciar los escenarios y horizontes 3D.
+  - Establecido un ancho fijo y controlado de `232 px` en escritorio (`175 px` en móvil) con fondo translúcido cyberpunk (`rgba(10, 15, 25, 0.78)`), borde cian y desenfoque por hardware.
+- **Selector Unificado y Estilizado de Mapas / Escenarios**:
+  - Sustituida la cuadrícula permanente de 10 botones grandes por un **menú desplegable estilizado (`<select>`) en una sola línea**:
+    * 🏰 Mansión Auren (Santuario Keops).
+    * 🌐 Comunidad Open Source (*Pool Day, Rats 3, Westwood, Iceworld, Iglesia L4D*).
+    * 🏢 Clásicos CS 1.6 (*Assault, Siege, Aztec, Château, Vertigo*).
+  - **Botón de ciclado rápido `[M] ❯`**: Permite saltar al siguiente mapa satélite en 1 click (conservando el atajo de teclado `M`).
+  - **Catálogo visual expandible bajo demanda `[⊞]`**: Botón para alternar la visualización en cuadrícula dentro de un contenedor flotante estilizado, manteniéndose colapsado por defecto.
+- **Compactación de Cabecera y Micro-Acciones**:
+  - Título del personaje y reloj diurno/nocturno unificados en la fila superior.
+  - Estado de locomoción (`🚶 Caminando` / `🧍 En Tierra`) y altura métrica agrupados en una subfila informativa compacta.
+  - Botones de audio (`[U]`) y teletransporte a la Base de Auren en la Antártida (`[B]`) reorganizados en una única cuadrícula horizontal de dos columnas.
+
+### 🧟 Integración y Paisaje Sonoro Cinético Source
+- **Documentación del Sistema Biomecánico ([AUREN_SOURCE_L4D_SYSTEM.md](file:///d:/Projects/Jarbees_the_game/AUREN_SOURCE_L4D_SYSTEM.md))**:
+  - Arquitectura cinética, inercia de agachado de perfil bajo y sincronización de cámara para el exoesqueleto NEXO-01.
+- **Efectos de Audio Tácticos (`public/audio/`)**:
+  - Muestras de sonido para impactos de blindaje, aterrizaje pesado y respuesta reactiva.
+
 ## [0.8.43] - 2026-10-25
 
 ### 🦾 Salón de Armaduras (Hall of Armors) en el Taller de Villa Auren
