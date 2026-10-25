@@ -11,6 +11,7 @@ import { getAssetPath } from '@/utils/assetPath'
 import { CHARACTER_PROFILES, CharacterId } from '@/types/characters'
 import { FlightDynamics, flightRuntime } from '@/systems/FlightDynamics'
 import { AureliumPhaseController, injectAureliumPhaseVeil } from '@/systems/AureliumPhaseShader'
+import { getGroundHeight } from '@/systems/GroundCollisionManager'
 import type { GLTF } from 'three-stdlib'
 
 type GLTFResult = GLTF & {
@@ -1025,9 +1026,11 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
       }
       const dt = Math.min(delta, 0.05)
 
-      const floorY = terrainManager
-        ? terrainManager.getHeightAt(player.position.x, player.position.z) + 1.4
-        : 0.8
+      const surfaceY = terrainManager
+        ? terrainManager.getHeightAt(player.position.x, player.position.z)
+        : getGroundHeight(player.position.x, player.position.y, player.position.z, 1.22, isGroundedRef.current)
+
+      const floorY = surfaceY + 1.05
 
       if (takeoffCooldownRef.current > 0) {
         takeoffCooldownRef.current -= dt
@@ -1067,8 +1070,14 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
           flightRuntime.speed = initialSpeed
           flightRuntime.speedKmh = initialSpeed * 3.6
         } else {
-          // Mantener al personaje firme sobre la superficie del relieve (amortiguado a 55 km/h)
-          player.position.y = THREE.MathUtils.damp(player.position.y, floorY, 28, dt)
+          // Si el suelo se desploma repentinamente más de 1.2m (borde de mesa, tejado o precipicio), entrar en caída natural
+          if (player.position.y - floorY > 1.2) {
+            isGroundedRef.current = false
+            setGrounded(false)
+          } else {
+            // Mantener al personaje firme sobre la superficie del relieve (amortiguado a 55 km/h)
+            player.position.y = THREE.MathUtils.damp(player.position.y, floorY, 28, dt)
+          }
           flight.vy = 0
           flight.vx = 0
           flight.vz = 0
@@ -1128,9 +1137,10 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
         const subDt = dt / steps
 
         for (let i = 0; i < steps; i++) {
-          const subFloorY = terrainManager
-            ? terrainManager.getHeightAt(player.position.x, player.position.z) + 1.4
-            : 0.8
+          const subSurfaceY = terrainManager
+            ? terrainManager.getHeightAt(player.position.x, player.position.z)
+            : getGroundHeight(player.position.x, player.position.y, player.position.z, 1.22)
+          const subFloorY = subSurfaceY + 1.05
           const subAlt = Math.max(0, player.position.y - subFloorY)
 
           const { yawDelta } = flight.step(subDt, input, player.rotation.y, player.position.y, mode, subAlt)
@@ -1221,11 +1231,13 @@ export function BeePlayer({ modelPath = '/models/bee.jb3d' }: BeePlayerProps) {
         player.position.y -= 12.0 * delta
       }
 
-      // Colisión suave con terreno (mínimo 0.6m sobre el suelo)
       let minHeight = 0.8
       if (terrainManager) {
         const terrainHeight = terrainManager.getHeightAt(player.position.x, player.position.z)
         minHeight = terrainHeight + 0.6
+      } else {
+        const surfaceHeight = getGroundHeight(player.position.x, player.position.y, player.position.z, 1.22)
+        minHeight = surfaceHeight + 0.6
       }
 
       // Límites de altitud: Permite ascender bien alto

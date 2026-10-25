@@ -75,13 +75,8 @@ export function useAudio() {
     const isNight = timeInfo.timeOfDay === 'night'
     const isDawnOrDusk = timeInfo.timeOfDay === 'dawn' || timeInfo.timeOfDay === 'dusk'
 
-    // Grillos: solo activos de noche
-    const targetCricketsVol = isNight ? 0.35 : (isDawnOrDusk ? 0.1 : 0.0)
-    // Viento: brisa orgánica tenue y limpia sin rumble ni zumbidos graves
-    const targetWindVol = isNight ? 0.04 : 0.06
-
-    globalAudioManager.setSoundVolume('crickets', targetCricketsVol)
-    globalAudioManager.setSoundVolume('wind', targetWindVol)
+    // Viento: silenciado en reposo para evitar cualquier tipo de zumbido
+    globalAudioManager.setSoundVolume('wind', 0.0)
   })
 
   return audioManagerRef.current
@@ -104,18 +99,15 @@ async function loadGameAudio(manager: AudioManager) {
     await manager.loadSound('auren_flight', getAssetPath('/audio/auren_flight.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('iron_man_thruster', getAssetPath('/audio/iron_man_thruster.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('wind', getAssetPath('/audio/wind_loop.wav'), { loop: true, volume: 0.05 })
-    await manager.loadSound('crickets', getAssetPath('/audio/night_crickets.wav'), { loop: true, volume: 0.0 })
     await manager.loadSound('pause', getAssetPath('/audio/pause.wav'), { loop: false, volume: 0.4 })
 
-    // Iniciar bucles de ambiente y sonido de vuelo
-    manager.playMusic('ambient', 2.5)
+    // Iniciar bucles de efectos de sonido bajo demanda (silencio en reposo)
     manager.playLoop('bee_buzz', 0.0)
     manager.playLoop('colibri_flutter', 0.0)
     manager.playLoop('butterfly_flutter', 0.0)
     manager.playLoop('auren_flight', 0.0)
     manager.playLoop('iron_man_thruster', 0.0)
-    manager.playLoop('wind', 0.05)
-    manager.playLoop('crickets', 0.0)
+    manager.playLoop('wind', 0.0)
   } catch (error) {
     console.warn('⚠️ Nota sobre carga de audios:', error)
   }

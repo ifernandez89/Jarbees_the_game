@@ -53,6 +53,7 @@ Thumbs.db
 .cache
 __pycache__/
 *.pyc
+scripts/temp_build_*.py
 
 # IDE Agent configs & skills
 .agents/
@@ -69,4 +70,23 @@ skills-lock.json
 /temp_render/
 /temp_armor_textures/
 /temp_suit_textures/
+
+# Valve / CS 1.6 / GameBanana map assets (Protected - kept local only for laboratory testing)
+/public/models/cs_*.glb
+/public/models/de_*.glb
+/public/models/fy_*.glb
+/public/models/surf_*.glb
+/public/models/zm_*.glb
+/public/models/zhl_*.glb
+/public/textures/cs_*/
+/public/textures/de_*/
+/public/textures/fy_*/
+/public/textures/surf_*/
+/public/textures/zm_*/
+/public/textures/zhl_*/
+*.bsp
+*.wad
+
+
+
 

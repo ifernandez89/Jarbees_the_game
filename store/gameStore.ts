@@ -62,6 +62,167 @@ export type SuitActionEmote =
   | 'hunter_pounce'
   | null
 
+export type CSMapId =
+  | 'fy_pool_day'
+  | 'de_rats3'
+  | 'de_westwood'
+  | 'fy_iceworld'
+  | 'cs_bighouse'
+  | 'zhl_space_foda'
+  | 'zm_roma_city'
+  | 'surf_boreas'
+  | 'cs_assault'
+  | 'cs_siege'
+  | 'de_aztec'
+  | 'de_chateau'
+
+export interface CSMapInfo {
+  id: CSMapId
+  name: string
+  label: string
+  bspName: string
+  spawnPosition: [number, number, number]
+  description: string
+  skyColor: string
+  fogColor: string
+  isCommunity: boolean
+}
+
+export const CS_MAPS: Record<CSMapId, CSMapInfo> = {
+  fy_pool_day: {
+    id: 'fy_pool_day',
+    name: 'Pool Day',
+    label: '🏊 fy_pool_day (Squall)',
+    bspName: 'fy_pool_day.bsp',
+    spawnPosition: [-8.25, 11.55, 14.35],
+    description: 'Piscina comunitaria legendaria creada por Squall (494 KB)',
+    skyColor: '#6ba0b8',
+    fogColor: '#78b0c8',
+    isCommunity: true,
+  },
+  de_rats3: {
+    id: 'de_rats3',
+    name: 'Rats 3',
+    label: '🧀 de_rats3 (Giles)',
+    bspName: 'de_rats3.bsp',
+    spawnPosition: [-18.0, 13.50, -13.0],
+    description: 'Habitación gigante creada por Chris Giles Green',
+    skyColor: '#b0a088',
+    fogColor: '#988870',
+    isCommunity: true,
+  },
+  de_westwood: {
+    id: 'de_westwood',
+    name: 'Westwood',
+    label: '🤠 de_westwood (MacMan)',
+    bspName: 'de_westwood.bsp',
+    spawnPosition: [22.76, 9.72, 4.90],
+    description: 'Pueblo del Viejo Oeste creado por Chris "MacMan" Mair',
+    skyColor: '#d4a373',
+    fogColor: '#bc8a5f',
+    isCommunity: true,
+  },
+  fy_iceworld: {
+    id: 'fy_iceworld',
+    name: 'Iceworld',
+    label: '🧊 fy_iceworld (Fan)',
+    bspName: 'fy_iceworld.bsp',
+    spawnPosition: [-9.80, 4.03, -17.88],
+    description: 'Arena glacial de bloques de hielo clásica (180 KB)',
+    skyColor: '#a0c4d8',
+    fogColor: '#90b4c8',
+    isCommunity: true,
+  },
+  cs_bighouse: {
+    id: 'cs_bighouse',
+    name: 'Big House',
+    label: '🏰 cs_bighouse (Mansión)',
+    bspName: 'cs_bighouse_neme_mk.bsp',
+    spawnPosition: [0.0, 27.98, -21.73],
+    description: 'Mansión gigante de proporciones colosales (0.57 MB)',
+    skyColor: '#8ca0b4',
+    fogColor: '#9cb0c4',
+    isCommunity: true,
+  },
+  zhl_space_foda: {
+    id: 'zhl_space_foda',
+    name: 'Space Foda',
+    label: '🚀 zhl_space_foda (Cosmos)',
+    bspName: 'ZHL_space_foda.bsp',
+    spawnPosition: [0.0, 15.83, -53.95],
+    description: 'Estación espacial orbital sci-fi (0.33 MB)',
+    skyColor: '#0a0d18',
+    fogColor: '#12182c',
+    isCommunity: true,
+  },
+  zm_roma_city: {
+    id: 'zm_roma_city',
+    name: 'Roma City',
+    label: '🏛️ zm_roma_city (Roma)',
+    bspName: 'zm_roma-city_fix.bsp',
+    spawnPosition: [0.0, 24.77, -8.28],
+    description: 'Calles empedradas, arcos y ruinas de Roma (3.06 MB)',
+    skyColor: '#8a9ca8',
+    fogColor: '#9aaab6',
+    isCommunity: true,
+  },
+  surf_boreas: {
+    id: 'surf_boreas',
+    name: 'Surf Boreas',
+    label: '🏄 surf_boreas (Boreas Ártico)',
+    bspName: 'surf_boreas-compile.bsp',
+    spawnPosition: [233.68, -408.8, -472.36],
+    description: 'Complejo ártico del rompehielos Boreas (0.31 MB base)',
+    skyColor: '#90b4d0',
+    fogColor: '#a0c4e0',
+    isCommunity: true,
+  },
+  cs_assault: {
+    id: 'cs_assault',
+    name: 'Assault',
+    label: '🏢 cs_assault.bsp (Almacén)',
+    bspName: 'cs_assault.bsp',
+    spawnPosition: [34.54, 3.64, 21.95],
+    description: 'Complejo industrial y furgoneta de asalto CT',
+    skyColor: '#70889b',
+    fogColor: '#8094a6',
+    isCommunity: false,
+  },
+  cs_siege: {
+    id: 'cs_siege',
+    name: 'Siege',
+    label: '🏜️ cs_siege.bsp (Cañón)',
+    bspName: 'cs_siege.bsp',
+    spawnPosition: [-52.12, 21.11, -54.86],
+    description: 'Cañón rocoso, túneles subterráneos y fortaleza APC',
+    skyColor: '#a89478',
+    fogColor: '#968875',
+    isCommunity: false,
+  },
+  de_aztec: {
+    id: 'de_aztec',
+    name: 'Aztec',
+    label: '🌿 de_aztec_cz.bsp (Ruinas)',
+    bspName: 'de_aztec.bsp',
+    spawnPosition: [-63.20, 10.04, -2.84],
+    description: 'Templos milenarios, puente colgante y canales de lluvia',
+    skyColor: '#5c6b65',
+    fogColor: '#607268',
+    isCommunity: false,
+  },
+  de_chateau: {
+    id: 'de_chateau',
+    name: 'Château',
+    label: '🏰 de_chateau.bsp (Mansión)',
+    bspName: 'de_chateau.bsp',
+    spawnPosition: [8.08, 6.79, -54.04],
+    description: 'Gran mansión señorial, jardines franceses y catacumbas',
+    skyColor: '#8ca0b3',
+    fogColor: '#7f93a6',
+    isCommunity: false,
+  },
+}
+
 export interface GameState {
   // Posición de la abeja
   position: [number, number, number]
@@ -142,6 +303,14 @@ export interface GameState {
   setNavigationTarget: (target: NavigationTarget | null) => void
   cycleNavigationTarget: (direction?: 1 | -1) => void
 
+  // Escenario Mundial Activo: Santuario Infinito vs Clásicos CS 1.6
+  activeWorldScenario: 'sanctuary_infinite' | 'cs_assault'
+  toggleWorldScenario: () => void
+  setWorldScenario: (scenario: 'sanctuary_infinite' | 'cs_assault') => void
+  activeCsMap: CSMapId
+  setCsMap: (map: CSMapId) => void
+  cycleCsMap: () => void
+
   // Acciones
   setFlightMode: (mode: FlightMode) => void
   toggleFlightMode: () => void
@@ -170,7 +339,7 @@ export interface GameState {
 }
 
 const initialState = {
-  position: [0, 2, 0] as [number, number, number],
+  position: [0, 2.0, 0] as [number, number, number],
   rotation: [0, 0, 0] as [number, number, number],
   velocity: 0,
   baseSpeed: 0,
@@ -209,6 +378,8 @@ const initialState = {
   isPhaseVeilActive: false,
   isHoloMapActive: true,
   navigationTarget: (WORLD_TARGETS.find((t) => t.id === 'mount_erebus') || WORLD_TARGETS[0]) as NavigationTarget | null,
+  activeWorldScenario: 'sanctuary_infinite' as const,
+  activeCsMap: 'cs_assault' as CSMapId,
   flightMode: 'assist' as FlightMode,
   flight: INITIAL_FLIGHT_TELEMETRY,
 }
@@ -216,6 +387,62 @@ const initialState = {
 export const useGameStore = create<GameState>((set) => ({
   ...initialState,
   
+  setCsMap: (activeCsMap) =>
+    set(() => {
+      const mapInfo = CS_MAPS[activeCsMap]
+      return {
+        activeCsMap,
+        activeWorldScenario: 'cs_assault',
+        position: [...mapInfo.spawnPosition] as [number, number, number],
+        rotation: [0, 0, 0],
+        velocity: 0,
+      }
+    }),
+  cycleCsMap: () =>
+    set((state) => {
+      const mapKeys: CSMapId[] = [
+        'fy_pool_day',
+        'de_rats3',
+        'de_westwood',
+        'fy_iceworld',
+        'cs_assault',
+        'cs_siege',
+        'de_aztec',
+        'de_chateau',
+      ]
+      const currentIndex = mapKeys.indexOf(state.activeCsMap)
+      const nextIndex = (currentIndex + 1) % mapKeys.length
+      const nextMap = mapKeys[nextIndex]
+      const mapInfo = CS_MAPS[nextMap]
+      return {
+        activeCsMap: nextMap,
+        activeWorldScenario: 'cs_assault',
+        position: [...mapInfo.spawnPosition] as [number, number, number],
+        rotation: [0, 0, 0],
+        velocity: 0,
+      }
+    }),
+  toggleWorldScenario: () =>
+    set((state) => {
+      const next = state.activeWorldScenario === 'sanctuary_infinite' ? 'cs_assault' : 'sanctuary_infinite'
+      const spawn = next === 'cs_assault' ? CS_MAPS[state.activeCsMap].spawnPosition : [0, 2.0, 0]
+      return {
+        activeWorldScenario: next,
+        position: [...spawn] as [number, number, number],
+        rotation: [0, 0, 0],
+        velocity: 0,
+      }
+    }),
+  setWorldScenario: (activeWorldScenario) =>
+    set((state) => {
+      const spawn = activeWorldScenario === 'cs_assault' ? CS_MAPS[state.activeCsMap].spawnPosition : [0, 2.0, 0]
+      return {
+        activeWorldScenario,
+        position: [...spawn] as [number, number, number],
+        rotation: [0, 0, 0],
+        velocity: 0,
+      }
+    }),
   triggerEmote: (activeEmote) => set({ activeEmote }),
   setSelectedCharacter: (selectedCharacter) =>
     set({ selectedCharacter, isIronManFlipped: false, isGrounded: false, isPhaseVeilActive: false, flight: INITIAL_FLIGHT_TELEMETRY }),

@@ -25,6 +25,7 @@ import { HoloTacticalOverlay } from './HoloTacticalOverlay'
 import { PeakBeacon3D } from './PeakBeacon3D'
 import { AurenCompassHUD } from './AurenCompassHUD'
 import { AurenPyramidSanctuary } from './AurenPyramidSanctuary'
+import { CSAssaultWorld } from './CSAssaultWorld'
 
 // Componente de la escena 3D
 function Scene() {
@@ -41,6 +42,8 @@ function Scene() {
   const currentBiome = useGameStore((state) => state.currentBiome)
   const isPaused = useGameStore((state) => state.isPaused)
   const updateGameTime = useGameStore((state) => state.updateGameTime)
+
+  const activeWorldScenario = useGameStore((state) => state.activeWorldScenario)
 
   const timeOfDay = useDayNightCycle(dayNightEnabled, dayNightSpeed)
 
@@ -61,19 +64,28 @@ function Scene() {
       {/* Sistema de clima dinámico (niebla atmosférica y partículas de viento) */}
       <WeatherSystem enabled={dayNightEnabled} />
 
-      {/* Terreno infinito procedural reactivo con árboles y rocas */}
-      <InfiniteTerrain biome={currentBiome} seed={12345} />
+      {activeWorldScenario === 'sanctuary_infinite' ? (
+        <>
+          {/* Terreno infinito procedural reactivo con árboles y rocas */}
+          <InfiniteTerrain biome={currentBiome} seed={12345} />
 
-      {/* Fauna voladora ambiental (Colibríes y Mariposas con animaciones reales) */}
-      <AmbientWildlife />
+          {/* Fauna voladora ambiental (Colibríes y Mariposas con animaciones reales) */}
+          <AmbientWildlife />
 
-      {/* Superficie de agua cristalina para lagos y valles */}
-      <WaterSurface waterHeight={1.4} />
+          {/* Superficie de agua cristalina para lagos y valles */}
+          <WaterSurface waterHeight={1.4} />
 
-      {/* Santuario Pirámide de Auren a Escala Real de Guiza (Hogar y Punto de Salida/Aparición) */}
-      <Suspense fallback={null}>
-        <AurenPyramidSanctuary />
-      </Suspense>
+          {/* Santuario Pirámide de Auren a Escala Real de Guiza (Hogar y Punto de Salida/Aparición) */}
+          <Suspense fallback={null}>
+            <AurenPyramidSanctuary />
+          </Suspense>
+        </>
+      ) : (
+        /* Mapa 100% Original de Counter-Strike 1.6: cs_assault con almacén, puente y furgoneta */
+        <Suspense fallback={null}>
+          <CSAssaultWorld />
+        </Suspense>
+      )}
 
       {/* Abeja jugadora con fallback instantáneo y modelo 3D */}
       <BeePlayer />

@@ -1,5 +1,38 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.37] - 2026-10-25
+
+### 🌐 Laboratorio Multimapa Táctico, Tolerancia de Colisión en Túneles/Mesas y Blindaje de Copyright
+
+#### 1. Tolerancia Vertical Dual y Física de Detección de Suelo ([GroundCollisionManager.ts](file:///c:/Projects/Jarbees_the_game/systems/GroundCollisionManager.ts), [BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx))
+- **Entrada Fluida a Túneles, Ductos y Habitaciones sin Teletransporte a Techos**:
+  - Se implementó un origen de raycasting adaptativo: al caminar (`isGrounded = true`), el rayo se lanza a la altura de las rodillas (`footY + 0.55m`) hacia abajo.
+  - Al estar dentro de un túnel o cruzar una puerta baja, el techo siempre se encuentra por encima del origen del rayo, evitando que el personaje sea absorbido hacia la azotea.
+- **Sólida Locomoción en Superficies Elevadas (`de_rats3`, `cs_bighouse`)**:
+  - Eliminación de filtros de normales invertidas (`normal.y < 0.40`) propios de caras de mapas BSP antiguos, permitiendo caminar firmemente sobre mesas gigantes (`Y = 12.45m`), camas (`Y = 4.32m`), teclados y estanterías.
+  - Calibración del spawn de `de_rats3` para iniciar de pie sobre la mesa de madera.
+- **Física de Caída Natural por Precipicios y Bordes**:
+  - Al caminar por el borde de una mesa o tejado, si la superficie desciende más de `1.2m`, el personaje se desengancha suavemente del suelo y entra en física gravitacional / vuelo natural.
+
+#### 2. Laboratorio Virtual Multimapa en UI ([store/gameStore.ts](file:///c:/Projects/Jarbees_the_game/store/gameStore.ts), [GameHUD.tsx](file:///c:/Projects/Jarbees_the_game/components/GameHUD.tsx), [CSAssaultWorld.tsx](file:///c:/Projects/Jarbees_the_game/components/CSAssaultWorld.tsx))
+- **Expansión a 12 Escenarios Interactivos Calibrados**:
+  - **Comunitarios (Fan-Made)**: `fy_pool_day` (Piscina), `de_rats3` (Habitación Gigante), `de_westwood` (Viejo Oeste), `fy_iceworld` (Arena Glacial), `cs_bighouse` (Mansión Gigante), `zhl_space_foda` (Estación Orbital), `zm_roma_city` (Calles de Roma), `surf_boreas` (Rompehielos Ártico).
+  - **Clásicos CS 1.6 de Valve (Laboratorio Local)**: `cs_assault` (Almacén), `cs_siege` (Cañón/Túneles), `de_aztec` (Ruinas), `de_chateau` (Castillo).
+- **HUD Táctico Dinámico de Selección**:
+  - Botonera de acceso directo organizada por categorías (Comunidad vs Clásicos Locales) con eventos de puntero desacoplados del canvas 3D y atajo de teclado `[M]` para ciclar mapas al instante.
+  - Telemetría de coordenadas y spawns individualmente medidos para cada escenario.
+
+#### 3. Blindaje Legal y Protección de Copyright para GitHub Pages ([.gitignore](file:///c:/Projects/Jarbees_the_game/.gitignore))
+- **Regla Comodín de Exclusión Total**:
+  - Se añadieron filtros wildcard en `.gitignore` (`/public/models/cs_*.glb`, `de_*.glb`, `fy_*.glb`, `surf_*.glb`, `zm_*.glb`, `zhl_*.glb` y sus carpetas de texturas) para evitar que cualquier asset de terceros o mods de GameBanana se suba accidentalmente a GitHub.
+  - Garantiza que el despliegue en GitHub Pages sea 100% limpio, seguro y enfocado en la propiedad intelectual original del juego (`sanctuary_infinite`, Auren y físicas propias).
+
+#### 4. Depuración Acústica ([useAudio.ts](file:///c:/Projects/Jarbees_the_game/hooks/useAudio.ts))
+- **Erradicación del Zumbido Parásito**:
+  - Sustitución del tono ambiental con artefactos de onda sinusoidal en `ambient_music.wav` por un colchón orquestal limpio y de espectro balanceado.
+
+---
+
 ## [0.8.36] - 2026-10-24
 
 ### 🏛️ Santuario Pirámide de Auren a Escala Real de Guiza (Hogar & Despliegue en el Punto Cero)

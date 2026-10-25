@@ -53,6 +53,20 @@ export function useGameControls() {
         return
       }
 
+      // Alternar Escenario (Santuario Keops vs Clásico CS 1.6) con Y
+      if (e.code === 'KeyY') {
+        e.preventDefault()
+        useGameStore.getState().toggleWorldScenario()
+        return
+      }
+
+      // Cambiar mapa de CS 1.6 con M
+      if (e.code === 'KeyM') {
+        e.preventDefault()
+        useGameStore.getState().cycleCsMap()
+        return
+      }
+
       // Giro para quedar de espaldas o mirar al usuario con T
       if (e.code === 'KeyT') {
         e.preventDefault()
