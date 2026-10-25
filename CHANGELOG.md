@@ -1,5 +1,53 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.42] - 2026-10-25
+
+### 🧟 Left 4 Dead (Source Engine VBSP v20) — Ingestión, Análisis y Piloto Jugable
+- **Servicio `SourceWorldAnalyzer` ([scripts/source_world_analyzer.py](file:///c:/Projects/Jarbees_the_game/scripts/source_world_analyzer.py))**:
+  - Auditoría binaria profunda de mapas VBSP versión 20: extracción de entidades (Lump 0), props estáticos (Lump 35), materiales y shaders VMT/VTF (Lumps 43 y 44) y archivos ZIP pakfile internos (Lump 40).
+  - Verificación exitosa en 4 escenarios Source: `l4d_church01_basement_beta`, `Skycraper`, `l4d_sv_cottageofdoom_b1` y `lf4_death_knell_02b`.
+- **Pipeline de Conversión y Batching Extremo (`l4d_church`)**:
+  - Conversión del mapa original de 37.13 MB a una malla WebGL ultra-optimizada de **0.84 MB** ([l4d_church.glb](file:///c:/Projects/Jarbees_the_game/public/models/l4d_church.glb)) con colisionador dedicado de **0.49 MB** (`collisions.glb`).
+  - Agrupación de 6.095 caras poligonales en **únicamente 6 primitivas/familias PBR**, reduciendo los draw calls de más de 200 a solo 6 para garantizar 60–120 FPS estables.
+- **Mapeo Táctico y de Navegación ([generate_church_navigation.py](file:///c:/Projects/Jarbees_the_game/scripts/generate_church_navigation.py))**:
+  - Calibración y centrado del mapa con spawn en la Safe Room inicial `[0.0, 1.20, 0.0]`.
+  - Extracción y registro de 33 puntos de armas, 18 estaciones de primeros auxilios y 6 zonas de rescate en `navigation.json`.
+- **Integración en Escena 3D y Teletransporte**:
+  - Escena dedicada `L4DChurchScene` en [components/CSAssaultWorld.tsx](file:///c:/Projects/Jarbees_the_game/components/CSAssaultWorld.tsx) con niebla de terror nocturno (`#182026`), balizas luminosas de refugio, rótulo holográfico 3D de Safe Room y colisiones activas con `setGroundCollider`.
+  - Registro en el selector de mapas de [store/gameStore.ts](file:///c:/Projects/Jarbees_the_game/store/gameStore.ts) y portal de acceso directo desde Villa Auren en [components/AurenMansionHub.tsx](file:///c:/Projects/Jarbees_the_game/components/AurenMansionHub.tsx).
+  - Documentación técnica completa en [docs/L4D_SOURCE_BSP_PILOT.md](file:///c:/Projects/Jarbees_the_game/docs/L4D_SOURCE_BSP_PILOT.md).
+
+### 🏛️ Villa Auren — Enriquecimiento PBR, Horneado de AO y Batching (Escala Assault)
+- **Plan Maestro de Enriquecimiento**: Hoja de ruta arquitectónica en [docs/AUREN_VILLA_REFINEMENT_PLAN.md](file:///c:/Projects/Jarbees_the_game/docs/AUREN_VILLA_REFINEMENT_PLAN.md) inspirada en las métricas de composición de Left 4 Dead y CS 1.6.
+- **Pipeline de Texturas CC0 ([scripts/fetch_villa_textures.py](file:///c:/Projects/Jarbees_the_game/scripts/fetch_villa_textures.py))**:
+  - Descarga automatizada desde Poly Haven de 8 conjuntos de texturas PBR 1k libres de copyright (Albedo/Diffuse sRGB, Normal OpenGL y ARM packed AO/Roughness/Metal) con manifiesto formal `manifest.json`.
+- **Actualización del Generador Procedural en Blender ([scripts/generate_villa_auren.py](file:///c:/Projects/Jarbees_the_game/scripts/generate_villa_auren.py))**:
+  - **UVs en Espacio de Mundo**: Mapeo métrico uniforme a ~150 px/m para mantener la escala física real de materiales en todos los bloques arquitectónicos.
+  - **Shaders PBR Completos**: Conexión de nodos Principled BSDF para Color Base, Rugosidad, Metálico y Normal Maps.
+  - **Detallado Arquitectónico del Gran Atrio**: Zócalos perimetrales, marcos de acero en el portón de hangar, pilastras en muro norte, columnas y vigas de refuerzo bajo las pasarelas, chimenea monumental por capas (hogar, hollín, brasas incandescentes y repisa) y 6 lámparas industriales colgantes con difusores cálidos.
+  - **Batching en Malla Única**: Fusión de 176 objetos en un solo objeto compilado (`VillaAuren_Merged`), emitiendo **solo 14 primitivas glTF** (1 por material).
+  - **Horneado de Oclusión Ambiental (Cycles AO Bake)**: Mapeo en canal UV secundario (`Lightmap`) y horneado de atlas de AO de 2048×2048 px incrustado en el socket `occlusionTexture` de glTF.
+  - Generación de [public/models/villa_auren.glb](file:///c:/Projects/Jarbees_the_game/public/models/villa_auren.glb) (14.82 MB, transferencia local en 41 ms).
+- **Optimizaciones WebGL**:
+  - En [components/VillaAurenHub.tsx](file:///c:/Projects/Jarbees_the_game/components/VillaAurenHub.tsx), activación de **anisotropía 8x** en texturas difusas y mapas de normales para nitidez máxima en ángulos rasantes.
+
+### ❄️ Antártida como Bioma Único por Defecto y Geología de POIs
+- **Consolidación de Bioma Polar**:
+  - Fijación permanente de `'antarctica'` en [store/gameStore.ts](file:///c:/Projects/Jarbees_the_game/store/gameStore.ts) e [components/InfiniteTerrain.tsx](file:///c:/Projects/Jarbees_the_game/components/InfiniteTerrain.tsx).
+  - Rediseño del botón del HUD en [components/GameHUD.tsx](file:///c:/Projects/Jarbees_the_game/components/GameHUD.tsx) a `❄️ Base Auren • Antártida` con acceso directo de re-centrado.
+  - Asignación de la tecla **`[B]`** en [hooks/useGameControls.ts](file:///c:/Projects/Jarbees_the_game/hooks/useGameControls.ts) para volver instantáneamente a la Base de Auren (`[0, 2.0, 0]`).
+- **Mecánicas de Relieve y Texturizado de Puntos de Interés ([systems/ChunkManager.ts](file:///c:/Projects/Jarbees_the_game/systems/ChunkManager.ts))**:
+  - **Explanada de Villa Auren en (0, 0)**: Cota fijada en `-0.05m` bajo la solera del edificio con transición Hermite suave hacia el valle, eliminando la penetración de nieve en el interior y chimenea. Textura de grava de permafrost (`#334155`), borduras de pizarra (`#64748b`) y escarcha cristalina.
+  - **Cascada de Sangre (Blood Falls en X: -380, Z: 65)**: Escalón glacial vertical de 14.5 m con vetas de salmuera/óxido de hierro carmesí (`#7f1d1d`, `#991b1b`, `#dc2626`) sobre hielo cian.
+  - **Glaciar Canadá (X: 1200, Z: -220)**: Pared vertical de 38 m de hielo azul translúcido con séracs y cornisas de nieve.
+  - **Lagos Bonney (X: 600, Z: 0) y Fryxell (X: 1850, Z: 120)**: Lechos lacustres horizontales de hielo vítreo a 2.2 m y 1.9 m.
+  - **Monte Erebus (X: 2350, Z: -460)**: Estratovolcán de 142 m con caldera a 144 m, lago de magma activo a 124 m con pulsaciones convectivas, depósitos de azufre (`#78350f`) y costras basálticas.
+  - **Bases McMurdo / Scott (X: 2950, Z: 620)**: Plataformas de grava polar y balizas de seguridad ámbar.
+  - **Micro-relieve de Nieve (Sastrugi)**: Generación procedural en memoria de un Canvas Normal Map con crestas eólicas a -45° para relieve táctil de la nieve sin costo de descarga.
+  - **Material Compartido**: Todos los chunks reutilizan una única instancia de `MeshStandardMaterial` con ciclo de vida y disposición limpia.
+
+---
+
 ## [0.8.41] - 2026-10-25
 
 ### 🧠 Sistema de Inteligencia Espacial y Navegación Multimodal de Auren

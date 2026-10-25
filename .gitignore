@@ -88,12 +88,19 @@ skills-lock.json
 *.wad
 *.nav
 
+# Left 4 Dead / Source Engine derived assets (Protected - local laboratory only)
+/public/models/l4d_*.glb
+/public/textures/l4d_*/
+*.vpk
+*.vtf
+*.vmt
+
 # CS 1.6 Analysis Scripts (Local laboratory use only - access proprietary game files)
 scripts/analyze_bsp_nav_spatial.py
 scripts/convert_*.py
 scripts/inspect_*.py
 scripts/calc_spawns_*.py
+scripts/generate_church_navigation.py
 
-
-
-
+# Blender backup files
+*.blend1

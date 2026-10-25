@@ -38,7 +38,7 @@ const BIOME_CONFIGS: Record<string, Partial<ChunkConfig>> = {
   },
 }
 
-export function InfiniteTerrain({ biome = 'aconcagua', seed }: InfiniteTerrainProps) {
+export function InfiniteTerrain({ biome = 'antarctica', seed }: InfiniteTerrainProps) {
   const { scene } = useThree()
   const groupRef = useRef<THREE.Group>(null!)
   const beeRef = useRef<THREE.Object3D | null>(null)

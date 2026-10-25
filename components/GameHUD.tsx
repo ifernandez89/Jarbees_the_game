@@ -139,34 +139,22 @@ export function GameHUD() {
           <span style={{ opacity: 0.6 }}>[U]</span>
         </button>
 
-        {/* Selector de Bioma / Relieve Real */}
+        {/* Bioma Único: Base de Auren en la Antártida Polar */}
         <button
           onClick={() => {
-            const biomes = ['aconcagua', 'titicaca', 'easter_island', 'constellations', 'antarctica'] as const
-            const current = useGameStore.getState().currentBiome
-            const next = biomes[(biomes.indexOf(current) + 1) % biomes.length]
-            useGameStore.getState().setBiome(next)
+            // Re-centrar en la Base de Auren (0, 2.0, 0)
+            useGameStore.getState().setPosition([0, 2.0, 0])
           }}
           className="hud-audio-btn"
           style={{
             marginTop: 4,
-            background: currentBiome === 'aconcagua' || currentBiome === 'antarctica' ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255, 255, 255, 0.08)',
-            border: `1px solid ${currentBiome === 'aconcagua' || currentBiome === 'antarctica' ? 'rgba(56, 189, 248, 0.7)' : 'rgba(255, 255, 255, 0.2)'}`,
-            color: currentBiome === 'aconcagua' || currentBiome === 'antarctica' ? '#38BDF8' : '#e2e8f0',
+            background: 'rgba(56, 189, 248, 0.25)',
+            border: '1px solid rgba(56, 189, 248, 0.7)',
+            color: '#38BDF8',
           }}
-          title="Cambiar bioma / entorno de vuelo [B]"
+          title="Base de Auren · Antártida Polar (Valle de Taylor) [B]"
         >
-          <span>
-            {currentBiome === 'aconcagua'
-              ? '🏔️ Aconcagua (DEM Real)'
-              : currentBiome === 'antarctica'
-              ? '❄️ Antártida (Valles Secos)'
-              : currentBiome === 'titicaca'
-              ? '🌿 Lago Titicaca'
-              : currentBiome === 'easter_island'
-              ? '🗿 Isla de Pascua'
-              : '✨ Constelaciones'}
-          </span>
+          <span>❄️ Base Auren • Antártida</span>
           <span style={{ opacity: 0.6 }}>[B]</span>
         </button>
 

@@ -37,19 +37,10 @@ export function useGameControls() {
         return
       }
 
-      // Cambiar de bioma con B
+      // Re-centrar en la Base de Auren (Antártida Polar) con B
       if (e.code === 'KeyB') {
         e.preventDefault()
-        const biomes: Array<'aconcagua' | 'titicaca' | 'easter_island' | 'constellations' | 'antarctica'> = [
-          'aconcagua',
-          'titicaca',
-          'easter_island',
-          'constellations',
-          'antarctica',
-        ]
-        const current = useGameStore.getState().currentBiome
-        const next = biomes[(biomes.indexOf(current) + 1) % biomes.length]
-        useGameStore.getState().setBiome(next)
+        useGameStore.getState().setPosition([0, 2.0, 0])
         return
       }
 

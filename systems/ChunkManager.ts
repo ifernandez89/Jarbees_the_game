@@ -160,10 +160,13 @@ export class ChunkManager {
 
   /**
    * Muestreo geomorfológico polar ultra-realista para la Antártida:
-   * - Valle Seco de Taylor (Blood Falls, Glaciar Canadá, Lago Bonney) en la zona de inicio
-   * - Cordillera Transantártica con fiordos rocosos y nunataks alpinos
-   * - Plataforma de hielo marino de Ross
-   * - Gran Estratovolcán Monte Erebus (3.794m) con cono simétrico, aristas de lava y cráter con caldera activa
+   * - Base de Auren / Santuario en (0, 0) con explanada arquitectónica nivelada
+   * - Valle Seco de Taylor flanqueado por la Cordillera Transantártica
+   * - Cascada de Sangre (Blood Falls) en (-380, 65) en el frente del glaciar
+   * - Glaciar Canadá en (1200, -220) con muralla vertical de 38m de hielo azul y séracs
+   * - Lago Bonney (600, 0) y Lago Fryxell (1850, 120) como lechos de hielo perenne
+   * - Gran Estratovolcán Monte Erebus (2350, -460) de 142m con caldera de 130m y lago de magma activo
+   * - Plataforma de hielo marino de McMurdo y Ross
    */
   private sampleAntarcticaTerrain(worldX: number, worldZ: number): number {
     // 1. Relieve de fondo: Glaciar y cordillera transantártica
@@ -182,7 +185,6 @@ export class ChunkManager {
       // Piso del valle llano entre -140 y +140 en Z
       if (valleyZ < 150.0) {
         const floorT = valleyZ / 150.0
-        // Cuna de Blood Falls en (0, 0) nivelada a 2.5m sobre morrena
         const spawnDamping = Math.min(1.0, distFromOrigin / 70.0)
         h = 2.0 + floorT * 3.5 * spawnDamping
       } else if (valleyZ < 900.0) {
@@ -191,17 +193,32 @@ export class ChunkManager {
         h = 5.5 + Math.pow(wallT, 1.3) * 75.0 + ridgeNoise * 0.8
       }
 
-      // Glaciar Canadá (alrededor de X: 1200, Z: -220): muralla vertical de hielo azul
+      // Cascada de Sangre (Blood Falls en X: -380, Z: 65): escalón glacial de 14m
+      const distBloodFalls = Math.hypot(worldX - (-380.0), worldZ - 65.0)
+      if (distBloodFalls < 75.0) {
+        const fallT = Math.max(0, 1.0 - distBloodFalls / 75.0)
+        const stepH = 2.2 + Math.pow(fallT, 0.7) * 14.5
+        h = Math.max(h, stepH)
+      }
+
+      // Glaciar Canadá (alrededor de X: 1200, Z: -220): muralla vertical de hielo azul con séracs
       const distCanadaGlacier = Math.hypot(worldX - 1200.0, worldZ + 220.0)
-      if (distCanadaGlacier < 400.0) {
-        const glacierT = Math.max(0, 1.0 - distCanadaGlacier / 400.0)
-        h = Math.max(h, 4.0 + Math.pow(glacierT, 0.4) * 38.0)
+      if (distCanadaGlacier < 450.0) {
+        const glacierT = Math.max(0, 1.0 - distCanadaGlacier / 450.0)
+        const serac = Math.sin(worldX * 0.08 + worldZ * 0.06) * 2.2
+        h = Math.max(h, 3.8 + Math.pow(glacierT, 0.45) * 38.0 + serac * glacierT)
       }
 
       // Lago Bonney (alrededor de X: 600, Z: 0): lecho de hielo liso
       const distBonney = Math.hypot(worldX - 600.0, worldZ)
-      if (distBonney < 240.0) {
+      if (distBonney < 260.0) {
         h = 2.2
+      }
+
+      // Lago Fryxell (alrededor de X: 1850, Z: 120): cuenca lacustre seca
+      const distFryxell = Math.hypot(worldX - 1850.0, worldZ - 120.0)
+      if (distFryxell < 220.0) {
+        h = 1.9
       }
     }
 
@@ -240,8 +257,8 @@ export class ChunkManager {
           const craterWallT = (distErebus - 38.0) / 37.0
           volcanoH = 124.0 + Math.pow(craterWallT, 1.2) * 20.0
         } else {
-          // Lago de magma activo en el fondo del cráter (plano a 124m)
-          volcanoH = 124.0 + Math.sin(worldX * 0.2 + worldZ * 0.2) * 0.3
+          // Lago de magma activo en el fondo del cráter (plano a 124m con pulsaciones convectivas)
+          volcanoH = 124.0 + Math.sin(worldX * 0.3 + worldZ * 0.3) * 0.35
         }
       }
 
@@ -406,13 +423,64 @@ export class ChunkManager {
           const sulfurColor = new THREE.Color('#78350f')
           const t = (distErebus - 38.0) / 72.0
           tempColor.copy(sulfurColor).lerp(basaltColor, t)
-        } else if (Math.hypot(x, z) < 40.0 && h < 12.0) {
-          // 2. Cascada de Sangre (Blood Falls - óxido de hierro sobre glaciar)
-          const bloodColor = new THREE.Color('#991b1b')
-          const ironRed = new THREE.Color('#dc2626')
-          tempColor.copy(ironRed).lerp(bloodColor, Math.random() * 0.4)
+        } else if (Math.abs(x) < 28.0 && Math.abs(z) < 24.0) {
+          // 2. Base de Auren (Asentamiento de Villa Auren): grava polar compactada, borduras y permafrost
+          const colorGravel = new THREE.Color('#334155')
+          const colorSlateRim = new THREE.Color('#64748b')
+          const colorFrost = new THREE.Color('#cbd5e1')
+          const edgeDist = Math.max(Math.abs(x) / 28.0, Math.abs(z) / 24.0)
+          if (edgeDist < 0.75) {
+            tempColor.copy(colorGravel)
+          } else {
+            tempColor.copy(colorSlateRim).lerp(colorFrost, (edgeDist - 0.75) / 0.25)
+          }
+        } else if (Math.hypot(x - (-380.0), z - 65.0) < 55.0) {
+          // 3. Cascada de Sangre (Blood Falls - óxido de hierro / salmuera roja sobre hielo glaciar)
+          const distBlood = Math.hypot(x - (-380.0), z - 65.0)
+          const bloodDark = new THREE.Color('#7f1d1d')
+          const bloodCrimson = new THREE.Color('#991b1b')
+          const ironRust = new THREE.Color('#dc2626')
+          const glacierIce = new THREE.Color('#38bdf8')
+          const t = distBlood / 55.0
+          if (t < 0.35) {
+            tempColor.copy(ironRust).lerp(bloodCrimson, Math.random() * 0.3)
+          } else if (t < 0.75) {
+            tempColor.copy(bloodCrimson).lerp(bloodDark, (t - 0.35) / 0.4)
+          } else {
+            tempColor.copy(bloodDark).lerp(glacierIce, (t - 0.75) / 0.25)
+          }
+        } else if (Math.hypot(x - 1200.0, z - (-220.0)) < 420.0) {
+          // 4. Frente del Glaciar Canadá (Muralla de hielo azul y séracs)
+          const distCanada = Math.hypot(x - 1200.0, z - (-220.0))
+          const colorDeepGlacier = new THREE.Color('#0284c7')
+          const colorCyanIce = new THREE.Color('#38bdf8')
+          const colorPureSnow = new THREE.Color('#f8fafc')
+          if (slope > 0.35) {
+            tempColor.copy(colorDeepGlacier).lerp(colorCyanIce, 0.45)
+          } else {
+            const t = distCanada / 420.0
+            tempColor.copy(colorCyanIce).lerp(colorPureSnow, t)
+          }
+        } else if (Math.hypot(x - 600.0, z) < 250.0) {
+          // 5. Lago Bonney (Espejo de hielo vítreo perenne)
+          const distBonney = Math.hypot(x - 600.0, z)
+          const colorLakeCenter = new THREE.Color('#0284c7')
+          const colorLakeRim = new THREE.Color('#7dd3fc')
+          const t = distBonney / 250.0
+          tempColor.copy(colorLakeCenter).lerp(colorLakeRim, t)
+        } else if (Math.hypot(x - 1850.0, z - 120.0) < 210.0) {
+          // 6. Lago Fryxell (Cubierta de hielo polar y sedimentos)
+          const distFryxell = Math.hypot(x - 1850.0, z - 120.0)
+          const colorFryxell = new THREE.Color('#0369a1')
+          const colorIceWhite = new THREE.Color('#bae6fd')
+          tempColor.copy(colorFryxell).lerp(colorIceWhite, distFryxell / 210.0)
+        } else if (Math.hypot(x - 2950.0, z - 620.0) < 110.0) {
+          // 7. Base Científica McMurdo / Scott (Terraza de investigación polar)
+          const colorPad = new THREE.Color('#475569')
+          const colorBeacon = new THREE.Color('#f59e0b')
+          tempColor.copy(colorPad).lerp(colorBeacon, Math.sin(x * 0.4) > 0.5 ? 0.35 : 0.0)
         } else {
-          // 3. Geología Antártica Polar General
+          // 8. Geología Antártica Polar General
           const colorPolarSnow = new THREE.Color('#f8fafc') // Nieve perpetua
           const colorPureIce = new THREE.Color('#e0f2fe') // Hielo blanco polar
           const colorBlueIce = new THREE.Color('#7dd3fc') // Hielo azul glaciar
@@ -478,6 +546,66 @@ export class ChunkManager {
     return geometry
   }
 
+  private sharedMaterial: THREE.MeshStandardMaterial | null = null
+  private static polarNormalMap: THREE.CanvasTexture | null = null
+
+  private static getPolarNormalMap(): THREE.CanvasTexture | null {
+    if (!ChunkManager.polarNormalMap && typeof document !== 'undefined') {
+      try {
+        const size = 128
+        const canvas = document.createElement('canvas')
+        canvas.width = size
+        canvas.height = size
+        const ctx = canvas.getContext('2d')
+        if (ctx) {
+          const imgData = ctx.createImageData(size, size)
+          const d = imgData.data
+          for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+              const u = x / size
+              const v = y / size
+              // Ondulaciones eólicas de sastrugi polar (-45°)
+              const wave1 = Math.sin((u * 0.7 + v * 0.7) * Math.PI * 12.0)
+              const wave2 = Math.sin((u * 0.9 - v * 0.3) * Math.PI * 24.0) * 0.35
+              const grain = (Math.random() - 0.5) * 0.12
+              const nx = wave1 * 0.35 + wave2 * 0.2 + grain
+              const ny = wave1 * 0.35 - wave2 * 0.1 + grain
+              const idx = (y * size + x) * 4
+              d[idx] = Math.min(255, Math.max(0, Math.floor((nx * 0.5 + 0.5) * 255)))
+              d[idx + 1] = Math.min(255, Math.max(0, Math.floor((ny * 0.5 + 0.5) * 255)))
+              d[idx + 2] = 240
+              d[idx + 3] = 255
+            }
+          }
+          ctx.putImageData(imgData, 0, 0)
+          const tex = new THREE.CanvasTexture(canvas)
+          tex.wrapS = THREE.RepeatWrapping
+          tex.wrapT = THREE.RepeatWrapping
+          tex.repeat.set(16, 16)
+          ChunkManager.polarNormalMap = tex
+        }
+      } catch {
+        // Fallback silente si canvas no está disponible
+      }
+    }
+    return ChunkManager.polarNormalMap
+  }
+
+  private getMaterial(): THREE.MeshStandardMaterial {
+    if (!this.sharedMaterial) {
+      const normalMap = ChunkManager.getPolarNormalMap()
+      this.sharedMaterial = new THREE.MeshStandardMaterial({
+        color: this.config.color,
+        vertexColors: true,
+        roughness: 0.68,
+        metalness: 0.10,
+        flatShading: false,
+        ...(normalMap ? { normalMap, normalScale: new THREE.Vector2(0.4, 0.4) } : {}),
+      })
+    }
+    return this.sharedMaterial
+  }
+
   /**
    * Crear un nuevo chunk
    */
@@ -501,19 +629,11 @@ export class ChunkManager {
     } else {
       // Crear nuevo chunk con propiedades PBR realistas de roca, nieve y hielo
       const geometry = this.generateChunkGeometry(chunkX, chunkZ)
-      const material = new THREE.MeshStandardMaterial({
-        color: this.config.color,
-        vertexColors: true,
-        roughness: 0.65,
-        metalness: 0.12,
-        flatShading: false,
-      })
-      
       chunk = {
         key,
         position: [worldX, 0, worldZ],
         geometry,
-        material,
+        material: this.getMaterial(),
         isActive: true,
       }
     }
@@ -613,33 +733,37 @@ export class ChunkManager {
       naturalH = this.noiseGenerator.getHeight(worldX, worldZ, this.config.heightMultiplier)
     }
 
-    // Explanada de asentamiento de La Mansión Auren en el punto central (0, 0):
-    // Dentro de 60m (huella de 105 × 114m de la finca), el terreno está nivelado a 0.2m
-    // para evitar que colinas o ruido del bioma penetren las habitaciones o el sótano.
-    const dist = Math.hypot(worldX, worldZ)
-    if (dist < 60.0) {
-      return 0.2
+    // Explanada de asentamiento de Villa Auren en el punto central (0, 0):
+    // La huella de Villa Auren (edificio 30x20m, parcela 48x42m) está nivelada a -0.05m
+    // para que la solera de planta baja (0.0 a 0.2m) se asiente de forma sólida
+    // sobre el terreno sin penetrar en las habitaciones, la chimenea ni el patio.
+    const absX = Math.abs(worldX)
+    const absZ = Math.abs(worldZ)
+    const footprintRatio = Math.max(absX / 25.0, absZ / 21.0)
+    if (footprintRatio <= 1.0) {
+      return -0.05
     }
-    if (dist < 100.0) {
-      // Transición Hermite suave entre la base y las montañas del bioma
-      const t = (dist - 60.0) / 40.0
+    if (footprintRatio <= 2.2) {
+      // Transición Hermite suave entre la solera de la villa y el relieve natural del valle
+      const t = (footprintRatio - 1.0) / 1.2
       const smooth = t * t * (3.0 - 2.0 * t)
-      return 0.2 * (1.0 - smooth) + naturalH * smooth
+      return -0.05 * (1.0 - smooth) + naturalH * smooth
     }
 
     return naturalH
   }
 
   /**
-   * Limpiar todos los chunks
+   * Limpiar todos los chunks y recursos compartidos
    */
   dispose() {
     this.chunks.forEach(chunk => {
       chunk.geometry.dispose()
-      if (chunk.material instanceof THREE.Material) {
-        chunk.material.dispose()
-      }
     })
+    if (this.sharedMaterial) {
+      this.sharedMaterial.dispose()
+      this.sharedMaterial = null
+    }
     this.chunks.clear()
     this.chunkPool = []
   }

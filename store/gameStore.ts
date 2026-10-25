@@ -72,6 +72,7 @@ export type CSMapId =
   | 'de_aztec'
   | 'de_chateau'
   | 'de_vertigo'
+  | 'l4d_church'
 
 export interface CSMapInfo {
   id: CSMapId
@@ -184,6 +185,17 @@ export const CS_MAPS: Record<CSMapId, CSMapInfo> = {
     skyColor: '#7ba0b8',
     fogColor: '#8caebf',
     isCommunity: false,
+  },
+  l4d_church: {
+    id: 'l4d_church',
+    name: 'Iglesia y Sótano (L4D)',
+    label: '⛪ l4d_church (L4D Beta)',
+    bspName: 'l4d_church01_basement_beta.bsp',
+    spawnPosition: [0.0, 1.20, 0.0],
+    description: 'Capilla, campanario y complejo de sótano subterráneo de Left 4 Dead (Source v20)',
+    skyColor: '#182026',
+    fogColor: '#1c242c',
+    isCommunity: true,
   },
 }
 
@@ -365,6 +377,7 @@ export const useGameStore = create<GameState>((set) => ({
   cycleCsMap: () =>
     set((state) => {
       const mapKeys: CSMapId[] = [
+        'l4d_church',
         'fy_pool_day',
         'de_rats3',
         'de_westwood',
@@ -464,14 +477,11 @@ export const useGameStore = create<GameState>((set) => ({
   
   setTerrainManager: (terrainManager) => set({ terrainManager }),
   
-  setBiome: (currentBiome) =>
+  setBiome: (biome) =>
     set((state) => {
-      let target = state.navigationTarget
-      if (currentBiome === 'antarctica') {
-        target = WORLD_TARGETS.find((t) => t.id === 'mount_erebus') || target
-      } else if (currentBiome === 'aconcagua') {
-        target = WORLD_TARGETS.find((t) => t.id === 'aconcagua') || target
-      }
+      // Bioma único por defecto: Antártida Polar (donde reside la base de Auren)
+      const currentBiome = 'antarctica' as const
+      const target = WORLD_TARGETS.find((t) => t.id === 'mount_erebus') || state.navigationTarget
       return { currentBiome, navigationTarget: target }
     }),
   

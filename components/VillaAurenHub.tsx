@@ -149,13 +149,26 @@ export function VillaAurenHub({
   const fireplaceLightRef = useRef<THREE.PointLight>(null)
   const daisEmblemRef = useRef<THREE.Mesh>(null)
 
-  // 1. REGISTRAR EL MODELO REAL DE VILLA AUREN PARA RAYCASTING GROUND COLLIDER
+  // 1. REGISTRAR EL MODELO REAL DE VILLA AUREN PARA RAYCASTING GROUND COLLIDER Y OPTIMIZAR TEXTURAS
   useEffect(() => {
     if (gltf.scene) {
       gltf.scene.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) {
-          child.castShadow = true
-          child.receiveShadow = true
+          const mesh = child as THREE.Mesh
+          mesh.castShadow = true
+          mesh.receiveShadow = true
+          if (mesh.material) {
+            const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+            mats.forEach((m) => {
+              const std = m as THREE.MeshStandardMaterial
+              if (std.map) {
+                std.map.anisotropy = 8
+              }
+              if (std.normalMap) {
+                std.normalMap.anisotropy = 8
+              }
+            })
+          }
         }
       })
       setGroundCollider(gltf.scene)

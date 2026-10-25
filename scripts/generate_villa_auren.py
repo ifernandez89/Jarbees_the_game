@@ -17,7 +17,12 @@ Architectural Highlights:
     and a flush 2.5m upper landing directly connected to the P1 floor slab.
   * S1 -> PB: Solid service stairs into S1 Quantum Lab Vault.
 - NO floating steps, NO missing balcony floors, NO blocked headroom.
-- Output: villa_auren.blend, public/models/villa_auren.glb, villa_auren.glb.
+- REFINEMENT (AUREN_VILLA_REFINEMENT_PLAN): CC0 PBR textures (Poly Haven, see
+  scripts/fetch_villa_textures.py), metric world-space UVs, atrium trims/lamps,
+  single-mesh batching (one primitive per material) and baked ambient occlusion
+  exported as glTF occlusionTexture on UV channel 1.
+- Output: villa_auren.blend (organized source, pre-bake), public/models/villa_auren.glb,
+  villa_auren.glb, assets_source/villa_auren_baked.blend.
 """
 
 import bpy
@@ -35,6 +40,17 @@ GLB_OUT_PUBLIC = os.path.join(PROJECT_ROOT, "public", "models", "villa_auren.glb
 GLB_OUT_ROOT = os.path.join(PROJECT_ROOT, "villa_auren.glb")
 WORLD_JSON_PUBLIC = os.path.join(PROJECT_ROOT, "public", "data", "villa_auren.world.json")
 WORLD_JSON_ROOT = os.path.join(PROJECT_ROOT, "villa_auren.world.json")
+
+# Refinement pipeline (textures + AO bake)
+TEX_DIR = os.path.join(PROJECT_ROOT, "assets_source", "textures", "villa_auren")
+TEX_MANIFEST = os.path.join(TEX_DIR, "manifest.json")
+BAKED_BLEND_OUT = os.path.join(PROJECT_ROOT, "assets_source", "villa_auren_baked.blend")
+AO_IMAGE_OUT = os.path.join(TEX_DIR, "villa_auren_ao_bake.jpg")
+AO_BAKE_SIZE = 2048
+AO_BAKE_SAMPLES = 32
+AO_DISTANCE_M = 1.5
+# Materials that must not receive baked AO (transparent / emissive)
+AO_EXCLUDED_MATERIALS = {"MAT_Glass", "MAT_Aurelium_Gold", "MAT_Cyan_Glow", "MAT_Ember", "MAT_Lamp_Warm"}
 
 # ---------------------------------------------------------------------------
 # Scene Reset & Units
@@ -91,8 +107,52 @@ def link_to_nav_and_col(obj, is_walkable=False, is_collider=True):
 # Materials Setup (PBR Shaders)
 # ---------------------------------------------------------------------------
 MATERIALS = {}
+# Physical size (metres) covered by one texture tile, per material -> drives world-space UVs
+MATERIAL_UV_SIZE = {}
+DEFAULT_UV_SIZE = 2.0
 
-def create_pbr_material(name, base_color, roughness=0.5, metallic=0.0, emission=None, emission_strength=1.0, alpha=1.0):
+def load_texture_manifest():
+    if not os.path.exists(TEX_MANIFEST):
+        print(f"[!] Texture manifest not found: {TEX_MANIFEST}")
+        print("    Run: python scripts/fetch_villa_textures.py  (falling back to flat colors)")
+        return {}
+    with open(TEX_MANIFEST, "r", encoding="utf-8") as f:
+        return json.load(f).get("materials", {})
+
+def attach_pbr_textures(mat, node_bsdf, tex):
+    """Wire diffuse / ARM (AO-Rough-Metal) / OpenGL normal maps using glTF-exportable node patterns."""
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    uv = nodes.new("ShaderNodeUVMap")
+    uv.uv_map = "UVMap"
+    uv.location = (-900, 0)
+
+    def img_node(key, non_color, y):
+        n = nodes.new("ShaderNodeTexImage")
+        n.image = bpy.data.images.load(os.path.join(TEX_DIR, tex["maps"][key]), check_existing=True)
+        if non_color:
+            n.image.colorspace_settings.name = "Non-Color"
+        n.location = (-600, y)
+        links.new(uv.outputs["UV"], n.inputs["Vector"])
+        return n
+
+    diff = img_node("diff", False, 300)
+    links.new(diff.outputs["Color"], node_bsdf.inputs["Base Color"])
+
+    arm = img_node("arm", True, 0)
+    sep = nodes.new("ShaderNodeSeparateColor")
+    sep.location = (-300, 0)
+    links.new(arm.outputs["Color"], sep.inputs["Color"])
+    links.new(sep.outputs["Green"], node_bsdf.inputs["Roughness"])
+    links.new(sep.outputs["Blue"], node_bsdf.inputs["Metallic"])
+
+    nor = img_node("nor_gl", True, -300)
+    nmap = nodes.new("ShaderNodeNormalMap")
+    nmap.location = (-300, -300)
+    links.new(nor.outputs["Color"], nmap.inputs["Color"])
+    links.new(nmap.outputs["Normal"], node_bsdf.inputs["Normal"])
+
+def create_pbr_material(name, base_color, roughness=0.5, metallic=0.0, emission=None, emission_strength=1.0, alpha=1.0, tex=None):
     mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
@@ -127,24 +187,37 @@ def create_pbr_material(name, base_color, roughness=0.5, metallic=0.0, emission=
         elif 'Emission' in node_bsdf.inputs:
             node_bsdf.inputs['Emission'].default_value = (emission[0], emission[1], emission[2], 1.0)
             
+    if tex:
+        attach_pbr_textures(mat, node_bsdf, tex)
+        MATERIAL_UV_SIZE[name] = float(tex["size_m"])
+
     MATERIALS[name] = mat
     return mat
 
 def setup_materials():
+    tex = load_texture_manifest()
     # Chateau carved stone
-    create_pbr_material("MAT_Stone_Chateau", (0.55, 0.52, 0.48), roughness=0.85, metallic=0.05)
+    create_pbr_material("MAT_Stone_Chateau", (0.55, 0.52, 0.48), roughness=0.85, metallic=0.05, tex=tex.get("MAT_Stone_Chateau"))
+    # Interior stone floor tiles (Grand Atrium / PB)
+    create_pbr_material("MAT_Stone_Floor", (0.50, 0.50, 0.49), roughness=0.75, metallic=0.0, tex=tex.get("MAT_Stone_Floor"))
     # Alpine timber wood
-    create_pbr_material("MAT_Wood_Timber", (0.35, 0.22, 0.12), roughness=0.65, metallic=0.0)
+    create_pbr_material("MAT_Wood_Timber", (0.35, 0.22, 0.12), roughness=0.65, metallic=0.0, tex=tex.get("MAT_Wood_Timber"))
     # Dark industrial steel (Assault catwalks, railings, trusses)
-    create_pbr_material("MAT_Steel_Dark", (0.15, 0.17, 0.20), roughness=0.40, metallic=0.85)
+    create_pbr_material("MAT_Steel_Dark", (0.15, 0.17, 0.20), roughness=0.40, metallic=0.85, tex=tex.get("MAT_Steel_Dark"))
     # Slate shingles
-    create_pbr_material("MAT_Roof_Slate", (0.22, 0.24, 0.28), roughness=0.80, metallic=0.1)
+    create_pbr_material("MAT_Roof_Slate", (0.22, 0.24, 0.28), roughness=0.80, metallic=0.1, tex=tex.get("MAT_Roof_Slate"))
     # Wall plaster
-    create_pbr_material("MAT_Wall_Plaster", (0.82, 0.80, 0.76), roughness=0.90, metallic=0.0)
+    create_pbr_material("MAT_Wall_Plaster", (0.82, 0.80, 0.76), roughness=0.90, metallic=0.0, tex=tex.get("MAT_Wall_Plaster"))
     # Floor stone pavers
-    create_pbr_material("MAT_Stone_Pavers", (0.45, 0.44, 0.42), roughness=0.80, metallic=0.05)
+    create_pbr_material("MAT_Stone_Pavers", (0.45, 0.44, 0.42), roughness=0.80, metallic=0.05, tex=tex.get("MAT_Stone_Pavers"))
     # Lab concrete
-    create_pbr_material("MAT_Lab_Concrete", (0.30, 0.33, 0.36), roughness=0.60, metallic=0.1)
+    create_pbr_material("MAT_Lab_Concrete", (0.30, 0.33, 0.36), roughness=0.60, metallic=0.1, tex=tex.get("MAT_Lab_Concrete"))
+    # Fireplace soot (firebox interior)
+    create_pbr_material("MAT_Soot", (0.02, 0.02, 0.02), roughness=0.95, metallic=0.0)
+    # Glowing embers
+    create_pbr_material("MAT_Ember", (0.9, 0.3, 0.05), roughness=0.8, metallic=0.0, emission=(1.0, 0.35, 0.05), emission_strength=6.0)
+    # Warm pendant lamp diffuser
+    create_pbr_material("MAT_Lamp_Warm", (1.0, 0.9, 0.75), roughness=0.4, metallic=0.0, emission=(1.0, 0.82, 0.6), emission_strength=8.0)
     # Translucent glass
     create_pbr_material("MAT_Glass", (0.7, 0.9, 1.0), roughness=0.10, metallic=0.05, alpha=0.35)
     # Emissive Aurelium Gold
@@ -168,6 +241,10 @@ def create_box(name, size, location, material=None, col_name="ARCH_Structure", i
     bmesh.ops.scale(bm, vec=Vector((sx, sy, sz)), verts=bm.verts)
     bmesh.ops.translate(bm, vec=Vector((lx, ly, lz)), verts=bm.verts)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.normal_update()
+
+    # Metric world-space UVs (texture tiles keep their real physical size on every box)
+    apply_world_uv(bm, MATERIAL_UV_SIZE.get(material, DEFAULT_UV_SIZE))
     
     bm.to_mesh(mesh)
     bm.free()
@@ -178,16 +255,49 @@ def create_box(name, size, location, material=None, col_name="ARCH_Structure", i
     
     if material and material in MATERIALS:
         mesh.materials.append(MATERIALS[material])
-        
-    # Apply cubic projection UV
-    bpy.context.view_layer.objects.active = obj
-    obj.select_set(True)
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.uv.cube_project(cube_size=2.0)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    obj.select_set(False)
     
     return obj
+
+def apply_world_uv(bm, tile_size_m):
+    """Planar projection per face on its dominant axis, in metres / tile size.
+    Replaces cube_project: consistent texel density across boxes of any size."""
+    uv_layer = bm.loops.layers.uv.get("UVMap") or bm.loops.layers.uv.new("UVMap")
+    for face in bm.faces:
+        n = face.normal
+        axis = max(range(3), key=lambda i: abs(n[i]))
+        for loop in face.loops:
+            co = loop.vert.co
+            if axis == 2:
+                u, v = co.x, co.y
+            elif axis == 0:
+                u, v = co.y, co.z
+            else:
+                u, v = co.x, co.z
+            loop[uv_layer].uv = (u / tile_size_m, v / tile_size_m)
+
+def create_railing(name, p0, p1, base_z, height=1.1, post_spacing=1.5, material="MAT_Steel_Dark"):
+    """Open industrial guardrail (top rail, mid rail, kick plate, posts) along an axis-aligned segment."""
+    (x0, y0), (x1, y1) = p0, p1
+    horizontal = abs(x1 - x0) >= abs(y1 - y0)
+    length = abs(x1 - x0) if horizontal else abs(y1 - y0)
+    cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+
+    def along(thickness):
+        return (length, thickness) if horizontal else (thickness, length)
+
+    tx, ty = along(0.07)
+    create_box(f"{name}_TopRail", size=(tx, ty, 0.07), location=(cx, cy, base_z + height - 0.035), material=material)
+    tx, ty = along(0.04)
+    create_box(f"{name}_MidRail", size=(tx, ty, 0.04), location=(cx, cy, base_z + 0.55), material=material)
+    tx, ty = along(0.02)
+    create_box(f"{name}_KickPlate", size=(tx, ty, 0.15), location=(cx, cy, base_z + 0.075), material=material)
+
+    posts = max(2, int(round(length / post_spacing)) + 1)
+    for i in range(posts):
+        t = i / (posts - 1)
+        px = x0 + (x1 - x0) * t
+        py = y0 + (y1 - y0) * t
+        create_box(f"{name}_Post_{i}", size=(0.06, 0.06, height), location=(px, py, base_z + height / 2.0), material=material)
 
 def create_solid_staircase(name, start_pos, rise, run, width, steps_count, material="MAT_Steel_Dark", has_rails=True):
     """
@@ -230,6 +340,8 @@ def create_solid_staircase(name, start_pos, rise, run, width, steps_count, mater
         bm.faces.new((v3, v2, v1, v0))
         
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.normal_update()
+    apply_world_uv(bm, MATERIAL_UV_SIZE.get(material, DEFAULT_UV_SIZE))
     bm.to_mesh(mesh)
     bm.free()
     
@@ -238,14 +350,6 @@ def create_solid_staircase(name, start_pos, rise, run, width, steps_count, mater
     link_to_nav_and_col(stair_obj, is_walkable=True, is_collider=True)
     if material in MATERIALS:
         mesh.materials.append(MATERIALS[material])
-        
-    # UV map
-    bpy.context.view_layer.objects.active = stair_obj
-    stair_obj.select_set(True)
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.uv.cube_project(cube_size=1.5)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    stair_obj.select_set(False)
     
     # Handrails if enabled
     if has_rails:
@@ -343,15 +447,15 @@ def build_villa_auren(plan):
     # 3. LEVEL PB (Planta Baja / Gran Hangar Assault Scale at Z = 0.0)
     # PB Floor Slabs (Thickness 0.3m, Z: -0.3 to 0.0)
     # East Wing Floor (Workshop + Briefing): X: 7.5 to 15.0, Y: -10.0 to 10.0
-    create_box("ARCH_PB_Floor_EastWing", size=(7.5, 20.0, 0.3), location=(11.25, 0.0, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
+    create_box("ARCH_PB_Floor_EastWing", size=(7.5, 20.0, 0.3), location=(11.25, 0.0, -0.15), material="MAT_Stone_Floor", is_walkable=True)
     # Center Hall Floor (Grand Atrium): X: -8.0 to 8.0, Y: -10.0 to 10.0
-    create_box("ARCH_PB_Floor_Atrium", size=(16.0, 20.0, 0.3), location=(0.0, 0.0, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
+    create_box("ARCH_PB_Floor_Atrium", size=(16.0, 20.0, 0.3), location=(0.0, 0.0, -0.15), material="MAT_Stone_Floor", is_walkable=True)
     # West Wing South Floor (Kitchen + Stair start): X: -15.0 to -7.5, Y: -10.0 to 1.5
-    create_box("ARCH_PB_Floor_WestSouth", size=(7.5, 11.5, 0.3), location=(-11.25, -4.25, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
+    create_box("ARCH_PB_Floor_WestSouth", size=(7.5, 11.5, 0.3), location=(-11.25, -4.25, -0.15), material="MAT_Stone_Floor", is_walkable=True)
     # West Wing North Outer Border (Leaving X: -12.5 to -9.5, Y: 2.0 to 8.0 VOID for S1 stair):
-    create_box("ARCH_PB_Floor_WestStair_SideL", size=(2.5, 8.5, 0.3), location=(-13.75, 5.75, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
-    create_box("ARCH_PB_Floor_WestStair_SideR", size=(2.0, 8.5, 0.3), location=(-8.5, 5.75, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
-    create_box("ARCH_PB_Floor_WestStair_NorthEnd", size=(3.0, 2.0, 0.3), location=(-11.0, 9.0, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
+    create_box("ARCH_PB_Floor_WestStair_SideL", size=(2.5, 8.5, 0.3), location=(-13.75, 5.75, -0.15), material="MAT_Stone_Floor", is_walkable=True)
+    create_box("ARCH_PB_Floor_WestStair_SideR", size=(2.0, 8.5, 0.3), location=(-8.5, 5.75, -0.15), material="MAT_Stone_Floor", is_walkable=True)
+    create_box("ARCH_PB_Floor_WestStair_NorthEnd", size=(3.0, 2.0, 0.3), location=(-11.0, 9.0, -0.15), material="MAT_Stone_Floor", is_walkable=True)
 
     # PB EXTERIOR WALLS (Z = 0.0 to 4.0, Height = 4.0m, Center Z = 2.0)
     # North Wall (Back): 30m x 0.4m
@@ -397,10 +501,11 @@ def build_villa_auren(plan):
 
     # Catwalk Industrial Guardrails (Height = 1.10m, Material = MAT_Steel_Dark)
     # Overlooking the central open void (X: -6.0 to 6.0, Y: -6.0 to 6.0)
-    create_box("ARCH_P1_Railing_SouthVoid", size=(12.0, 0.08, 1.1), location=(0.0, 6.04, 4.55), material="MAT_Steel_Dark")
-    create_box("ARCH_P1_Railing_NorthVoid", size=(12.0, 0.08, 1.1), location=(0.0, -6.04, 4.55), material="MAT_Steel_Dark")
-    create_box("ARCH_P1_Railing_EastVoid",  size=(0.08, 12.0, 1.1), location=(6.04, 0.0, 4.55), material="MAT_Steel_Dark")
-    create_box("ARCH_P1_Railing_WestVoid",  size=(0.08, 12.0, 1.1), location=(-6.04, 0.0, 4.55), material="MAT_Steel_Dark")
+    # Open guardrails (top rail + mid rail + kick plate + posts) instead of solid slabs
+    create_railing("ARCH_P1_Railing_SouthVoid", (-6.0, 6.04), (6.0, 6.04), base_z=4.0)
+    create_railing("ARCH_P1_Railing_NorthVoid", (-6.0, -6.04), (6.0, -6.04), base_z=4.0)
+    create_railing("ARCH_P1_Railing_EastVoid", (6.04, -6.0), (6.04, 6.0), base_z=4.0)
+    create_railing("ARCH_P1_Railing_WestVoid", (-6.04, -6.0), (-6.04, 6.0), base_z=4.0)
 
     # West Wing Upper Floor & Stair Landing: X: -14.8 to -8.0, Y: -1.0 to 4.0, Z = 4.0
     # DIRECTLY CONNECTED TO WEST CATWALK (X: -8.0 to -6.0)!
@@ -519,6 +624,163 @@ def build_villa_auren(plan):
     print("[+] All geometry constructed successfully!")
 
 # ---------------------------------------------------------------------------
+# Grand Atrium Detail Pass (pilot room of AUREN_VILLA_REFINEMENT_PLAN)
+# Principles measured on L4D / CS maps: trims at every material junction,
+# visible structure (columns, beams), focal light sources, layered fireplace.
+# ---------------------------------------------------------------------------
+def build_atrium_details():
+    print("[*] Adding Grand Atrium detail pass (trims, structure, fireplace, lamps)...")
+
+    # 1. Baseboards on PB perimeter walls (wood, 15cm, 3cm proud of the wall face)
+    bb_h, bb_d = 0.15, 0.03
+    for name, size, loc in [
+        ("TRIM_Baseboard_North_W", (12.8, bb_d, bb_h), (-8.4, -9.8 + bb_d / 2, bb_h / 2)),
+        ("TRIM_Baseboard_North_E", (12.8, bb_d, bb_h), (8.4, -9.8 + bb_d / 2, bb_h / 2)),
+        ("TRIM_Baseboard_South_W", (13.0, bb_d, bb_h), (-8.3, 9.8 - bb_d / 2, bb_h / 2)),
+        ("TRIM_Baseboard_South_E", (13.0, bb_d, bb_h), (8.3, 9.8 - bb_d / 2, bb_h / 2)),
+        ("TRIM_Baseboard_West", (bb_d, 19.6, bb_h), (-14.8 + bb_d / 2, 0.0, bb_h / 2)),
+        ("TRIM_Baseboard_East", (bb_d, 19.6, bb_h), (14.8 - bb_d / 2, 0.0, bb_h / 2)),
+    ]:
+        create_box(name, size=size, location=loc, material="MAT_Wood_Timber", col_name="ARCH_Structure", is_collider=False)
+
+    # 2. Steel portal frame around the 3.6 x 3.2m hangar entrance (protrudes 10cm both sides)
+    for side in (-1, 1):
+        create_box(f"TRIM_Portal_Jamb_{side}", size=(0.25, 0.6, 3.2), location=(side * 1.925, 10.0, 1.6), material="MAT_Steel_Dark")
+    create_box("TRIM_Portal_Head", size=(4.1, 0.6, 0.25), location=(0.0, 10.0, 3.325), material="MAT_Steel_Dark")
+
+    # 3. North wall pilasters aligned with roof trusses (x = 0 is the fireplace)
+    for px in (-12.0, -6.0, 6.0, 12.0):
+        create_box(f"ARCH_Pilaster_North_{px}", size=(0.5, 0.2, 4.0), location=(px, -9.7, 2.0), material="MAT_Stone_Chateau")
+
+    # 4. Visible catwalk structure: steel columns + edge beams under the inner catwalk edge.
+    #    Columns avoid the portal walkway (|x| < 1.8 on the south side).
+    for cx, cy in [(-6.2, -6.2), (6.2, -6.2), (-6.2, 6.2), (6.2, 6.2),
+                   (-6.2, 0.0), (6.2, 0.0), (-3.5, 6.2), (3.5, 6.2), (-3.5, -6.2), (3.5, -6.2)]:
+        create_box(f"ARCH_Catwalk_Column_{cx}_{cy}", size=(0.3, 0.3, 3.7), location=(cx, cy, 1.85), material="MAT_Steel_Dark")
+    for name, size, loc in [
+        ("ARCH_Catwalk_Beam_South", (12.4, 0.2, 0.3), (0.0, 6.1, 3.55)),
+        ("ARCH_Catwalk_Beam_North", (12.4, 0.2, 0.3), (0.0, -6.1, 3.55)),
+        ("ARCH_Catwalk_Beam_East", (0.2, 12.4, 0.3), (6.1, 0.0, 3.55)),
+        ("ARCH_Catwalk_Beam_West", (0.2, 12.4, 0.3), (-6.1, 0.0, 3.55)),
+    ]:
+        create_box(name, size=size, location=loc, material="MAT_Steel_Dark")
+
+    # 5. Layered fireplace: hearth slab, soot firebox, embers, protruding mantel shelf
+    #    (mantel block spans y -10.0..-8.8, front face at y = -8.8)
+    create_box("FIRE_Hearth_Slab", size=(4.8, 0.9, 0.06), location=(0.0, -8.35, 0.03), material="MAT_Stone_Chateau", is_walkable=True)
+    create_box("FIRE_Firebox_Soot", size=(2.2, 0.04, 1.3), location=(0.0, -8.78, 0.71), material="MAT_Soot", is_collider=False)
+    create_box("FIRE_Embers", size=(1.4, 0.25, 0.1), location=(0.0, -8.62, 0.11), material="MAT_Ember", is_collider=False)
+    create_box("FIRE_Mantel_Shelf", size=(4.6, 0.45, 0.14), location=(0.0, -8.775, 2.47), material="MAT_Stone_Chateau")
+
+    # 6. Industrial pendant lamps hanging from the trusses (focal warm light sources)
+    for lx, ly in [(0.0, -3.5), (0.0, 3.5), (-6.0, -3.5), (-6.0, 3.5), (6.0, -3.5), (6.0, 3.5)]:
+        tag = f"{lx}_{ly}"
+        create_box(f"LAMP_Cable_{tag}", size=(0.02, 0.02, 1.0), location=(lx, ly, 6.5), material="MAT_Steel_Dark", is_collider=False)
+        create_box(f"LAMP_Shade_{tag}", size=(0.55, 0.55, 0.25), location=(lx, ly, 5.875), material="MAT_Steel_Dark", is_collider=False)
+        create_box(f"LAMP_Diffuser_{tag}", size=(0.42, 0.42, 0.04), location=(lx, ly, 5.73), material="MAT_Lamp_Warm", is_collider=False)
+
+    print("[+] Atrium detail pass complete.")
+
+# ---------------------------------------------------------------------------
+# Web finalization: batching + baked ambient occlusion
+# ---------------------------------------------------------------------------
+def join_all_meshes(name="VillaAuren_Merged"):
+    """Merge every mesh into one object: glTF then emits one primitive per material
+    (~13 draw calls instead of one per box)."""
+    if bpy.context.object and bpy.context.object.mode != 'OBJECT':
+        bpy.ops.object.mode_set(mode='OBJECT')
+    meshes = [o for o in bpy.context.scene.objects if o.type == 'MESH']
+    bpy.ops.object.select_all(action='DESELECT')
+    for o in meshes:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    bpy.ops.object.join()
+    merged = bpy.context.view_layer.objects.active
+    merged.name = name
+    merged.data.name = name
+    print(f"[+] Joined {len(meshes)} objects into '{name}' ({len(merged.data.polygons)} polygons, {len(merged.data.materials)} materials)")
+    return merged
+
+def get_gltf_output_group():
+    """Custom node group recognised by the Blender glTF exporter for occlusionTexture."""
+    ng = bpy.data.node_groups.get("glTF Material Output")
+    if ng is None:
+        ng = bpy.data.node_groups.new("glTF Material Output", "ShaderNodeTree")
+        ng.interface.new_socket(name="Occlusion", in_out="INPUT", socket_type="NodeSocketFloat")
+    return ng
+
+def bake_ambient_occlusion(obj):
+    scene = bpy.context.scene
+    mesh = obj.data
+
+    # 1. Second UV channel for the lightmap atlas (keeps "UVMap" as TEXCOORD_0)
+    lm = mesh.uv_layers.get("Lightmap") or mesh.uv_layers.new(name="Lightmap")
+    mesh.uv_layers.active = lm
+    bpy.ops.object.select_all(action='DESELECT')
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project(angle_limit=math.radians(66.0), island_margin=0.004, area_weight=0.0,
+                             correct_aspect=True, scale_to_bounds=False)
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # 2. Bake target image + per-material active image node
+    img = bpy.data.images.new("VillaAuren_AO", AO_BAKE_SIZE, AO_BAKE_SIZE, alpha=False)
+    img.generated_color = (1.0, 1.0, 1.0, 1.0)
+    bake_nodes = {}
+    for mat in mesh.materials:
+        nt = mat.node_tree
+        uvn = nt.nodes.new("ShaderNodeUVMap")
+        uvn.uv_map = "Lightmap"
+        uvn.location = (-900, -650)
+        texn = nt.nodes.new("ShaderNodeTexImage")
+        texn.image = img
+        texn.location = (-600, -650)
+        nt.links.new(uvn.outputs["UV"], texn.inputs["Vector"])
+        for n in nt.nodes:
+            n.select = False
+        texn.select = True
+        nt.nodes.active = texn
+        bake_nodes[mat.name] = (uvn, texn)
+
+    # 3. Cycles AO bake (local contact occlusion within AO_DISTANCE_M)
+    scene.render.engine = 'CYCLES'
+    scene.cycles.samples = AO_BAKE_SAMPLES
+    scene.cycles.device = 'CPU'
+    if scene.world is None:
+        scene.world = bpy.data.worlds.new("World")
+    scene.world.light_settings.distance = AO_DISTANCE_M
+    print(f"[*] Baking AO {AO_BAKE_SIZE}px, {AO_BAKE_SAMPLES} samples...")
+    bpy.ops.object.bake(type='AO', margin=4, use_clear=True)
+
+    img.filepath_raw = AO_IMAGE_OUT
+    img.file_format = 'JPEG'
+    img.save()
+    print(f"[+] AO atlas saved: {AO_IMAGE_OUT}")
+
+    # 4. Wire AO into glTF occlusion (R channel), remove helper nodes on excluded materials
+    group = get_gltf_output_group()
+    for mat in mesh.materials:
+        nt = mat.node_tree
+        uvn, texn = bake_nodes[mat.name]
+        if mat.name in AO_EXCLUDED_MATERIALS:
+            nt.nodes.remove(texn)
+            nt.nodes.remove(uvn)
+            continue
+        sep = nt.nodes.new("ShaderNodeSeparateColor")
+        sep.location = (-300, -650)
+        grp = nt.nodes.new("ShaderNodeGroup")
+        grp.node_tree = group
+        grp.location = (300, -400)
+        nt.links.new(texn.outputs["Color"], sep.inputs["Color"])
+        nt.links.new(sep.outputs["Red"], grp.inputs["Occlusion"])
+
+    # 5. Restore primary UV for editing/rendering
+    mesh.uv_layers.active = mesh.uv_layers["UVMap"]
+    mesh.uv_layers["UVMap"].active_render = True
+
+# ---------------------------------------------------------------------------
 # World Manifest Export (villa_auren.world.json)
 # ---------------------------------------------------------------------------
 def export_world_manifest(plan):
@@ -604,10 +866,18 @@ def main():
     setup_collections()
     setup_materials()
     build_villa_auren(plan)
+    build_atrium_details()
     
-    # Save .blend
+    # Save organized source .blend (separate objects + collections, before batching/bake)
     bpy.ops.wm.save_as_mainfile(filepath=BLEND_OUT)
     print(f"[+] Saved Blender file: {BLEND_OUT}")
+
+    # Web finalization: one mesh (one primitive per material) + baked AO on UV1
+    merged = join_all_meshes()
+    bake_ambient_occlusion(merged)
+    os.makedirs(os.path.dirname(BAKED_BLEND_OUT), exist_ok=True)
+    bpy.ops.wm.save_as_mainfile(filepath=BAKED_BLEND_OUT, copy=True)
+    print(f"[+] Saved baked Blender file: {BAKED_BLEND_OUT}")
     
     # Export GLB (optimized for Three.js WebGL)
     export_settings = {

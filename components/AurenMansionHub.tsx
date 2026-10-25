@@ -412,7 +412,7 @@ export function AurenMansionHub() {
               Teletransporte directo desde el Château a las zonas de CS 1.6:
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {(['de_vertigo', 'cs_assault', 'de_aztec', 'de_chateau', 'de_westwood', 'de_rats3', 'fy_pool_day', 'fy_iceworld', 'cs_siege'] as CSMapId[]).map((mid) => (
+              {(['l4d_church', 'de_vertigo', 'cs_assault', 'de_aztec', 'de_chateau', 'de_westwood', 'de_rats3', 'fy_pool_day', 'fy_iceworld', 'cs_siege'] as CSMapId[]).map((mid) => (
                 <button
                   key={mid}
                   onClick={() => {

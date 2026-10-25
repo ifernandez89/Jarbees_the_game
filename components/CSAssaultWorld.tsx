@@ -433,6 +433,44 @@ function VertigoScene() {
 }
 
 // =========================================================================
+// 10. ESCENA L4D_CHURCH (Iglesia y Sótano Subterráneo - Left 4 Dead Beta)
+// =========================================================================
+function L4DChurchScene() {
+  const gltf = useSecureGLTF(getAssetPath('/models/l4d_church.glb')) as GLTFResult
+
+  useEffect(() => {
+    if (gltf.scene) {
+      setGroundCollider(gltf.scene)
+    }
+  }, [gltf.scene])
+
+  return (
+    <group>
+      {/* Atmósfera oscura / noche de terror Left 4 Dead */}
+      <fog attach="fog" args={['#182026', 15, 120]} />
+      <ambientLight intensity={0.55} color="#607280" />
+      <directionalLight position={[20, 60, -20]} intensity={1.3} color="#8ab4d4" castShadow />
+      <directionalLight position={[-20, 15, 20]} intensity={0.35} color="#405060" />
+
+      {gltf.scene && <primitive object={gltf.scene} castShadow receiveShadow />}
+
+      {/* Luz cálida de Safe Room / Baliza de refugio */}
+      <pointLight position={[0.0, 3.0, 0.0]} color="#FFA726" intensity={3.5} distance={20} />
+      <pointLight position={[0.0, 8.0, -15.0]} color="#38BDF8" intensity={2.5} distance={30} />
+      <pointLight position={[15.0, 6.0, 10.0]} color="#EF4444" intensity={2.0} distance={18} />
+
+      {/* Rótulo Holográfico Safe Room */}
+      <Html position={[0.0, 2.5, 0.0]} center distanceFactor={22}>
+        <div style={{ background: 'rgba(15, 23, 42, 0.95)', border: '2px solid #EF4444', borderRadius: '6px', padding: '6px 14px', color: '#FEE2E2', fontFamily: 'monospace', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', boxShadow: '0 0 16px rgba(239, 68, 68, 0.7)', textTransform: 'uppercase', textAlign: 'center' }}>
+          <div style={{ color: '#F87171' }}>▲ SAFE ROOM // REFUGIO DE SUPERVIVIENTES</div>
+          <div style={{ color: '#FECACA', fontSize: '9px' }}>L4D • IGLESIA & COMPLEJO DE SÓTANO SUBTERRÁNEO</div>
+        </div>
+      </Html>
+    </group>
+  )
+}
+
+// =========================================================================
 // COMPONENTE PRINCIPAL: Visor Dinámico de Mapas de la Comunidad y CS
 // =========================================================================
 export function CSAssaultWorld() {
@@ -449,7 +487,9 @@ export function CSAssaultWorld() {
       {activeCsMap === 'de_chateau' && <ChateauScene />}
       {activeCsMap === 'cs_assault' && <AssaultScene />}
       {activeCsMap === 'de_vertigo' && <VertigoScene />}
+      {activeCsMap === 'l4d_church' && <L4DChurchScene />}
     </Suspense>
   )
 }
+
 
