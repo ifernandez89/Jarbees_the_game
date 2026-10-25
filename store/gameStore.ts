@@ -67,10 +67,6 @@ export type CSMapId =
   | 'de_rats3'
   | 'de_westwood'
   | 'fy_iceworld'
-  | 'cs_bighouse'
-  | 'zhl_space_foda'
-  | 'zm_roma_city'
-  | 'surf_boreas'
   | 'cs_assault'
   | 'cs_siege'
   | 'de_aztec'
@@ -131,50 +127,6 @@ export const CS_MAPS: Record<CSMapId, CSMapInfo> = {
     description: 'Arena glacial de bloques de hielo clásica (180 KB)',
     skyColor: '#a0c4d8',
     fogColor: '#90b4c8',
-    isCommunity: true,
-  },
-  cs_bighouse: {
-    id: 'cs_bighouse',
-    name: 'Big House',
-    label: '🏰 cs_bighouse (Mansión)',
-    bspName: 'cs_bighouse_neme_mk.bsp',
-    spawnPosition: [0.0, 27.98, -21.73],
-    description: 'Mansión gigante de proporciones colosales (0.57 MB)',
-    skyColor: '#8ca0b4',
-    fogColor: '#9cb0c4',
-    isCommunity: true,
-  },
-  zhl_space_foda: {
-    id: 'zhl_space_foda',
-    name: 'Space Foda',
-    label: '🚀 zhl_space_foda (Cosmos)',
-    bspName: 'ZHL_space_foda.bsp',
-    spawnPosition: [0.0, 15.83, -53.95],
-    description: 'Estación espacial orbital sci-fi (0.33 MB)',
-    skyColor: '#0a0d18',
-    fogColor: '#12182c',
-    isCommunity: true,
-  },
-  zm_roma_city: {
-    id: 'zm_roma_city',
-    name: 'Roma City',
-    label: '🏛️ zm_roma_city (Roma)',
-    bspName: 'zm_roma-city_fix.bsp',
-    spawnPosition: [0.0, 24.77, -8.28],
-    description: 'Calles empedradas, arcos y ruinas de Roma (3.06 MB)',
-    skyColor: '#8a9ca8',
-    fogColor: '#9aaab6',
-    isCommunity: true,
-  },
-  surf_boreas: {
-    id: 'surf_boreas',
-    name: 'Surf Boreas',
-    label: '🏄 surf_boreas (Boreas Ártico)',
-    bspName: 'surf_boreas-compile.bsp',
-    spawnPosition: [233.68, -408.8, -472.36],
-    description: 'Complejo ártico del rompehielos Boreas (0.31 MB base)',
-    skyColor: '#90b4d0',
-    fogColor: '#a0c4e0',
     isCommunity: true,
   },
   cs_assault: {

@@ -387,134 +387,6 @@ function IceworldScene() {
 }
 
 // =========================================================================
-// 9. ESCENA CS_BIGHOUSE (Mansión Gigante - Comunidad)
-// =========================================================================
-function BigHouseScene() {
-  const gltf = useSecureGLTF(getAssetPath('/models/cs_bighouse.glb')) as GLTFResult
-
-  useEffect(() => {
-    if (gltf.scene) {
-      setGroundCollider(gltf.scene)
-    }
-  }, [gltf.scene])
-
-  return (
-    <group>
-      <fog attach="fog" args={['#9cb0c4', 30, 200]} />
-      <ambientLight intensity={1.1} color="#e0ecf8" />
-      <directionalLight position={[20, 80, 20]} intensity={2.0} color="#fff8e7" castShadow />
-
-      {gltf.scene && <primitive object={gltf.scene} castShadow receiveShadow />}
-
-      <pointLight position={[0.0, 30.0, -21.73]} color="#FBBF24" intensity={3.5} distance={35} />
-
-      <Html position={[0.0, 29.0, -21.73]} center distanceFactor={26}>
-        <div style={{ background: 'rgba(25, 20, 15, 0.94)', border: '2px solid #F59E0B', borderRadius: '6px', padding: '5px 12px', color: '#FEF3C7', fontFamily: 'monospace', fontSize: '10px', fontWeight: 'bold', whiteSpace: 'nowrap', boxShadow: '0 0 14px rgba(245, 158, 11, 0.7)', textTransform: 'uppercase', textAlign: 'center' }}>
-          <div style={{ color: '#FBBF24' }}>▲ MANSIÓN GIGANTE // CS_BIGHOUSE</div>
-          <div style={{ color: '#FDE68A', fontSize: '8px' }}>HABITACIONES Y MUEBLES COLOSALES (0.57 MB)</div>
-        </div>
-      </Html>
-    </group>
-  )
-}
-
-// =========================================================================
-// 10. ESCENA ZHL_SPACE_FODA (Estación Espacial Orbital - Sci-Fi)
-// =========================================================================
-function SpaceFodaScene() {
-  const gltf = useSecureGLTF(getAssetPath('/models/zhl_space_foda.glb')) as GLTFResult
-
-  useEffect(() => {
-    if (gltf.scene) {
-      setGroundCollider(gltf.scene)
-    }
-  }, [gltf.scene])
-
-  return (
-    <group>
-      <fog attach="fog" args={['#12182c', 40, 260]} />
-      <ambientLight intensity={0.7} color="#88aacc" />
-      <directionalLight position={[0, 90, 0]} intensity={1.6} color="#c0e8ff" />
-
-      {gltf.scene && <primitive object={gltf.scene} castShadow receiveShadow />}
-
-      <pointLight position={[0.0, 18.0, -53.95]} color="#38BDF8" intensity={4.0} distance={30} />
-
-      <Html position={[0.0, 17.0, -53.95]} center distanceFactor={24}>
-        <div style={{ background: 'rgba(10, 15, 30, 0.94)', border: '2px solid #38BDF8', borderRadius: '6px', padding: '5px 12px', color: '#E0F2FE', fontFamily: 'monospace', fontSize: '10px', fontWeight: 'bold', whiteSpace: 'nowrap', boxShadow: '0 0 14px rgba(56, 189, 248, 0.7)', textTransform: 'uppercase', textAlign: 'center' }}>
-          <div style={{ color: '#38BDF8' }}>▲ ESTACIÓN ORBITAL // ZHL_SPACE_FODA</div>
-          <div style={{ color: '#BAE6FD', fontSize: '8px' }}>PASARELAS SCI-FI SUSPENDIDAS (0.33 MB)</div>
-        </div>
-      </Html>
-    </group>
-  )
-}
-
-// =========================================================================
-// 11. ESCENA ZM_ROMA_CITY (Roma Ciudad Zombi)
-// =========================================================================
-function RomaCityScene() {
-  const gltf = useSecureGLTF(getAssetPath('/models/zm_roma_city.glb')) as GLTFResult
-
-  useEffect(() => {
-    if (gltf.scene) {
-      setGroundCollider(gltf.scene)
-    }
-  }, [gltf.scene])
-
-  return (
-    <group>
-      <fog attach="fog" args={['#9aaab6', 30, 220]} />
-      <ambientLight intensity={0.9} color="#d4e0e8" />
-      <directionalLight position={[30, 80, 40]} intensity={1.8} color="#fff2db" castShadow />
-
-      {gltf.scene && <primitive object={gltf.scene} castShadow receiveShadow />}
-
-      <pointLight position={[0.0, 26.0, -8.28]} color="#F59E0B" intensity={3.0} distance={25} />
-
-      <Html position={[0.0, 25.8, -8.28]} center distanceFactor={24}>
-        <div style={{ background: 'rgba(20, 25, 30, 0.94)', border: '2px solid #EAB308', borderRadius: '6px', padding: '5px 12px', color: '#FEF9C3', fontFamily: 'monospace', fontSize: '10px', fontWeight: 'bold', whiteSpace: 'nowrap', boxShadow: '0 0 14px rgba(234, 179, 8, 0.7)', textTransform: 'uppercase', textAlign: 'center' }}>
-          <div style={{ color: '#FACC15' }}>▲ CALLES DE ROMA // ZM_ROMA_CITY</div>
-          <div style={{ color: '#FEF08A', fontSize: '8px' }}>ARCOS HISTÓRICOS Y CALLES EMPEDRADAS</div>
-        </div>
-      </Html>
-    </group>
-  )
-}
-
-// =========================================================================
-// 12. ESCENA SURF_BOREAS (Rompehielos Ártico - Laboratorio)
-// =========================================================================
-function SurfBoreasScene() {
-  const gltf = useSecureGLTF(getAssetPath('/models/surf_boreas.glb')) as GLTFResult
-
-  useEffect(() => {
-    if (gltf.scene) {
-      setGroundCollider(gltf.scene)
-    }
-  }, [gltf.scene])
-
-  return (
-    <group>
-      <fog attach="fog" args={['#a0c4e0', 50, 500]} />
-      <ambientLight intensity={1.1} color="#c8e4f8" />
-      <directionalLight position={[100, 200, 100]} intensity={2.2} color="#ffffff" castShadow />
-
-      {gltf.scene && <primitive object={gltf.scene} castShadow receiveShadow />}
-
-      <pointLight position={[233.68, -400.0, -472.36]} color="#00E5FF" intensity={4.0} distance={50} />
-
-      <Html position={[233.68, -407.5, -472.36]} center distanceFactor={30}>
-        <div style={{ background: 'rgba(10, 25, 45, 0.94)', border: '2px solid #00E5FF', borderRadius: '6px', padding: '5px 12px', color: '#E0F2FE', fontFamily: 'monospace', fontSize: '10px', fontWeight: 'bold', whiteSpace: 'nowrap', boxShadow: '0 0 16px rgba(0, 229, 255, 0.7)', textTransform: 'uppercase', textAlign: 'center' }}>
-          <div style={{ color: '#00E5FF' }}>▲ ROMPEHIELOS BOREAS // SURF_BOREAS</div>
-          <div style={{ color: '#BAE6FD', fontSize: '8px' }}>COMPLEJO ÁRTICO Y DESCENSO POLAR</div>
-        </div>
-      </Html>
-    </group>
-  )
-}
-
-// =========================================================================
 // COMPONENTE PRINCIPAL: Visor Dinámico de Mapas de la Comunidad y CS
 // =========================================================================
 export function CSAssaultWorld() {
@@ -526,10 +398,6 @@ export function CSAssaultWorld() {
       {activeCsMap === 'de_rats3' && <Rats3Scene />}
       {activeCsMap === 'de_westwood' && <WestwoodScene />}
       {activeCsMap === 'fy_iceworld' && <IceworldScene />}
-      {activeCsMap === 'cs_bighouse' && <BigHouseScene />}
-      {activeCsMap === 'zhl_space_foda' && <SpaceFodaScene />}
-      {activeCsMap === 'zm_roma_city' && <RomaCityScene />}
-      {activeCsMap === 'surf_boreas' && <SurfBoreasScene />}
       {activeCsMap === 'cs_siege' && <SiegeScene />}
       {activeCsMap === 'de_aztec' && <AztecScene />}
       {activeCsMap === 'de_chateau' && <ChateauScene />}
@@ -537,3 +405,4 @@ export function CSAssaultWorld() {
     </Suspense>
   )
 }
+

@@ -15,8 +15,8 @@
   - Al caminar por el borde de una mesa o tejado, si la superficie desciende más de `1.2m`, el personaje se desengancha suavemente del suelo y entra en física gravitacional / vuelo natural.
 
 #### 2. Laboratorio Virtual Multimapa en UI ([store/gameStore.ts](file:///c:/Projects/Jarbees_the_game/store/gameStore.ts), [GameHUD.tsx](file:///c:/Projects/Jarbees_the_game/components/GameHUD.tsx), [CSAssaultWorld.tsx](file:///c:/Projects/Jarbees_the_game/components/CSAssaultWorld.tsx))
-- **Expansión a 12 Escenarios Interactivos Calibrados**:
-  - **Comunitarios (Fan-Made)**: `fy_pool_day` (Piscina), `de_rats3` (Habitación Gigante), `de_westwood` (Viejo Oeste), `fy_iceworld` (Arena Glacial), `cs_bighouse` (Mansión Gigante), `zhl_space_foda` (Estación Orbital), `zm_roma_city` (Calles de Roma), `surf_boreas` (Rompehielos Ártico).
+- **Consolidación de 8 Escenarios Interactivos Calibrados**:
+  - **Comunitarios (Fan-Made)**: `fy_pool_day` (Piscina), `de_rats3` (Habitación Gigante), `de_westwood` (Viejo Oeste), `fy_iceworld` (Arena Glacial).
   - **Clásicos CS 1.6 de Valve (Laboratorio Local)**: `cs_assault` (Almacén), `cs_siege` (Cañón/Túneles), `de_aztec` (Ruinas), `de_chateau` (Castillo).
 - **HUD Táctico Dinámico de Selección**:
   - Botonera de acceso directo organizada por categorías (Comunidad vs Clásicos Locales) con eventos de puntero desacoplados del canvas 3D y atajo de teclado `[M]` para ciclar mapas al instante.
