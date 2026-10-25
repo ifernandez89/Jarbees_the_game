@@ -1,5 +1,33 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.40] - 2026-10-25
+
+### 🏛️ Villa Auren — Rediseño Arquitectónico a Escala Galpón de CS 1.6 Assault ("Grand Alpine Hangar")
+
+#### 1. Metodología "Plan-First, Geometry-Second" (Nivel CS 1.6 Hammer / TrenchBroom)
+- **Documentación Técnica Maestra**: Creación de [`docs/ARCHITECTURAL_LEVEL_GENERATOR_GUIDE.md`](file:///c:/Projects/Jarbees_the_game/docs/ARCHITECTURAL_LEVEL_GENERATOR_GUIDE.md) estableciendo estándares antropométricos para Auren (1.85 m), alturas mínimas libres, vanos y modelado con *brushes* sólidos.
+- **Plano Paramétrico Fuente Única de Verdad (`villa_auren.plan.json` v2.1.0)**:
+  - Huella de edificio ampliada de 20×16 m a **30 × 20 metros** (parcela exterior de 48 × 42 m).
+  - **Gran Atrio Central de Doble Altura**: 15 × 12 m con **7.8 m de altura libre** para maniobras tácticas y vuelo Mach con la pechera NEXO-01.
+  - **Pasarelas Perimetrales (*Catwalks*)**: Anillo continuo de 2.0 m de ancho en P1 rodeando el vacío central con barandillas industriales de 1.10 m.
+  - **Balcón Táctico Exterior Voladizo**: Losa de piedra de 8.0 × 4.0 m a cota +4.0 m, enlazada **sin baches (0.00 m de brecha)** con la pasarela interior y sostenida por ménsulas de piedra.
+  - **Escalera Monumental Calibrada**: 20 peldaños exactos de 0.20 m de contrahuella y 0.30 m de huella (6.00 m de avance horizontal, 4.00 m de subida vertical) con zanca estructural continua y desembarco superior que empalma a ras con el suelo de P1.
+  - **Subsuelo S1**: Búnker cuántico con pared compartida directa ($X = -7.0$) entre la caja de escalera y la cámara del Núcleo JarBees a 432 Hz.
+
+#### 2. Validador Espacial y Topológico Automatizado (`scripts/validate_architecture.py`)
+- Motor de validación geométrica real: verifica contacto de paredes compartidas en cada puerta, precisión milimétrica de peldaños, continuidad de pisos y altura bajo cubierta inclinada ($Z_{\text{roof}}(x) \ge 2.87\text{ m}$).
+- Generación de [`architecture_validation.json`](file:///c:/Projects/Jarbees_the_game/architecture_validation.json) con **26 de 26 pruebas aprobadas (0 bloqueos)** y certificación de transitabilidad BFS al 100%.
+
+#### 3. Visualizador 2D y Planos Vectoriales (`scripts/render_plan_2d.py`, `app/blueprints/page.tsx`)
+- Generación de planos 2D SVG de alta resolución con cotas y delimitación de huecos de forjado en [`public/plans/`](file:///c:/Projects/Jarbees_the_game/public/plans/): `villa_auren_s1.svg`, `villa_auren_pb.svg`, `villa_auren_p1.svg`.
+- Nueva ruta interactiva [`/blueprints`](file:///c:/Projects/Jarbees_the_game/app/blueprints/page.tsx) para consultar planos por capas y diagnósticos del validador en el navegador.
+
+#### 4. Compilación 3D en Blender 5.2 & Limpieza del HUD en Three.js
+- **Blockout Estructural Sólido**: Compilación limpia en Blender 5.2.2 LTS de [`public/models/villa_auren.glb`](file:///c:/Projects/Jarbees_the_game/public/models/villa_auren.glb) y [`villa_auren.blend`](file:///c:/Projects/Jarbees_the_game/villa_auren.blend).
+- **Despeje de Vista en R3F**: Eliminación total del rótulo flotante `<Html>` invasivo en [`components/VillaAurenHub.tsx`](file:///c:/Projects/Jarbees_the_game/components/VillaAurenHub.tsx), garantizando un campo visual en tercera persona 100% limpio al explorar la casa.
+
+---
+
 ## [0.8.39] - 2026-10-25
 
 ### 🏔️ Villa Auren — Alpine Research Residence (Fase 1: Architectural Blockout Procedural)

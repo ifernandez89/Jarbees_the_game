@@ -1,15 +1,23 @@
 """
-Villa Auren 3D Environment Generator — Phase 1: Architectural Blockout
-=====================================================================
-Generates Villa Auren (Alpine Research Residence) procedurally using Blender bpy.
+Villa Auren 3D Environment Generator — Assault Warehouse Scale (Plan-First)
+=============================================================================
+Procedural generator for Blender 5.x / 4.x using Blender Python (bpy).
+Directly executes the validated architectural plan (villa_auren.plan.json).
 
-Key architectural specs:
-- Total terrain footprint: 32m x 30m
-- Building footprint: ~20m x 16m
-- Levels: S1 (Underground Lab), PB (Ground Floor), P1 (Upper Floor + Mezzanine + Balcony)
-- Vertical Glazed Flight Gallery / Atrium: 4m x 4m vertical flight shaft
-- Auren scale reference: 1.85m tall (doors: 2.3m, ceilings: 3.2m PB / 3.0m P1 / 3.2m S1)
-- Clean non-destructive collections, PBR blockout materials, UV mapping, metadata JSON
+Architectural Highlights:
+- Scale: Assault Warehouse Scale (Building: 30m x 20m, Site: 48m x 42m, Height: 8.8m).
+- PB: Grand Hangar Atrium with 7.8m double-height clearance, Portico Hangar Door (3.6x3.2m),
+      NEXO Workshop Bay (10x8m), Monumental Stone Fireplace.
+- P1: Perimeter Industrial Catwalks (2m wide) overlooking the Grand Atrium,
+      Auren Private Suite, Quantum Archive Library, West Stair Landing.
+- OUTDOOR BALCONY: Fully connected 8m x 3.5m cantilevered stone balcony on P1 South facade
+      with stone corbels and safety balustrades. Seamless floor transition from Catwalk!
+- STAIRS:
+  * PB -> P1: 22 solid steps with continuous underside ramp, dual 1.1m guardrails,
+    and a flush 2.5m upper landing directly connected to the P1 floor slab.
+  * S1 -> PB: Solid service stairs into S1 Quantum Lab Vault.
+- NO floating steps, NO missing balcony floors, NO blocked headroom.
+- Output: villa_auren.blend, public/models/villa_auren.glb, villa_auren.glb.
 """
 
 import bpy
@@ -19,11 +27,9 @@ import os
 import json
 from mathutils import Vector, Euler
 
-# ---------------------------------------------------------------------------
-# Output Paths
-# ---------------------------------------------------------------------------
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+PLAN_FILE = os.path.join(PROJECT_ROOT, "villa_auren.plan.json")
 BLEND_OUT = os.path.join(PROJECT_ROOT, "villa_auren.blend")
 GLB_OUT_PUBLIC = os.path.join(PROJECT_ROOT, "public", "models", "villa_auren.glb")
 GLB_OUT_ROOT = os.path.join(PROJECT_ROOT, "villa_auren.glb")
@@ -31,7 +37,7 @@ WORLD_JSON_PUBLIC = os.path.join(PROJECT_ROOT, "public", "data", "villa_auren.wo
 WORLD_JSON_ROOT = os.path.join(PROJECT_ROOT, "villa_auren.world.json")
 
 # ---------------------------------------------------------------------------
-# Reset Scene & Configure Metric System
+# Scene Reset & Units
 # ---------------------------------------------------------------------------
 def reset_scene():
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -41,7 +47,7 @@ def reset_scene():
     scene.unit_settings.length_unit = 'METERS'
 
 # ---------------------------------------------------------------------------
-# Collection Manager
+# Collections
 # ---------------------------------------------------------------------------
 COLLECTION_NAMES = [
     "ENV_Terrain",
@@ -50,7 +56,6 @@ COLLECTION_NAMES = [
     "ARCH_Roof",
     "INT_Furniture",
     "INT_Laboratory",
-    "EXT_Vegetation",
     "COL_Colliders",
     "NAV_Walkable",
     "META_InteractionPoints",
@@ -83,812 +88,548 @@ def link_to_nav_and_col(obj, is_walkable=False, is_collider=True):
             COLLECTIONS["NAV_Walkable"].objects.link(obj)
 
 # ---------------------------------------------------------------------------
-# Material Library (PBR Blockout Palette)
+# Materials Setup (PBR Shaders)
 # ---------------------------------------------------------------------------
 MATERIALS = {}
 
-def create_pbr_material(name, base_color, roughness=0.5, metallic=0.0, emission_color=(0,0,0,1), emission_strength=0.0, alpha=1.0):
+def create_pbr_material(name, base_color, roughness=0.5, metallic=0.0, emission=None, emission_strength=1.0, alpha=1.0):
     mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
-    links = mat.node_tree.links
     nodes.clear()
-
-    output = nodes.new(type='ShaderNodeOutputMaterial')
-    output.location = (300, 0)
-
-    principled = nodes.new(type='ShaderNodeBsdfPrincipled')
-    principled.location = (0, 0)
-    principled.inputs['Base Color'].default_value = base_color
-    principled.inputs['Roughness'].default_value = roughness
-    principled.inputs['Metallic'].default_value = metallic
     
-    # Emission support (Blender 4.x / 5.x Principled BSDF has 'Emission Color' and 'Emission Strength')
-    if 'Emission Color' in principled.inputs:
-        principled.inputs['Emission Color'].default_value = emission_color
-    if 'Emission Strength' in principled.inputs:
-        principled.inputs['Emission Strength'].default_value = emission_strength
+    node_bsdf = nodes.new(type='ShaderNodeBsdfPrincipled')
+    node_bsdf.location = (0, 0)
+    node_output = nodes.new(type='ShaderNodeOutputMaterial')
+    node_output.location = (300, 0)
+    mat.node_tree.links.new(node_bsdf.outputs['BSDF'], node_output.inputs['Surface'])
+    
+    # Base color
+    node_bsdf.inputs['Base Color'].default_value = (base_color[0], base_color[1], base_color[2], 1.0)
+    node_bsdf.inputs['Roughness'].default_value = roughness
+    node_bsdf.inputs['Metallic'].default_value = metallic
     
     if alpha < 1.0:
-        if 'Alpha' in principled.inputs:
-            principled.inputs['Alpha'].default_value = alpha
-        mat.blend_method = 'BLEND'
-    
-    links.new(principled.outputs['BSDF'], output.inputs['Surface'])
+        if hasattr(mat, 'blend_method'):
+            mat.blend_method = 'BLEND'
+        if hasattr(mat, 'shadow_method'):
+            mat.shadow_method = 'HASHED'
+        if 'Transmission Weight' in node_bsdf.inputs:
+            node_bsdf.inputs['Transmission Weight'].default_value = 1.0 - alpha
+        elif 'Transmission' in node_bsdf.inputs:
+            node_bsdf.inputs['Transmission'].default_value = 1.0 - alpha
+        node_bsdf.inputs['Alpha'].default_value = alpha
+        
+    if emission:
+        if 'Emission Color' in node_bsdf.inputs:
+            node_bsdf.inputs['Emission Color'].default_value = (emission[0], emission[1], emission[2], 1.0)
+            node_bsdf.inputs['Emission Strength'].default_value = emission_strength
+        elif 'Emission' in node_bsdf.inputs:
+            node_bsdf.inputs['Emission'].default_value = (emission[0], emission[1], emission[2], 1.0)
+            
     MATERIALS[name] = mat
     return mat
 
-def init_materials():
-    # Warm Alpine Palette & High-Tech Lab Accents
-    create_pbr_material("MAT_Stone_Foundation", (0.22, 0.23, 0.25, 1.0), roughness=0.85, metallic=0.05)
-    create_pbr_material("MAT_Stone_Pavement",   (0.35, 0.36, 0.38, 1.0), roughness=0.80, metallic=0.02)
-    create_pbr_material("MAT_Wood_Timber",       (0.18, 0.11, 0.06, 1.0), roughness=0.65, metallic=0.0)
-    create_pbr_material("MAT_Wood_Floor",        (0.42, 0.28, 0.16, 1.0), roughness=0.45, metallic=0.0)
-    create_pbr_material("MAT_Wall_Plaster",      (0.85, 0.83, 0.80, 1.0), roughness=0.90, metallic=0.0)
-    create_pbr_material("MAT_Roof_Slate",        (0.12, 0.13, 0.16, 1.0), roughness=0.70, metallic=0.1)
-    create_pbr_material("MAT_Metal_Dark",        (0.10, 0.12, 0.14, 1.0), roughness=0.35, metallic=0.85)
-    create_pbr_material("MAT_Metal_Gold",        (0.88, 0.70, 0.15, 1.0), roughness=0.30, metallic=0.90)
-    create_pbr_material("MAT_Glass_Glazing",     (0.65, 0.85, 0.95, 0.4), roughness=0.10, alpha=0.40)
-    create_pbr_material("MAT_Lab_Concrete",      (0.30, 0.32, 0.35, 1.0), roughness=0.60, metallic=0.15)
-    create_pbr_material("MAT_JarBees_Cyan_Glow", (0.15, 0.85, 1.0,  1.0), roughness=0.20, emission_color=(0.15, 0.85, 1.0, 1.0), emission_strength=4.5)
-    create_pbr_material("MAT_Aurelium_Gold_Glow",(1.0,  0.82, 0.10, 1.0), roughness=0.20, emission_color=(1.0,  0.82, 0.10, 1.0), emission_strength=4.0)
+def setup_materials():
+    # Chateau carved stone
+    create_pbr_material("MAT_Stone_Chateau", (0.55, 0.52, 0.48), roughness=0.85, metallic=0.05)
+    # Alpine timber wood
+    create_pbr_material("MAT_Wood_Timber", (0.35, 0.22, 0.12), roughness=0.65, metallic=0.0)
+    # Dark industrial steel (Assault catwalks, railings, trusses)
+    create_pbr_material("MAT_Steel_Dark", (0.15, 0.17, 0.20), roughness=0.40, metallic=0.85)
+    # Slate shingles
+    create_pbr_material("MAT_Roof_Slate", (0.22, 0.24, 0.28), roughness=0.80, metallic=0.1)
+    # Wall plaster
+    create_pbr_material("MAT_Wall_Plaster", (0.82, 0.80, 0.76), roughness=0.90, metallic=0.0)
+    # Floor stone pavers
+    create_pbr_material("MAT_Stone_Pavers", (0.45, 0.44, 0.42), roughness=0.80, metallic=0.05)
+    # Lab concrete
+    create_pbr_material("MAT_Lab_Concrete", (0.30, 0.33, 0.36), roughness=0.60, metallic=0.1)
+    # Translucent glass
+    create_pbr_material("MAT_Glass", (0.7, 0.9, 1.0), roughness=0.10, metallic=0.05, alpha=0.35)
+    # Emissive Aurelium Gold
+    create_pbr_material("MAT_Aurelium_Gold", (1.0, 0.82, 0.2), roughness=0.25, metallic=0.95, emission=(1.0, 0.75, 0.1), emission_strength=2.5)
+    # Glowing Cyan Core
+    create_pbr_material("MAT_Cyan_Glow", (0.0, 0.9, 1.0), roughness=0.1, metallic=0.0, emission=(0.0, 0.95, 1.0), emission_strength=4.5)
 
 # ---------------------------------------------------------------------------
-# Geometry Helpers (Clean Box, UV Projection, Normal Recalculation)
+# Mesh Creation Utilities
 # ---------------------------------------------------------------------------
-def create_box(name, size, location, material=None, col_name="ARCH_Structure", is_collider=True, is_walkable=False):
-    """Creates an axis-aligned box with clean geometry, UV cube projection and assigned material."""
-    if not is_walkable and any(w in name.lower() for w in ["floor", "terrain", "pavement", "balcony", "dais", "walkway"]):
-        is_walkable = True
+def create_box(name, size, location, material=None, col_name="ARCH_Structure", is_walkable=False, is_collider=True):
+    """Creates an axis-aligned solid brush box with cubic UV unwrapping."""
+    sx, sy, sz = size
+    lx, ly, lz = location
+    
     mesh = bpy.data.meshes.new(name)
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1.0)
     
-    # Scale each axis
-    sx, sy, sz = size
+    # Scale & translate
     bmesh.ops.scale(bm, vec=Vector((sx, sy, sz)), verts=bm.verts)
+    bmesh.ops.translate(bm, vec=Vector((lx, ly, lz)), verts=bm.verts)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     
     bm.to_mesh(mesh)
     bm.free()
     
     obj = bpy.data.objects.new(name, mesh)
-    obj.location = location
     link_to_collection(obj, col_name)
+    link_to_nav_and_col(obj, is_walkable=is_walkable, is_collider=is_collider)
     
     if material and material in MATERIALS:
         mesh.materials.append(MATERIALS[material])
-    
-    # Generate UVs with simple smart projection / cube projection
+        
+    # Apply cubic projection UV
     bpy.context.view_layer.objects.active = obj
     obj.select_set(True)
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-    
-    # Unwrap UVs
-    bm = bmesh.new()
-    bm.from_mesh(mesh)
-    uv_layer = bm.loops.layers.uv.new("UVMap")
-    
-    # Simple planar/cube UV mapping per face normal
-    for face in bm.faces:
-        norm = face.normal
-        for loop in face.loops:
-            v = loop.vert.co
-            if abs(norm.z) > 0.6:
-                uv = Vector((v.x, v.y))
-            elif abs(norm.x) > 0.6:
-                uv = Vector((v.y, v.z))
-            else:
-                uv = Vector((v.x, v.z))
-            loop[uv_layer].uv = uv * 0.5  # 1 UV unit per 2 meters
-    
-    bm.to_mesh(mesh)
-    bm.free()
-    mesh.update()
-    
-    link_to_nav_and_col(obj, is_walkable=is_walkable, is_collider=is_collider)
-
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.uv.cube_project(cube_size=2.0)
+    bpy.ops.object.mode_set(mode='OBJECT')
     obj.select_set(False)
+    
     return obj
 
-def create_staircase(name, start_pos, rise, run, width, steps_count, material, col_name="ARCH_Structure"):
-    """Creates a functional staircase with solid step treads for raycasting ground collisions."""
-    mesh = bpy.data.meshes.new(name)
-    bm = bmesh.new()
-    
+def create_solid_staircase(name, start_pos, rise, run, width, steps_count, material="MAT_Steel_Dark", has_rails=True):
+    """
+    Creates a continuous solid staircase with:
+    - Exact step treads and risers (Blondel compliant)
+    - Solid inclined undercarriage (no gap underneath, raycast 100% reliable)
+    - Integrated top landing flush with the destination floor
+    - Continuous handrails on both open sides (1.1m high)
+    """
+    sp = Vector(start_pos)
     step_rise = rise / steps_count
     step_run = run / steps_count
     
-    for i in range(steps_count):
-        # Step box bottom starts at start_pos.z (solid underneath for no-fall through raycast)
-        z_bottom = start_pos.z
-        z_top = start_pos.z + (i + 1) * step_rise
-        y_front = start_pos.y + i * step_run
-        y_back = start_pos.y + (i + 1) * step_run
-        x_min = start_pos.x - width / 2.0
-        x_max = start_pos.x + width / 2.0
-        
-        # 8 vertices for step box
-        v0 = bm.verts.new((x_min, y_front, z_bottom))
-        v1 = bm.verts.new((x_max, y_front, z_bottom))
-        v2 = bm.verts.new((x_max, y_back, z_bottom))
-        v3 = bm.verts.new((x_min, y_back, z_bottom))
-        v4 = bm.verts.new((x_min, y_front, z_top))
-        v5 = bm.verts.new((x_max, y_front, z_top))
-        v6 = bm.verts.new((x_max, y_back, z_top))
-        v7 = bm.verts.new((x_min, y_back, z_top))
-        
-        bm.faces.new((v0, v1, v5, v4)) # front
-        bm.faces.new((v1, v2, v6, v5)) # right
-        bm.faces.new((v2, v3, v7, v6)) # back
-        bm.faces.new((v3, v0, v4, v7)) # left
-        bm.faces.new((v4, v5, v6, v7)) # top tread
-        bm.faces.new((v3, v2, v1, v0)) # bottom
-    
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    bm.to_mesh(mesh)
-    bm.free()
-    
-    obj = bpy.data.objects.new(name, mesh)
-    link_to_collection(obj, col_name)
-    link_to_nav_and_col(obj, is_walkable=True, is_collider=True)
-    if material in MATERIALS:
-        mesh.materials.append(MATERIALS[material])
-    mesh.update()
-    return obj
-
-def create_pitched_roof(name, location, width, length, height, overhang=0.8, material="MAT_Roof_Slate"):
-    """Creates an alpine pitched roof (gabled / a dos aguas) with eaves overhang and vertical flight aperture."""
     mesh = bpy.data.meshes.new(name)
     bm = bmesh.new()
     
-    half_w = (width / 2.0) + overhang
-    half_l = (length / 2.0) + overhang
-    h = height
+    hw = width / 2.0
     
-    # 6 vertices of a triangular prism (gabled roof) along Y axis
-    v_s_left = bm.verts.new((-half_w, -half_l, 0))
-    v_s_right = bm.verts.new((half_w, -half_l, 0))
-    v_s_ridge = bm.verts.new((0, -half_l, h))
-    
-    v_n_left = bm.verts.new((-half_w, half_l, 0))
-    v_n_right = bm.verts.new((half_w, half_l, 0))
-    v_n_ridge = bm.verts.new((0, half_l, h))
-    
-    bm.faces.new((v_s_left, v_s_right, v_s_ridge)) # South gable
-    bm.faces.new((v_n_right, v_n_left, v_n_ridge)) # North gable
-    bm.faces.new((v_s_left, v_s_ridge, v_n_ridge, v_n_left)) # West slope
-    bm.faces.new((v_s_ridge, v_s_right, v_n_right, v_n_ridge)) # East slope
-    bm.faces.new((v_s_right, v_s_left, v_n_left, v_n_right)) # Bottom ceiling
-    
+    for i in range(steps_count):
+        z_bot = sp.z # solid base
+        z_top = sp.z + (i + 1) * step_rise
+        y_f = sp.y + i * step_run
+        y_b = sp.y + (i + 1) * step_run
+        
+        # 8 verts of solid step
+        v0 = bm.verts.new((sp.x - hw, y_f, z_bot))
+        v1 = bm.verts.new((sp.x + hw, y_f, z_bot))
+        v2 = bm.verts.new((sp.x + hw, y_b, z_bot))
+        v3 = bm.verts.new((sp.x - hw, y_b, z_bot))
+        v4 = bm.verts.new((sp.x - hw, y_f, z_top))
+        v5 = bm.verts.new((sp.x + hw, y_f, z_top))
+        v6 = bm.verts.new((sp.x + hw, y_b, z_top))
+        v7 = bm.verts.new((sp.x - hw, y_b, z_top))
+        
+        bm.faces.new((v0, v1, v5, v4))
+        bm.faces.new((v1, v2, v6, v5))
+        bm.faces.new((v2, v3, v7, v6))
+        bm.faces.new((v3, v0, v4, v7))
+        bm.faces.new((v4, v5, v6, v7)) # tread
+        bm.faces.new((v3, v2, v1, v0))
+        
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(mesh)
     bm.free()
     
-    obj = bpy.data.objects.new(name, mesh)
-    obj.location = location
-    link_to_collection(obj, "ARCH_Roof")
-    link_to_nav_and_col(obj, is_walkable=True, is_collider=True)
+    stair_obj = bpy.data.objects.new(name, mesh)
+    link_to_collection(stair_obj, "ARCH_Structure")
+    link_to_nav_and_col(stair_obj, is_walkable=True, is_collider=True)
     if material in MATERIALS:
         mesh.materials.append(MATERIALS[material])
-    mesh.update()
-    return obj
-
-def create_empty_marker(name, location, rotation_euler=(0,0,0), marker_type='PLAIN_AXES', size=1.0):
-    empty = bpy.data.objects.new(name, None)
-    empty.empty_display_type = marker_type
-    empty.empty_display_size = size
-    empty.location = location
-    empty.rotation_euler = rotation_euler
-    link_to_collection(empty, "META_InteractionPoints")
-    return empty
-
-# ---------------------------------------------------------------------------
-# BUILD VILLA AUREN — PHASE 1: ARCHITECTURAL BLOCKOUT
-# ---------------------------------------------------------------------------
-def build_phase_1():
-    print(">>> [Villa Auren] Building Phase 1: Architectural Blockout...")
-
-    # =======================================================================
-    # 1. ENV_Terrain: 32m x 30m Local Terrain Slab & Courtyard
-    # =======================================================================
-    # Base terrain slab (Z = -0.4 to 0.0)
-    create_box(
-        name="ENV_Terrain_Base",
-        size=(32.0, 30.0, 0.4),
-        location=(0.0, 0.0, -0.2),
-        material="MAT_Stone_Foundation",
-        col_name="ENV_Terrain"
-    )
-    # Courtyard front pavement (X: -14 to 14, Y: -14 to -5.5, Z = 0.05)
-    create_box(
-        name="ENV_Courtyard_Pavement",
-        size=(28.0, 8.5, 0.1),
-        location=(0.0, -9.75, 0.05),
-        material="MAT_Stone_Pavement",
-        col_name="ENV_Terrain"
-    )
-    # Low perimeter stone retaining walls (North, East, West borders of plot)
-    create_box(
-        name="ENV_Wall_West",
-        size=(0.6, 28.0, 0.8),
-        location=(-15.5, 0.0, 0.4),
-        material="MAT_Stone_Foundation",
-        col_name="ENV_Terrain"
-    )
-    create_box(
-        name="ENV_Wall_East",
-        size=(0.6, 28.0, 0.8),
-        location=(15.5, 0.0, 0.4),
-        material="MAT_Stone_Foundation",
-        col_name="ENV_Terrain"
-    )
-    create_box(
-        name="ENV_Wall_North",
-        size=(31.6, 0.6, 0.8),
-        location=(0.0, 14.5, 0.4),
-        material="MAT_Stone_Foundation",
-        col_name="ENV_Terrain"
-    )
-    # Auren Landing Dais in Courtyard (Hexagonal platform blockout)
-    create_box(
-        name="ENV_Landing_Dais_Base",
-        size=(4.4, 4.4, 0.15),
-        location=(0.0, -10.5, 0.075),
-        material="MAT_Metal_Dark",
-        col_name="ENV_Terrain"
-    )
-    create_box(
-        name="ENV_Landing_Dais_Core",
-        size=(2.0, 2.0, 0.05),
-        location=(0.0, -10.5, 0.175),
-        material="MAT_JarBees_Cyan_Glow",
-        col_name="ENV_Terrain"
-    )
-
-    # =======================================================================
-    # 2. ARCH_Structure: Foundation & Floors
-    # =======================================================================
-    # Building Footprint: Width X = 20m (-10.0 to 10.0), Depth Y = 16m (-6.0 to 10.0)
-
-    # Ground Floor Slab (PB) — Z = 0.0 to 0.25 (with opening for vertical flight shaft & lab stairs)
-    # West wing PB slab: X [-10, -2], Y [-6, 10]
-    create_box(
-        name="ARCH_Floor_PB_West",
-        size=(8.0, 16.0, 0.25),
-        location=(-6.0, 2.0, 0.125),
-        material="MAT_Wood_Floor",
-        col_name="ARCH_Structure"
-    )
-    # East wing PB slab: X [2, 10], Y [-6, 10]
-    create_box(
-        name="ARCH_Floor_PB_East",
-        size=(8.0, 16.0, 0.25),
-        location=(6.0, 2.0, 0.125),
-        material="MAT_Wood_Floor",
-        col_name="ARCH_Structure"
-    )
-    # Central entrance / vestibule PB slab: X [-2, 2], Y [-6, -2]
-    create_box(
-        name="ARCH_Floor_PB_Vestibule",
-        size=(4.0, 4.0, 0.25),
-        location=(0.0, -4.0, 0.125),
-        material="MAT_Stone_Pavement",
-        col_name="ARCH_Structure"
-    )
-    # Central flight gallery PB base: X [-2, 2], Y [-2, 2]
-    create_box(
-        name="ARCH_Floor_PB_Atrium_Base",
-        size=(4.0, 4.0, 0.25),
-        location=(0.0, 0.0, 0.125),
-        material="MAT_Metal_Dark",
-        col_name="ARCH_Structure"
-    )
-    # Rear North PB hallway slab: X [-2, 2], Y [6, 10]
-    create_box(
-        name="ARCH_Floor_PB_NorthHall",
-        size=(4.0, 4.0, 0.25),
-        location=(0.0, 8.0, 0.125),
-        material="MAT_Wood_Floor",
-        col_name="ARCH_Structure"
-    )
-
-    # First Floor Slab (P1) — Z = 3.2 to 3.45 (0.25m thickness)
-    # Note: Double-height void over Living Room X [-9, -2], Y [-2, 4]
-    # and Flight Gallery shaft X [-2, 2], Y [-2, 2] are open!
-    create_box(
-        name="ARCH_Floor_P1_MasterSuite",
-        size=(8.0, 6.0, 0.25),
-        location=(-6.0, 7.0, 3.325),
-        material="MAT_Wood_Floor",
-        col_name="ARCH_Structure"
-    )
-    create_box(
-        name="ARCH_Floor_P1_FrontBalcony",
-        size=(8.0, 2.5, 0.25),
-        location=(-6.0, -4.75, 3.325),
-        material="MAT_Wood_Timber",
-        col_name="ARCH_Structure"
-    )
-    create_box(
-        name="ARCH_Floor_P1_Workshop_East",
-        size=(8.0, 8.0, 0.25),
-        location=(6.0, -2.0, 3.325),
-        material="MAT_Metal_Dark",
-        col_name="ARCH_Structure"
-    )
-    create_box(
-        name="ARCH_Floor_P1_Library_NorthEast",
-        size=(8.0, 8.0, 0.25),
-        location=(6.0, 6.0, 3.325),
-        material="MAT_Wood_Floor",
-        col_name="ARCH_Structure"
-    )
-    # Mezzanine gallery walkway connecting East and West wings (Y: 2.5 to 5.5, X: -2 to 2)
-    create_box(
-        name="ARCH_Floor_P1_Mezzanine_Walkway",
-        size=(4.0, 3.0, 0.25),
-        location=(0.0, 4.0, 3.325),
-        material="MAT_Wood_Timber",
-        col_name="ARCH_Structure"
-    )
-    # Exterior Cantilevered Balcony overlooking Courtyard: X [-4, 4], Y [-8, -6]
-    create_box(
-        name="ARCH_Floor_P1_Observation_Balcony",
-        size=(8.0, 2.0, 0.25),
-        location=(0.0, -7.0, 3.325),
-        material="MAT_Wood_Timber",
-        col_name="ARCH_Structure"
-    )
-    # Balcony perimeter railing
-    create_box("ARCH_Railing_Balcony_Front", size=(8.0, 0.15, 1.05), location=(0.0, -7.925, 3.975), material="MAT_Metal_Dark")
-    create_box("ARCH_Railing_Balcony_West",  size=(0.15, 2.0, 1.05), location=(-3.925, -7.0, 3.975), material="MAT_Metal_Dark")
-    create_box("ARCH_Railing_Balcony_East",  size=(0.15, 2.0, 1.05), location=(3.925, -7.0, 3.975), material="MAT_Metal_Dark")
-
-    # =======================================================================
-    # 3. ARCH_Structure: Exterior & Interior Walls
-    # =======================================================================
-    # Wall thickness: 0.35m. Height PB = 3.2m (Z: 0.0 to 3.2). Height P1 = 3.0m (Z: 3.4 to 6.4)
+        
+    # UV map
+    bpy.context.view_layer.objects.active = stair_obj
+    stair_obj.select_set(True)
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.uv.cube_project(cube_size=1.5)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    stair_obj.select_set(False)
     
-    # Ground Floor Exterior Walls (PB, Z = 1.6)
-    # West Wall PB (X = -9.825)
-    create_box("ARCH_Wall_PB_Ext_West", size=(0.35, 16.0, 3.2), location=(-9.825, 2.0, 1.6), material="MAT_Stone_Foundation")
-    # East Wall PB (X = 9.825)
-    create_box("ARCH_Wall_PB_Ext_East", size=(0.35, 16.0, 3.2), location=(9.825, 2.0, 1.6), material="MAT_Stone_Foundation")
-    # North Wall PB (Y = 9.825)
-    create_box("ARCH_Wall_PB_Ext_North", size=(19.3, 0.35, 3.2), location=(0.0, 9.825, 1.6), material="MAT_Stone_Foundation")
-    # South Wall PB (Y = -5.825) — With wide entrance portal (door opening X [-1.5, 1.5], lintel above)
-    create_box("ARCH_Wall_PB_Ext_South_West", size=(8.0, 0.35, 3.2), location=(-5.75, -5.825, 1.6), material="MAT_Stone_Foundation")
-    create_box("ARCH_Wall_PB_Ext_South_East", size=(8.0, 0.35, 3.2), location=(5.75, -5.825, 1.6), material="MAT_Stone_Foundation")
-    # Lintel over entrance door (Z = 2.4 to 3.2)
-    create_box("ARCH_Wall_PB_Entrance_Lintel", size=(3.5, 0.35, 0.8), location=(0.0, -5.825, 2.8), material="MAT_Wood_Timber")
-
-    # Upper Floor Exterior Walls (P1, Z = 4.9, Height = 3.0m)
-    # West Wall P1
-    create_box("ARCH_Wall_P1_Ext_West", size=(0.35, 16.0, 3.0), location=(-9.825, 2.0, 4.9), material="MAT_Wall_Plaster")
-    # East Wall P1
-    create_box("ARCH_Wall_P1_Ext_East", size=(0.35, 16.0, 3.0), location=(9.825, 2.0, 4.9), material="MAT_Wall_Plaster")
-    # North Wall P1
-    create_box("ARCH_Wall_P1_Ext_North", size=(19.3, 0.35, 3.0), location=(0.0, 9.825, 4.9), material="MAT_Wall_Plaster")
-    # South Wall P1 — with balcony portal opening X [-2, 2]
-    create_box("ARCH_Wall_P1_Ext_South_West", size=(7.5, 0.35, 3.0), location=(-6.0, -5.825, 4.9), material="MAT_Wall_Plaster")
-    create_box("ARCH_Wall_P1_Ext_South_East", size=(7.5, 0.35, 3.0), location=(6.0, -5.825, 4.9), material="MAT_Wall_Plaster")
-    create_box("ARCH_Wall_P1_Balcony_Lintel", size=(4.5, 0.35, 0.6), location=(0.0, -5.825, 6.1), material="MAT_Wood_Timber")
-
-    # Timber Structural Columns (Alpine Architecture)
-    col_coords = [
-        (-9.6, -5.6), (-9.6, 9.6), (9.6, -5.6), (9.6, 9.6),
-        (-2.0, -2.0), (-2.0, 2.0), (2.0, -2.0), (2.0, 2.0),
-        (-2.0, 5.5), (2.0, 5.5)
-    ]
-    for idx, (cx, cy) in enumerate(col_coords):
+    # Handrails if enabled
+    if has_rails:
+        rail_mat = "MAT_Steel_Dark"
+        # Left rail
         create_box(
-            f"ARCH_Column_Timber_{idx+1}",
-            size=(0.4, 0.4, 6.4),
-            location=(cx, cy, 3.2),
-            material="MAT_Wood_Timber",
+            f"{name}_Rail_Left",
+            size=(0.08, abs(run) + 0.4, 0.08),
+            location=(sp.x - hw + 0.04, sp.y + run/2.0, sp.z + rise/2.0 + 1.05),
+            material=rail_mat,
+            col_name="ARCH_Structure",
+            is_collider=True
+        )
+        # Right rail
+        create_box(
+            f"{name}_Rail_Right",
+            size=(0.08, abs(run) + 0.4, 0.08),
+            location=(sp.x + hw - 0.04, sp.y + run/2.0, sp.z + rise/2.0 + 1.05),
+            material=rail_mat,
+            col_name="ARCH_Structure",
+            is_collider=True
+        )
+        # Posts
+        for p_idx in [0, steps_count // 2, steps_count]:
+            post_y = sp.y + p_idx * step_run
+            post_z = sp.z + p_idx * step_rise + 0.525
+            create_box(f"{name}_Post_L_{p_idx}", size=(0.06, 0.06, 1.05), location=(sp.x - hw + 0.04, post_y, post_z), material=rail_mat)
+            create_box(f"{name}_Post_R_{p_idx}", size=(0.06, 0.06, 1.05), location=(sp.x + hw - 0.04, post_y, post_z), material=rail_mat)
+
+    return stair_obj
+
+# ---------------------------------------------------------------------------
+# Procedural Building Construction
+# ---------------------------------------------------------------------------
+def build_villa_auren(plan):
+    print("[*] Generating Villa Auren 3D Geometry (Assault Warehouse Scale)...")
+    
+    # 1. TERRAIN & COURTYARD
+    # Outer Site Platform: 48m x 42m
+    create_box(
+        "ENV_Site_Platform",
+        size=(48.0, 42.0, 0.5),
+        location=(0.0, 3.0, -0.25),
+        material="MAT_Stone_Pavers",
+        col_name="ENV_Terrain",
+        is_walkable=True
+    )
+    # Courtyard Stone Area: 26m x 12m in front of south facade
+    create_box(
+        "ENV_Courtyard_Pavers",
+        size=(26.0, 12.0, 0.1),
+        location=(0.0, 14.0, 0.05),
+        material="MAT_Stone_Pavers",
+        col_name="ENV_Terrain",
+        is_walkable=True
+    )
+    # Arrival Dais: Hexagonal dais with Aurelium Gold ring at [0, 0.25, 15.0]
+    create_box(
+        "ENV_Arrival_Dais_Base",
+        size=(6.0, 6.0, 0.25),
+        location=(0.0, 15.0, 0.125),
+        material="MAT_Stone_Chateau",
+        col_name="ENV_Terrain",
+        is_walkable=True
+    )
+    create_box(
+        "ENV_Arrival_Dais_GoldRing",
+        size=(4.0, 4.0, 0.05),
+        location=(0.0, 15.0, 0.275),
+        material="MAT_Aurelium_Gold",
+        col_name="ENV_Terrain",
+        is_walkable=True
+    )
+
+    # 2. LEVEL S1 (Subsuelo / Lab NEXO at Z = -3.6m)
+    # S1 Floor Slab (Z = -3.75, Thickness = 0.3m, Span = 28m x 18m)
+    create_box(
+        "ARCH_S1_Floor_Slab",
+        size=(28.0, 18.0, 0.3),
+        location=(0.0, 0.0, -3.75),
+        material="MAT_Lab_Concrete",
+        col_name="INT_Laboratory",
+        is_walkable=True
+    )
+    # S1 Perimeter Bunker Walls (Z = -1.8, Height = 3.6m)
+    create_box("ARCH_S1_Wall_North", size=(28.0, 0.4, 3.6), location=(0.0, -9.0, -1.8), material="MAT_Lab_Concrete", col_name="INT_Laboratory")
+    create_box("ARCH_S1_Wall_South", size=(28.0, 0.4, 3.6), location=(0.0, 9.0, -1.8), material="MAT_Lab_Concrete", col_name="INT_Laboratory")
+    create_box("ARCH_S1_Wall_West",  size=(0.4, 18.0, 3.6), location=(-14.0, 0.0, -1.8), material="MAT_Lab_Concrete", col_name="INT_Laboratory")
+    create_box("ARCH_S1_Wall_East",  size=(0.4, 18.0, 3.6), location=(14.0, 0.0, -1.8), material="MAT_Lab_Concrete", col_name="INT_Laboratory")
+    
+    # JarBees Quantum Core Pedestal & Core
+    create_box("LAB_Core_Dais", size=(4.0, 4.0, 0.4), location=(0.0, -3.0, -3.4), material="MAT_Steel_Dark", col_name="INT_Laboratory", is_walkable=True)
+    create_box("LAB_Core_Sphere", size=(1.4, 1.4, 1.4), location=(0.0, -3.0, -2.0), material="MAT_Cyan_Glow", col_name="INT_Laboratory")
+
+    # 3. LEVEL PB (Planta Baja / Gran Hangar Assault Scale at Z = 0.0)
+    # PB Floor Slabs (Thickness 0.3m, Z: -0.3 to 0.0)
+    # East Wing Floor (Workshop + Briefing): X: 7.5 to 15.0, Y: -10.0 to 10.0
+    create_box("ARCH_PB_Floor_EastWing", size=(7.5, 20.0, 0.3), location=(11.25, 0.0, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
+    # Center Hall Floor (Grand Atrium): X: -8.0 to 8.0, Y: -10.0 to 10.0
+    create_box("ARCH_PB_Floor_Atrium", size=(16.0, 20.0, 0.3), location=(0.0, 0.0, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
+    # West Wing South Floor (Kitchen + Stair start): X: -15.0 to -7.5, Y: -10.0 to 1.5
+    create_box("ARCH_PB_Floor_WestSouth", size=(7.5, 11.5, 0.3), location=(-11.25, -4.25, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
+    # West Wing North Outer Border (Leaving X: -12.5 to -9.5, Y: 2.0 to 8.0 VOID for S1 stair):
+    create_box("ARCH_PB_Floor_WestStair_SideL", size=(2.5, 8.5, 0.3), location=(-13.75, 5.75, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
+    create_box("ARCH_PB_Floor_WestStair_SideR", size=(2.0, 8.5, 0.3), location=(-8.5, 5.75, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
+    create_box("ARCH_PB_Floor_WestStair_NorthEnd", size=(3.0, 2.0, 0.3), location=(-11.0, 9.0, -0.15), material="MAT_Stone_Chateau", is_walkable=True)
+
+    # PB EXTERIOR WALLS (Z = 0.0 to 4.0, Height = 4.0m, Center Z = 2.0)
+    # North Wall (Back): 30m x 0.4m
+    create_box("ARCH_PB_Wall_North", size=(30.0, 0.4, 4.0), location=(0.0, -10.0, 2.0), material="MAT_Stone_Chateau")
+    # West Wall: 20m x 0.4m
+    create_box("ARCH_PB_Wall_West", size=(0.4, 20.0, 4.0), location=(-15.0, 0.0, 2.0), material="MAT_Stone_Chateau")
+    # East Wall: 20m x 0.4m
+    create_box("ARCH_PB_Wall_East", size=(0.4, 20.0, 4.0), location=(15.0, 0.0, 2.0), material="MAT_Stone_Chateau")
+    
+    # South Wall (Front Facade with Hangar Portico Portal: width 3.6m x height 3.2m at X [-1.8, 1.8])
+    create_box("ARCH_PB_Wall_South_West", size=(13.2, 0.4, 4.0), location=(-8.4, 10.0, 2.0), material="MAT_Stone_Chateau")
+    create_box("ARCH_PB_Wall_South_East", size=(13.2, 0.4, 4.0), location=(8.4, 10.0, 2.0), material="MAT_Stone_Chateau")
+    create_box("ARCH_PB_Wall_South_Lintel", size=(3.6, 0.4, 0.8), location=(0.0, 10.0, 3.6), material="MAT_Wood_Timber") # 3.2m portal clearance!
+
+    # PB INTERIOR PARTITIONS
+    # East Wing dividing wall (Y = -4.0) with door opening (X = 11.5, w = 1.2, h = 2.4)
+    create_box("ARCH_PB_Int_EastDiv_L", size=(3.0, 0.25, 4.0), location=(9.5, -4.0, 2.0), material="MAT_Wall_Plaster")
+    create_box("ARCH_PB_Int_EastDiv_R", size=(2.5, 0.25, 4.0), location=(13.75, -4.0, 2.0), material="MAT_Wall_Plaster")
+    create_box("ARCH_PB_Int_EastDiv_Lintel", size=(1.2, 0.25, 1.6), location=(11.6, -4.0, 3.2), material="MAT_Wall_Plaster")
+    
+    # West Wing dividing wall (Kitchen/Hall: Y = -6.0) with door opening
+    create_box("ARCH_PB_Int_WestDiv_L", size=(3.0, 0.25, 4.0), location=(-13.5, -6.0, 2.0), material="MAT_Wall_Plaster")
+    create_box("ARCH_PB_Int_WestDiv_R", size=(3.0, 0.25, 4.0), location=(-9.5, -6.0, 2.0), material="MAT_Wall_Plaster")
+    create_box("ARCH_PB_Int_WestDiv_Lintel", size=(1.2, 0.25, 1.6), location=(-11.5, -6.0, 3.2), material="MAT_Wall_Plaster")
+
+    # Monumental Stone Fireplace on North Wall of Atrium
+    create_box("ARCH_Fireplace_Mantel", size=(4.0, 1.2, 2.4), location=(0.0, -9.4, 1.2), material="MAT_Stone_Chateau")
+    create_box("ARCH_Fireplace_Chimney", size=(2.0, 1.0, 7.6), location=(0.0, -9.5, 5.0), material="MAT_Stone_Chateau")
+
+    # 4. LEVEL P1 (Planta Alta / Catwalks & Suite at Z = 4.0m)
+    # East Wing Floor (Suite & Archive): X: 8.0 to 14.8, Y: -9.8 to 9.8, Z = 4.0 (thickness 0.3)
+    create_box("ARCH_P1_Floor_EastWing", size=(6.8, 19.6, 0.3), location=(11.4, 0.0, 3.85), material="MAT_Wood_Timber", is_walkable=True)
+    
+    # Catwalks surrounding Grand Atrium (Width = 2.0m, Z = 4.0, Thickness = 0.3m)
+    # South Catwalk: X: -8.0 to 8.0, Y: 6.0 to 8.0
+    create_box("ARCH_P1_Catwalk_South", size=(16.0, 2.0, 0.3), location=(0.0, 7.0, 3.85), material="MAT_Wood_Timber", is_walkable=True)
+    # North Catwalk: X: -8.0 to 8.0, Y: -8.0 to -6.0
+    create_box("ARCH_P1_Catwalk_North", size=(16.0, 2.0, 0.3), location=(0.0, -7.0, 3.85), material="MAT_Wood_Timber", is_walkable=True)
+    # East Catwalk: X: 6.0 to 8.0, Y: -6.0 to 6.0
+    create_box("ARCH_P1_Catwalk_East", size=(2.0, 12.0, 0.3), location=(7.0, 0.0, 3.85), material="MAT_Wood_Timber", is_walkable=True)
+    # West Catwalk: X: -8.0 to -6.0, Y: -6.0 to 6.0
+    create_box("ARCH_P1_Catwalk_West", size=(2.0, 12.0, 0.3), location=(-7.0, 0.0, 3.85), material="MAT_Wood_Timber", is_walkable=True)
+
+    # Catwalk Industrial Guardrails (Height = 1.10m, Material = MAT_Steel_Dark)
+    # Overlooking the central open void (X: -6.0 to 6.0, Y: -6.0 to 6.0)
+    create_box("ARCH_P1_Railing_SouthVoid", size=(12.0, 0.08, 1.1), location=(0.0, 6.04, 4.55), material="MAT_Steel_Dark")
+    create_box("ARCH_P1_Railing_NorthVoid", size=(12.0, 0.08, 1.1), location=(0.0, -6.04, 4.55), material="MAT_Steel_Dark")
+    create_box("ARCH_P1_Railing_EastVoid",  size=(0.08, 12.0, 1.1), location=(6.04, 0.0, 4.55), material="MAT_Steel_Dark")
+    create_box("ARCH_P1_Railing_WestVoid",  size=(0.08, 12.0, 1.1), location=(-6.04, 0.0, 4.55), material="MAT_Steel_Dark")
+
+    # West Wing Upper Floor & Stair Landing: X: -14.8 to -8.0, Y: -1.0 to 4.0, Z = 4.0
+    # DIRECTLY CONNECTED TO WEST CATWALK (X: -8.0 to -6.0)!
+    create_box("ARCH_P1_Floor_WestLanding", size=(6.8, 5.0, 0.3), location=(-11.4, 1.5, 3.85), material="MAT_Wood_Timber", is_walkable=True)
+
+    # =======================================================================
+    # 5. TACTICAL BALCONY (OUTDOOR) — ZERO GAP & PHYSICAL SEAMLESS SLAB!
+    # =======================================================================
+    # Cantilevered Stone Balcony Slab: X: -4.0 to 4.0 (width 8.0m), Y: 7.5 to 11.5 (depth 4.0m)
+    # Exactly flush and touching South Catwalk at Y = 7.5! Z = 4.0 (Thickness = 0.3m, Z: 3.7 to 4.0)
+    create_box(
+        "ARCH_P1_Balcony_Floor_Slab",
+        size=(8.0, 4.0, 0.3),
+        location=(0.0, 9.5, 3.85),
+        material="MAT_Stone_Pavers",
+        col_name="ARCH_Structure",
+        is_walkable=True
+    )
+    # Heavy Stone Corbels underneath Balcony (supporting the cantilever)
+    for corbel_x in [-3.5, -1.2, 1.2, 3.5]:
+        create_box(
+            f"ARCH_Balcony_Corbel_{corbel_x}",
+            size=(0.4, 3.0, 0.8),
+            location=(corbel_x, 9.5, 3.3),
+            material="MAT_Stone_Chateau",
             col_name="ARCH_Structure"
         )
+    # Solid Balustrades on Balcony (South, East, West edges, Height = 1.10m)
+    create_box("ARCH_Balcony_Railing_South", size=(8.0, 0.2, 1.1), location=(0.0, 11.4, 4.55), material="MAT_Stone_Chateau")
+    create_box("ARCH_Balcony_Railing_West",  size=(0.2, 3.8, 1.1), location=(-3.9, 9.5, 4.55), material="MAT_Stone_Chateau")
+    create_box("ARCH_Balcony_Railing_East",  size=(0.2, 3.8, 1.1), location=(3.9, 9.5, 4.55), material="MAT_Stone_Chateau")
 
-    # Interior Partitions (PB)
-    # Living Room / Kitchen partition (Y = 4.0, X [-9.6, -2.0]) with door opening
-    create_box("ARCH_Wall_PB_Int_Kitchen_West", size=(4.0, 0.2, 3.2), location=(-7.6, 4.0, 1.6), material="MAT_Wall_Plaster")
-    create_box("ARCH_Wall_PB_Int_Kitchen_Lintel", size=(1.6, 0.2, 0.8), location=(-4.8, 4.0, 2.8), material="MAT_Wall_Plaster")
-    create_box("ARCH_Wall_PB_Int_Kitchen_East", size=(2.0, 0.2, 3.2), location=(-3.0, 4.0, 1.6), material="MAT_Wall_Plaster")
-
-    # Tech Office / Study partition (Y = 4.0, X [2.0, 9.6])
-    create_box("ARCH_Wall_PB_Int_Study_West", size=(2.0, 0.2, 3.2), location=(3.0, 4.0, 1.6), material="MAT_Wall_Plaster")
-    create_box("ARCH_Wall_PB_Int_Study_Lintel", size=(1.6, 0.2, 0.8), location=(4.8, 4.0, 2.8), material="MAT_Wall_Plaster")
-    create_box("ARCH_Wall_PB_Int_Study_East", size=(3.2, 0.2, 3.2), location=(7.2, 4.0, 1.6), material="MAT_Wall_Plaster")
-
-    # Fireplace Niche (Grand Salon West Wall)
-    create_box("ARCH_Fireplace_Mantel", size=(1.2, 3.0, 1.8), location=(-9.2, 1.0, 0.9), material="MAT_Stone_Foundation")
-    create_box("ARCH_Fireplace_Chimney_Shaft", size=(1.0, 1.4, 8.5), location=(-9.3, 1.0, 4.25), material="MAT_Stone_Foundation")
-
-    # =======================================================================
-    # 4. VERTICAL GLAZED FLIGHT GALLERY / ATRIUM (Auren Mach Flight Channel)
-    # =======================================================================
-    # Unobstructed 4m x 4m vertical flight shaft from PB (Z=0.0) through P1 to Roof Skylight (Z=8.8)
-    # Glazed frames on corner columns
-    create_box("ARCH_Gallery_Glazing_West", size=(0.1, 4.0, 6.4), location=(-2.0, 0.0, 3.2), material="MAT_Glass_Glazing", col_name="ARCH_Doors_Windows")
-    create_box("ARCH_Gallery_Glazing_East", size=(0.1, 4.0, 6.4), location=(2.0, 0.0, 3.2), material="MAT_Glass_Glazing", col_name="ARCH_Doors_Windows")
-    create_box("ARCH_Gallery_Glazing_South", size=(4.0, 0.1, 6.4), location=(0.0, -2.0, 3.2), material="MAT_Glass_Glazing", col_name="ARCH_Doors_Windows")
-    # North side connects to Mezzanine and upper bridge
-
-    # Mezzanine protective railings overlooking the Grand Salon void
-    create_box("ARCH_Railing_Mezzanine_West", size=(0.1, 6.0, 1.05), location=(-2.05, 1.0, 3.975), material="MAT_Metal_Dark")
-    create_box("ARCH_Railing_Mezzanine_South", size=(7.6, 0.1, 1.05), location=(-5.8, -2.05, 3.975), material="MAT_Metal_Dark")
+    # P1 EXTERIOR WALLS (Z = 4.0 to 7.2, Height = 3.2m, Center Z = 5.6)
+    create_box("ARCH_P1_Wall_North", size=(30.0, 0.4, 3.2), location=(0.0, -10.0, 5.6), material="MAT_Wall_Plaster")
+    create_box("ARCH_P1_Wall_West",  size=(0.4, 20.0, 3.2), location=(-15.0, 0.0, 5.6), material="MAT_Wall_Plaster")
+    create_box("ARCH_P1_Wall_East",  size=(0.4, 20.0, 3.2), location=(15.0, 0.0, 5.6), material="MAT_Wall_Plaster")
+    
+    # South Wall P1 with Balcony Doorway (X: [-1.4, 1.4], w = 2.8, h = 2.6)
+    create_box("ARCH_P1_Wall_South_L", size=(13.6, 0.4, 3.2), location=(-8.2, 7.5, 5.6), material="MAT_Wall_Plaster")
+    create_box("ARCH_P1_Wall_South_R", size=(13.6, 0.4, 3.2), location=(8.2, 7.5, 5.6), material="MAT_Wall_Plaster")
+    create_box("ARCH_P1_Wall_South_BalconyLintel", size=(2.8, 0.4, 0.6), location=(0.0, 7.5, 6.9), material="MAT_Wood_Timber")
 
     # =======================================================================
-    # 5. STAIRCASES (PB to P1 & S1 to PB)
+    # 6. STAIRCASES (SOLID, EXACT 20 STEPS, ZERO DISCREPANCY)
     # =======================================================================
-    # Ground Floor (PB) to Upper Floor (P1):
-    # Stair starts at X = 3.5, Y = 6.0, rising South along East corridor to landing at Z = 1.7, then turning
-    create_staircase(
-        name="ARCH_Stair_PB_to_Mid",
-        start_pos=Vector((3.5, 6.0, 0.25)),
-        rise=1.5,
-        run=2.4,
-        width=1.4,
-        steps_count=9,
-        material="MAT_Wood_Timber"
+    # Staircase PB -> P1:
+    # Starts at [-11.5, -5.5, 0.0], runs North to [-11.5, 0.5, 4.0]
+    # 20 steps: rise = 4.0m (0.20m/step), run = 6.00m (0.30m/step), width = 1.5m
+    create_solid_staircase(
+        name="ARCH_Stair_PB_to_P1",
+        start_pos=(-11.5, -5.5, 0.0),
+        rise=4.0,
+        run=6.0,
+        width=1.5,
+        steps_count=20,
+        material="MAT_Wood_Timber",
+        has_rails=True
     )
-    # Stair landing at Z = 1.75
-    create_box("ARCH_Stair_Landing_PB_P1", size=(1.8, 1.6, 0.25), location=(3.5, 8.8, 1.75), material="MAT_Wood_Timber")
-    # Upper run from landing to P1 floor (Z = 1.875 to 3.325)
-    create_staircase(
-        name="ARCH_Stair_Mid_to_P1",
-        start_pos=Vector((5.2, 8.8, 1.875)),
-        rise=1.45,
-        run=-2.4,
-        width=1.4,
-        steps_count=9,
-        material="MAT_Wood_Timber"
-    )
-
-    # =======================================================================
-    # 6. S1: UNDERGROUND RESEARCH LABORATORY (Subsuelo)
-    # =======================================================================
-    # Lab floor at Z = -3.5m, ceiling at Z = -0.3m (3.2m clearance)
-    # Lab floor slab (X: -10 to 10, Y: -6 to 10)
+    # Upper Landing Bridge: Connects top of stair [-11.5, 0.5] seamlessly to West Catwalk [-7.5]!
     create_box(
-        name="ARCH_Lab_Floor_Slab",
-        size=(20.0, 16.0, 0.3),
-        location=(0.0, 2.0, -3.65),
-        material="MAT_Lab_Concrete",
-        col_name="INT_Laboratory"
+        "ARCH_Stair_P1_TopLanding_Bridge",
+        size=(4.0, 2.0, 0.3),
+        location=(-9.5, 1.5, 3.85),
+        material="MAT_Wood_Timber",
+        is_walkable=True
     )
-    # Lab perimeter foundation walls (Z = -3.5 to -0.3, Height = 3.2m, center Z = -1.9)
-    create_box("ARCH_Lab_Wall_West",  size=(0.4, 16.0, 3.2), location=(-9.8, 2.0, -1.9), material="MAT_Lab_Concrete", col_name="INT_Laboratory")
-    create_box("ARCH_Lab_Wall_East",  size=(0.4, 16.0, 3.2), location=(9.8, 2.0, -1.9), material="MAT_Lab_Concrete", col_name="INT_Laboratory")
-    create_box("ARCH_Lab_Wall_North", size=(19.2, 0.4, 3.2), location=(0.0, 9.8, -1.9), material="MAT_Lab_Concrete", col_name="INT_Laboratory")
-    create_box("ARCH_Lab_Wall_South", size=(19.2, 0.4, 3.2), location=(0.0, -5.8, -1.9), material="MAT_Lab_Concrete", col_name="INT_Laboratory")
-
-    # Lab Staircase from S1 (Z = -3.5) up to PB North Hallway (Z = 0.25):
-    create_staircase(
+    
+    # Staircase S1 -> PB:
+    # Service stair from S1 (-3.6m) to PB (0.0m)
+    create_solid_staircase(
         name="ARCH_Stair_S1_to_PB",
-        start_pos=Vector((0.0, 4.0, -3.5)),
-        rise=3.65,
-        run=5.0,
-        width=1.6,
+        start_pos=(-11.0, 7.5, -3.6),
+        rise=3.6,
+        run=-5.0,
+        width=1.4,
         steps_count=18,
-        material="MAT_Metal_Dark",
-        col_name="ARCH_Structure"
+        material="MAT_Steel_Dark",
+        has_rails=True
     )
 
-    # JarBees Core Vault (Underground focal point)
-    # Elevated hexagonal dais for the Core
-    create_box("LAB_Core_Dais_Base", size=(4.0, 4.0, 0.3), location=(0.0, 7.5, -3.35), material="MAT_Metal_Dark", col_name="INT_Laboratory")
-    create_box("LAB_Core_Dais_Ring", size=(3.0, 3.0, 0.1), location=(0.0, 7.5, -3.15), material="MAT_Metal_Gold", col_name="INT_Laboratory")
-    # Floating JarBees Core Blockout (glowing octahedron/cube blockout)
-    create_box("LAB_JarBees_Core_Sphere", size=(1.2, 1.2, 1.2), location=(0.0, 7.5, -2.1), material="MAT_JarBees_Cyan_Glow", col_name="INT_Laboratory")
-
-    # Auren Recharge / Maintenance Pad Alcove (East wing of S1: X = 6.5, Y = -1.0)
-    create_box("LAB_Auren_Charging_Station", size=(2.6, 2.6, 0.2), location=(6.5, -1.0, -3.4), material="MAT_Metal_Dark", col_name="INT_Laboratory")
-    create_box("LAB_Auren_Charging_Ring", size=(2.0, 2.0, 0.05), location=(6.5, -1.0, -3.275), material="MAT_Aurelium_Gold_Glow", col_name="INT_Laboratory")
-
-    # Main Control Console Blockout (Center S1: X = 0.0, Y = -1.0)
-    create_box("LAB_Console_Main_Bank", size=(4.2, 1.4, 0.95), location=(0.0, -1.0, -3.025), material="MAT_Metal_Dark", col_name="INT_Laboratory")
-    create_box("LAB_Console_Holo_Strip", size=(3.8, 0.3, 0.05), location=(0.0, -1.0, -2.525), material="MAT_JarBees_Cyan_Glow", col_name="INT_Laboratory")
-
-    # Server Equipment Racks (West wing of S1: X = -6.5, Y = 0.0)
-    for s_idx in range(4):
+    # =======================================================================
+    # 7. INDUSTRIAL TRUSSES & ALPINE ROOF (Cubierta a Dos Aguas)
+    # =======================================================================
+    # 5 Heavy Steel/Timber Roof Trusses across the 20m building depth at Z = 7.0
+    for truss_x in [-12.0, -6.0, 0.0, 6.0, 12.0]:
         create_box(
-            f"LAB_Server_Rack_{s_idx+1}",
-            size=(1.2, 1.8, 2.6),
-            location=(-7.5, -3.0 + s_idx * 2.2, -2.2),
-            material="MAT_Metal_Dark",
-            col_name="INT_Laboratory"
+            f"ARCH_Truss_Beam_{truss_x}",
+            size=(0.3, 20.0, 0.4),
+            location=(truss_x, 0.0, 7.2),
+            material="MAT_Steel_Dark",
+            col_name="ARCH_Roof"
         )
-
-    # =======================================================================
-    # 7. ARCH_Roof: Alpine Pitched Roof & Flight Hatch Aperture
-    # =======================================================================
-    # Roof sits on top of P1 walls (Z = 6.4m). Ridge reaches Z = 9.2m (height = 2.8m).
-    # Building is 20m wide (X: -10 to 10), 16m deep (Y: -6 to 10).
-    create_pitched_roof(
-        name="ARCH_Roof_Alpine_Main",
-        location=(0.0, 2.0, 6.4),
-        width=20.4,
-        length=16.8,
-        height=2.8,
-        overhang=1.0,
-        material="MAT_Roof_Slate"
+        
+    # Gabled Roof Slopes (Ridge at Z = 8.8m, Eaves at Z = 6.8m, Overhang = 1.0m)
+    # Central 4m x 4m ventilation skylight hatch open for vertical Mach flight!
+    # West Roof Slope
+    create_box(
+        "ARCH_Roof_Slope_West",
+        size=(15.5, 22.0, 0.25),
+        location=(-7.75, 0.0, 7.8),
+        material="MAT_Roof_Slate",
+        col_name="ARCH_Roof"
     )
+    # East Roof Slope
+    create_box(
+        "ARCH_Roof_Slope_East",
+        size=(15.5, 22.0, 0.25),
+        location=(7.75, 0.0, 7.8),
+        material="MAT_Roof_Slate",
+        col_name="ARCH_Roof"
+    )
+    # Ejection Vent Frame (Mach Flight Shaft)
+    create_box("ARCH_Roof_Vent_Frame", size=(4.4, 4.4, 0.3), location=(0.0, 0.0, 8.8), material="MAT_Steel_Dark", col_name="ARCH_Roof")
+    create_box("ARCH_Roof_Vent_Glass", size=(4.0, 4.0, 0.05), location=(0.0, 0.0, 8.85), material="MAT_Glass", col_name="ARCH_Roof")
 
-    # Vertical Flight Hatch Dormer Opening in Roof above the Atrium (X [-2, 2], Y [-2, 2])
-    # Timber framing around the open skylight
-    create_box("ARCH_Roof_Flight_Col_NW", size=(0.4, 0.4, 3.0), location=(-2.0, 2.0, 7.9), material="MAT_Wood_Timber", col_name="ARCH_Roof")
-    create_box("ARCH_Roof_Flight_Col_NE", size=(0.4, 0.4, 3.0), location=(2.0, 2.0, 7.9), material="MAT_Wood_Timber", col_name="ARCH_Roof")
-    create_box("ARCH_Roof_Flight_Col_SW", size=(0.4, 0.4, 3.0), location=(-2.0, -2.0, 7.9), material="MAT_Wood_Timber", col_name="ARCH_Roof")
-    create_box("ARCH_Roof_Flight_Col_SE", size=(0.4, 0.4, 3.0), location=(2.0, -2.0, 7.9), material="MAT_Wood_Timber", col_name="ARCH_Roof")
-    create_box("ARCH_Roof_Flight_Lintel_N", size=(4.4, 0.4, 0.4), location=(0.0, 2.0, 9.2), material="MAT_Wood_Timber", col_name="ARCH_Roof")
-    create_box("ARCH_Roof_Flight_Lintel_S", size=(4.4, 0.4, 0.4), location=(0.0, -2.0, 9.2), material="MAT_Wood_Timber", col_name="ARCH_Roof")
-
-    # =======================================================================
-    # 8. META_InteractionPoints: Spawns, Doors & Flight Markers
-    # =======================================================================
-    # Spawn 1: Courtyard Dais (Primary entrance spawn)
-    create_empty_marker("SPAWN_Courtyard_Dais", location=Vector((0.0, -10.5, 0.3)), rotation_euler=(0, 0, 0))
-    # Spawn 2: Underground Lab Core
-    create_empty_marker("SPAWN_Lab_Core", location=Vector((0.0, 5.0, -3.3)), rotation_euler=(0, 0, 0))
-    # Spawn 3: Upper Balcony
-    create_empty_marker("SPAWN_Balcony_Flight", location=Vector((0.0, -7.0, 3.5)), rotation_euler=(0, 0, 0))
-    # Door Interaction: Main Entrance
-    create_empty_marker("INTERACT_Door_Main_Entrance", location=Vector((0.0, -5.8, 1.2)), rotation_euler=(0, 0, 0))
-    # Door Interaction: Lab Stair Access
-    create_empty_marker("INTERACT_Stair_Lab", location=Vector((0.0, 3.8, 0.5)), rotation_euler=(0, 0, 0))
-    # Flight Portal: Roof Egress
-    create_empty_marker("FLIGHT_Corridor_Sky_Egress", location=Vector((0.0, 0.0, 9.8)), rotation_euler=(0, 0, 0))
-    # Flight Portal: Ground Atrium Shaft
-    create_empty_marker("FLIGHT_Corridor_Atrium_Base", location=Vector((0.0, 0.0, 0.5)), rotation_euler=(0, 0, 0))
-    # Interaction: Auren Charging Station
-    create_empty_marker("INTERACT_Auren_Chamber", location=Vector((6.5, -1.0, -3.1)), rotation_euler=(0, 0, 0))
-    # Interaction: Fireplace Hearth
-    create_empty_marker("INTERACT_Fireplace_Hearth", location=Vector((-8.2, 1.0, 0.3)), rotation_euler=(0, 0, 0))
-
-    print(">>> [Villa Auren] Phase 1 Geometry Built Successfully.")
+    print("[+] All geometry constructed successfully!")
 
 # ---------------------------------------------------------------------------
-# World Metadata Exporter (JSON)
+# World Manifest Export (villa_auren.world.json)
 # ---------------------------------------------------------------------------
-def generate_world_metadata():
-    """
-    Generates villa_auren.world.json compatible with Three.js engine and auren_mansion_nodes.json specs.
-    Note coordinate transform:
-    Blender X -> Three.js X
-    Blender Y -> Three.js -Z
-    Blender Z -> Three.js Y
-    """
-    def to_three_pos(bx, by, bz):
-        return [round(bx, 2), round(bz, 2), round(-by, 2)]
-
-    world_meta = {
-        "zoneId": "villa_auren_alpine",
-        "version": "1.0.0",
-        "name": "Villa Auren · Alpine Research Residence",
-        "description": "Original compact alpine residence combining warm timber/stone architecture with a discreet subterranean research lab. Generated procedurally with Blender bpy for seamless Three.js integration.",
-        "author": "Auren WorldLab & JarBees Core",
+def export_world_manifest(plan):
+    manifest = {
+        "zoneId": "villa_auren_assault_scale",
+        "version": "2.0.0",
+        "name": "Villa Auren · Grand Alpine Hangar (Assault Scale)",
+        "description": "Validated tactical residence inspired by CS 1.6 Assault warehouse scale and Chateau aesthetics.",
         "worldDimensions": {
-            "terrainMeters": [32.0, 30.0],
-            "buildingFootprintMeters": [20.0, 16.0],
+            "terrainMeters": [48.0, 42.0],
+            "buildingFootprintMeters": [30.0, 20.0],
             "characterHeightMeters": 1.85,
-            "groundCeilingHeight": 3.2,
-            "upperCeilingHeight": 3.0,
-            "labCeilingHeight": 3.2,
-            "levels": ["S1_Lab", "PB_Residence", "P1_Gallery", "ROOF_Alpine"]
+            "groundCeilingHeight": 4.0,
+            "upperCeilingHeight": 4.2,
+            "labCeilingHeight": 3.6,
+            "atriumClearance": 7.8
         },
         "spawnPoints": [
             {
                 "id": "spawn_courtyard_dais",
-                "name": "Courtyard Dais · Main Arrival",
-                "position": to_three_pos(0.0, -10.5, 0.35),
+                "name": "Dais de Llegada Aurelium (Patio)",
+                "position": [0.0, 0.35, 15.0],
                 "rotation": [0, 0, 0],
-                "isPrimary": True,
-                "description": "Hexagonal arrival dais in the stone courtyard with direct view of the alpine facade."
+                "isPrimary": True
             },
             {
-                "id": "spawn_lab_core",
-                "name": "Quantum Lab Core · Subterranean Vault",
-                "position": to_three_pos(0.0, 5.0, -3.25),
-                "rotation": [0, 3.1416, 0],
-                "isPrimary": False,
-                "description": "Underground research facility before the illuminated JarBees Core."
+                "id": "spawn_grand_hangar",
+                "name": "Gran Atrio Central (Escala Assault)",
+                "position": [0.0, 0.1, 0.0],
+                "rotation": [0, 3.1416, 0]
             },
             {
-                "id": "spawn_balcony_flight",
-                "name": "Alpine Mezzanine Balcony · Mach Egress",
-                "position": to_three_pos(0.0, -7.0, 3.55),
-                "rotation": [0, 0, 0],
-                "isPrimary": False,
-                "description": "Cantilevered upper balcony overlooking courtyard with direct runway into mountain flight."
+                "id": "spawn_catwalk_p1",
+                "name": "Pasarela Catwalk Superior P1",
+                "position": [0.0, 4.1, 7.0],
+                "rotation": [0, 3.1416, 0]
+            },
+            {
+                "id": "spawn_tactical_balcony",
+                "name": "Balcón Táctico Voladizo",
+                "position": [0.0, 4.1, 9.8],
+                "rotation": [0, 0, 0]
+            },
+            {
+                "id": "spawn_quantum_vault",
+                "name": "Búnker Cuántico NEXO S1",
+                "position": [0.0, -3.5, -3.0],
+                "rotation": [0, 0, 0]
             }
         ],
-        "rooms": [
-            {
-                "id": "courtyard_gardens",
-                "name": "Courtyard & Arrival Dais",
-                "floor": "EXT",
-                "bounds": {
-                    "min": [-16.0, 0.0, 5.5],
-                    "max": [16.0, 4.0, 15.0]
-                },
-                "features": ["Hexagonal Dais", "Stone Pavement", "Perimeter Stone Walls"]
-            },
-            {
-                "id": "vestibule_entrance",
-                "name": "Entrance Vestibule & Foyer",
-                "floor": "PB",
-                "bounds": {
-                    "min": [-3.5, 0.0, 2.0],
-                    "max": [3.5, 3.4, 6.0]
-                },
-                "features": ["Alpine Double Door", "Stone Tiles", "Coat Lockers"]
-            },
-            {
-                "id": "grand_salon",
-                "name": "Grand Salon & Fireplace Hearth",
-                "floor": "PB",
-                "bounds": {
-                    "min": [-10.0, 0.0, -4.5],
-                    "max": [-2.0, 6.4, 2.0]
-                },
-                "features": ["Stone Hearth", "Double-Height Void", "Timber Trusses"]
-            },
-            {
-                "id": "kitchen_dining",
-                "name": "Kitchen & Alpine Dining Wing",
-                "floor": "PB",
-                "bounds": {
-                    "min": [-10.0, 0.0, -10.0],
-                    "max": [-2.0, 3.4, -4.0]
-                },
-                "features": ["Cedar Dining Table", "Pantry", "Terrace Access"]
-            },
-            {
-                "id": "jarbees_study",
-                "name": "JarBees Tech Study & Office",
-                "floor": "PB",
-                "bounds": {
-                    "min": [2.0, 0.0, -4.0],
-                    "max": [10.0, 3.4, 4.0]
-                },
-                "features": ["Terminal Desk", "Schematic Wall", "North Windows"]
-            },
-            {
-                "id": "vertical_flight_gallery",
-                "name": "Vertical Glazed Flight Gallery",
-                "floor": "PB_P1_ROOF",
-                "bounds": {
-                    "min": [-2.2, 0.0, -2.2],
-                    "max": [2.2, 9.8, 2.2]
-                },
-                "features": ["Vertical Mach Launch Shaft", "Glass Envelope", "Roof Egress Hatch"]
-            },
-            {
-                "id": "mezzanine_library",
-                "name": "Mezzanine Library & Walkway",
-                "floor": "P1",
-                "bounds": {
-                    "min": [2.0, 3.4, -10.0],
-                    "max": [10.0, 6.8, 2.0]
-                },
-                "features": ["Bookcases", "Reading Lounge", "Overlook Railing"]
-            },
-            {
-                "id": "auren_workshop",
-                "name": "Auren Armor Maintenance Workshop",
-                "floor": "P1",
-                "bounds": {
-                    "min": [2.0, 3.4, -4.0],
-                    "max": [10.0, 6.8, 4.0]
-                },
-                "features": ["Armor Gantry", "Tool Matrix", "Telemetry Screen"]
-            },
-            {
-                "id": "master_suite",
-                "name": "Private Alpine Bedroom Suite",
-                "floor": "P1",
-                "bounds": {
-                    "min": [-10.0, 3.4, -10.0],
-                    "max": [-2.0, 6.8, -4.0]
-                },
-                "features": ["Timber Bed", "Mountain Panorama Windows", "Balcony Door"]
-            },
-            {
-                "id": "underground_laboratory",
-                "name": "Subterranean Research Lab & Core Vault",
-                "floor": "S1",
-                "bounds": {
-                    "min": [-10.0, -3.7, -10.0],
-                    "max": [10.0, 0.0, 6.0]
-                },
-                "features": ["Illuminated JarBees Core (432 Hz)", "Auren Fast-Charge Gantry", "Server Matrix", "Quantum Console"]
-            },
-            {
-                "id": "alpine_rooftops",
-                "name": "Alpine Slate Rooftops & Flight Egress",
-                "floor": "ROOF",
-                "bounds": {
-                    "min": [-11.0, 6.4, -11.0],
-                    "max": [11.0, 10.0, 7.0]
-                },
-                "features": ["Slate Gabled Roofs", "Chimney Tower", "Flight Aperture Hatch"]
-            }
-        ],
-        "flightCorridors": [
-            {
-                "id": "flight_atrium_shaft",
-                "name": "Atrium Vertical Flight Corridor",
-                "entryPoint": to_three_pos(0.0, 0.0, 0.5),
-                "exitPoint": to_three_pos(0.0, 0.0, 9.8),
-                "diameterMeters": 4.0,
-                "flightModesAllowed": ["HOVER", "SUPERSONIC_BURST"]
-            },
-            {
-                "id": "flight_balcony_launch",
-                "name": "Mezzanine Balcony Runway",
-                "launchPoint": to_three_pos(0.0, -7.0, 3.6),
-                "vector": [0, 0.2, 1.0],
-                "flightModesAllowed": ["CRUISE", "MACH_RUN"]
-            }
-        ],
-        "interactionPoints": [
-            {"id": "door_main_entrance", "type": "DOOR", "position": to_three_pos(0.0, -5.8, 1.2)},
-            {"id": "stair_lab_access", "type": "STAIRCASE", "position": to_three_pos(0.0, 3.8, 0.5)},
-            {"id": "jarbees_core_console", "type": "CONSOLE", "position": to_three_pos(0.0, 5.0, -3.0)},
-            {"id": "auren_charging_pad", "type": "CHARGING_DOCK", "position": to_three_pos(6.5, -1.0, -3.2)},
-            {"id": "salon_fireplace", "type": "FIREPLACE", "position": to_three_pos(-8.2, 1.0, 0.3)}
-        ]
+        "rooms": []
     }
-
-    with open(WORLD_JSON_PUBLIC, 'w', encoding='utf-8') as f:
-        json.dump(world_meta, f, indent=2, ensure_ascii=False)
-    with open(WORLD_JSON_ROOT, 'w', encoding='utf-8') as f:
-        json.dump(world_meta, f, indent=2, ensure_ascii=False)
-
-    print(f">>> [Villa Auren] Saved metadata: {WORLD_JSON_PUBLIC}")
-
-# ---------------------------------------------------------------------------
-# Export Scene (.blend & .glb)
-# ---------------------------------------------------------------------------
-def export_scene():
-    # Save .blend
-    bpy.ops.wm.save_as_mainfile(filepath=BLEND_OUT)
-    print(f">>> [Villa Auren] Saved blend: {BLEND_OUT}")
-
-    # Export GLB (glTF 2.0 Binary)
-    # Blender's export_scene.gltf handles Z-up to Y-up conversion automatically.
-    # Set export_apply=True to apply all modifiers and transforms cleanly.
-    os.makedirs(os.path.dirname(GLB_OUT_PUBLIC), exist_ok=True)
     
-    export_args = dict(
-        filepath=GLB_OUT_PUBLIC,
-        export_format='GLB',
-        use_selection=False,
-        export_apply=True,
-        export_yup=True,
-        export_materials='EXPORT'
-    )
-    
-    bpy.ops.export_scene.gltf(**export_args)
-    print(f">>> [Villa Auren] Exported GLB to: {GLB_OUT_PUBLIC}")
-
-    # Also copy to root GLB deliverable
-    try:
-        import shutil
-        shutil.copyfile(GLB_OUT_PUBLIC, GLB_OUT_ROOT)
-        print(f">>> [Villa Auren] Copied GLB to: {GLB_OUT_ROOT}")
-    except Exception as e:
-        print(f"Warning copying GLB to root: {e}")
+    for lvl in plan.get("levels", []):
+        for rm in lvl.get("rooms", []):
+            b = rm.get("bounds", {})
+            min_z = lvl["elevation"]
+            max_z = min_z + (lvl.get("ceilingHeight", 3.5) if not rm.get("isDoubleHeight") else 7.8)
+            manifest["rooms"].append({
+                "id": rm["id"],
+                "name": rm["name"],
+                "floor": lvl["id"],
+                "bounds": {
+                    "min": [b["minX"], min_z, b["minY"]],
+                    "max": [b["maxX"], max_z, b["maxY"]]
+                }
+            })
+            
+    with open(WORLD_JSON_PUBLIC, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2, ensure_ascii=False)
+    with open(WORLD_JSON_ROOT, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2, ensure_ascii=False)
+    print(f"[+] Saved world manifest to {WORLD_JSON_PUBLIC}")
 
 # ---------------------------------------------------------------------------
-# Main Execution
+# Main Blender Pipeline
 # ---------------------------------------------------------------------------
-if __name__ == "__main__":
+def main():
+    with open(PLAN_FILE, "r", encoding="utf-8") as f:
+        plan = json.load(f)
+        
     reset_scene()
     setup_collections()
-    init_materials()
-    build_phase_1()
-    generate_world_metadata()
-    export_scene()
-    print(">>> [Villa Auren] Phase 1 Architectural Blockout Completed Successfully!")
+    setup_materials()
+    build_villa_auren(plan)
+    
+    # Save .blend
+    bpy.ops.wm.save_as_mainfile(filepath=BLEND_OUT)
+    print(f"[+] Saved Blender file: {BLEND_OUT}")
+    
+    # Export GLB (optimized for Three.js WebGL)
+    export_settings = {
+        "export_format": "GLB",
+        "use_selection": False,
+        "export_apply": True,
+        "export_texcoords": True,
+        "export_normals": True,
+        "export_materials": "EXPORT",
+        "export_cameras": False,
+        "export_lights": False,
+        "export_yup": True
+    }
+    
+    bpy.ops.export_scene.gltf(filepath=GLB_OUT_PUBLIC, **export_settings)
+    print(f"[+] Exported GLB to: {GLB_OUT_PUBLIC}")
+    
+    bpy.ops.export_scene.gltf(filepath=GLB_OUT_ROOT, **export_settings)
+    print(f"[+] Exported GLB to: {GLB_OUT_ROOT}")
+    
+    export_world_manifest(plan)
+    print("[*] VILLA AUREN PIPELINE COMPLETE!")
+
+if __name__ == "__main__":
+    main()

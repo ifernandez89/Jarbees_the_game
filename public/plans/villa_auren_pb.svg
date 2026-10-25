@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900">
+<defs>
+<pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+<path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1f2937" stroke-width="0.8" />
+</pattern>
+<style>
+
+        text { font-family: 'Consolas', 'Segoe UI', monospace; }
+        .title { fill: #00f0ff; font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+        .subtitle { fill: #94a3b8; font-size: 13px; }
+        .room-label { fill: #ffffff; font-size: 12px; font-weight: bold; text-anchor: middle; }
+        .dim-label { fill: #38bdf8; font-size: 10px; text-anchor: middle; }
+        .stair-label { fill: #fbbf24; font-size: 11px; font-weight: bold; }
+        .void-label { fill: #f43f5e; font-size: 11px; font-weight: bold; }
+    
+</style>
+</defs>
+<rect width="1200" height="900" fill="#0b0f19" />
+<rect width="1200" height="900" fill="url(#grid)" />
+<text x="50" y="45" class="title">VILLA AUREN — PLANTA BAJA · GRAN HANGAR & RESIDENCIA ALPINA (Elev: +0.0m)</text>
+<text x="50" y="68" class="subtitle">Escala Galpón CS Assault · Altura Libre Techo: 4.0m · Fuente: villa_auren.plan.json</text>
+<rect x="195.625" y="265.0" width="693.75" height="462.5" fill="none" stroke="#334155" stroke-dasharray="6,4" stroke-width="1.5" />
+<text x="205.625" y="257.0" fill="#64748b" font-size="10">LÍMITE PERIMETRAL EDIFICIO (30.0m × 20.0m)</text>
+<rect x="241.875" y="33.75" width="601.25" height="277.5" fill="#1e293b" fill-opacity="0.5" stroke="#475569" stroke-width="2" />
+<text x="542.5" y="172.5" class="room-label" fill="#cbd5e1">PATIO Y CALZADA DE LLEGADA (26×12m)</text>
+<circle cx="542.5" cy="149.375" r="69.375" fill="#d97706" fill-opacity="0.3" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,2" />
+<text x="542.5" y="153.375" fill="#fcd34d" font-size="10" font-weight="bold" text-anchor="middle">DAIS AURELIUM (SPAWN)</text>
+<rect x="369.0625" y="357.5" width="346.875" height="277.5" fill="#1e1b4b" stroke="#818cf8" stroke-width="2.5" />
+<text x="542.5" y="488.25" class="room-label">Gran Atrio Central (Escala Assault)</text>
+<text x="542.5" y="508.25" class="dim-label">15.0m × 12.0m</text>
+<rect x="450.0" y="276.5625" width="185.0" height="80.9375" fill="#131b2e" stroke="#0284c7" stroke-width="2.5" />
+<text x="542.5" y="309.03125" class="room-label">Vestíbulo y Portón de Acceso Frontal</text>
+<text x="542.5" y="329.03125" class="dim-label">8.0m × 3.5m</text>
+<rect x="715.9375" y="311.25" width="161.875" height="231.25" fill="#2a1b18" stroke="#f97316" stroke-width="2.5" />
+<text x="796.875" y="418.875" class="room-label">Taller Mecánico & Armería NEXO-01</text>
+<text x="796.875" y="438.875" class="dim-label">7.0m × 10.0m</text>
+<rect x="715.9375" y="542.5" width="161.875" height="173.4375" fill="#131b2e" stroke="#0284c7" stroke-width="2.5" />
+<text x="796.875" y="621.21875" class="room-label">Sala Táctica y Monitoreo Biomas</text>
+<text x="796.875" y="641.21875" class="dim-label">7.0m × 7.5m</text>
+<rect x="207.1875" y="473.125" width="161.875" height="161.875" fill="#131b2e" stroke="#0284c7" stroke-width="2.5" />
+<text x="288.125" y="546.0625" class="room-label">Caja de Escalera Monumental a Mezzanine</text>
+<text x="288.125" y="566.0625" class="dim-label">7.0m × 7.0m</text>
+<rect x="207.1875" y="299.6875" width="161.875" height="173.4375" fill="#131b2e" stroke="#0284c7" stroke-width="2.5" />
+<text x="288.125" y="378.40625" class="room-label">Acceso de Servicio al Lab Subterráneo</text>
+<text x="288.125" y="398.40625" class="dim-label">7.0m × 7.5m</text>
+<rect x="207.1875" y="635.0" width="161.875" height="80.9375" fill="#131b2e" stroke="#0284c7" stroke-width="2.5" />
+<text x="288.125" y="667.46875" class="room-label">Comedor & Cocina Alpina</text>
+<text x="288.125" y="687.46875" class="dim-label">7.0m × 3.5m</text>
+<rect x="253.4375" y="311.25" width="69.375" height="138.75" fill="#f43f5e" fill-opacity="0.15" stroke="#f43f5e" stroke-width="2" stroke-dasharray="6,3" />
+<line x1="253.4375" y1="311.25" x2="322.8125" y2="450.0" stroke="#f43f5e" stroke-opacity="0.4" stroke-width="1.5" />
+<line x1="322.8125" y1="311.25" x2="253.4375" y2="450.0" stroke="#f43f5e" stroke-opacity="0.4" stroke-width="1.5" />
+<text x="288.125" y="380.625" class="void-label" text-anchor="middle">HUECO EN FORJADO: Hueco en Losa PB para Escalera a S1</text>
+<rect x="259.21875" y="484.6875" width="34.6875" height="138.75" fill="#78350f" fill-opacity="0.4" stroke="#f59e0b" stroke-width="2" />
+<line x1="259.21875" y1="491.625" x2="293.90625" y2="491.625" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="498.5625" x2="293.90625" y2="498.5625" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="505.5" x2="293.90625" y2="505.5" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="512.4375" x2="293.90625" y2="512.4375" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="519.375" x2="293.90625" y2="519.375" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="526.3125" x2="293.90625" y2="526.3125" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="533.25" x2="293.90625" y2="533.25" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="540.1875" x2="293.90625" y2="540.1875" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="547.125" x2="293.90625" y2="547.125" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="554.0625" x2="293.90625" y2="554.0625" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="561.0" x2="293.90625" y2="561.0" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="567.9375" x2="293.90625" y2="567.9375" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="574.875" x2="293.90625" y2="574.875" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="581.8125" x2="293.90625" y2="581.8125" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="588.75" x2="293.90625" y2="588.75" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="595.6875" x2="293.90625" y2="595.6875" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="602.625" x2="293.90625" y2="602.625" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="609.5625" x2="293.90625" y2="609.5625" stroke="#fbbf24" stroke-width="1" />
+<line x1="259.21875" y1="616.5" x2="293.90625" y2="616.5" stroke="#fbbf24" stroke-width="1" />
+<text x="276.5625" y="554.0625" class="stair-label" text-anchor="middle">SUBE -> P1</text>
+<rect x="500.875" y="272.5625" width="83.25" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="542.5" y="268.5625" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Portón Principal Frontal de Hangar</text>
+<rect x="517.0625" y="353.5" width="50.87500000000001" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="542.5" y="349.5" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Acceso Vestíbulo a Gran Atrio</text>
+<rect x="692.8125" y="446.0" width="46.25" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="715.9375" y="442.0" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Puerta Corrediza Reforzada a Taller NEXO</text>
+<rect x="783.0" y="538.5" width="27.75" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="796.875" y="534.5" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Paso Taller a Sala Táctica</text>
+<rect x="700.90625" y="584.75" width="30.0625" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="715.9375" y="580.75" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Acceso Gran Atrio a Sala Táctica</text>
+<rect x="345.9375" y="550.0625" width="46.25" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="369.0625" y="546.0625" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Arco Abierto Gran Atrio a Escalera Monumental</text>
+<rect x="354.03125" y="411.3125" width="30.0625" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="369.0625" y="407.3125" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Puerta Acorazada a Escalera Subsuelo S1</text>
+<rect x="274.25" y="631.0" width="27.75" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="288.125" y="627.0" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Paso a Comedor y Cocina Alpina</text>
+<g transform="translate(1120, 80)">
+<polygon points="0,-25 10,15 0,8 -10,15" fill="#ef4444" stroke="#ffffff" stroke-width="1" />
+<text x="0" y="-32" fill="#ef4444" font-size="12" font-weight="bold" text-anchor="middle">N</text>
+</g>
+<g transform="translate(980, 860)">
+<rect x="0" y="0" width="115.625" height="6" fill="#38bdf8" />
+<text x="57.8125" y="-8" fill="#38bdf8" font-size="11" font-weight="bold" text-anchor="middle">5.0 METROS</text>
+</g>
+</svg>

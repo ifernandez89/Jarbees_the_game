@@ -2,7 +2,6 @@
 
 import React, { useRef, useState, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useSecureGLTF } from '@/utils/useSecureGLTF'
 import { getAssetPath } from '@/utils/assetPath'
@@ -23,86 +22,111 @@ interface RoomBounds {
     min: [number, number, number]
     max: [number, number, number]
   }
-  badgeColor?: string
 }
 
+// 16 Habitaciones a escala galpón de Assault sincronizadas con villa_auren.plan.json
 const VILLA_AUREN_ROOMS: RoomBounds[] = [
   {
-    id: 'courtyard_gardens',
-    name: '⛲ PATIO & DAIS DE SALIDA · VILLA AUREN',
+    id: 'courtyard',
+    name: 'Patio y Calzada de Llegada',
     floor: 'EXT',
-    bounds: { min: [-16.0, 0.0, 5.5], max: [16.0, 4.0, 15.0] },
-    badgeColor: '#38BDF8',
+    bounds: { min: [-16.0, 0.0, 8.0], max: [16.0, 4.0, 22.0] },
   },
   {
-    id: 'vestibule_entrance',
-    name: '🚪 VESTÍBULO & ACCESO PRINCIPAL',
+    id: 'PB_Hangar_Portico_Entrance',
+    name: 'Portón de Acceso y Vestíbulo Frontal',
     floor: 'PB',
-    bounds: { min: [-3.5, 0.0, 2.0], max: [3.5, 3.4, 6.0] },
-    badgeColor: '#E2E8F0',
+    bounds: { min: [-4.0, 0.0, 6.5], max: [4.0, 4.0, 10.0] },
   },
   {
-    id: 'grand_salon',
-    name: '🔥 GRAN SALÓN & CHIMENEA ALPINA',
+    id: 'PB_Grand_Hangar_Atrium',
+    name: 'Gran Atrio Central (Escala Assault)',
     floor: 'PB',
-    bounds: { min: [-10.0, 0.0, -4.5], max: [-2.0, 6.4, 2.0] },
-    badgeColor: '#F59E0B',
+    bounds: { min: [-8.0, 0.0, -6.0], max: [8.0, 7.8, 6.5] },
   },
   {
-    id: 'kitchen_dining',
-    name: '🍷 COCINA & COMEDOR DE CEDRO',
+    id: 'PB_Nexo_Armor_Workshop',
+    name: 'Taller Mecánico & Armería NEXO-01',
     floor: 'PB',
-    bounds: { min: [-10.0, 0.0, -10.0], max: [-2.0, 3.4, -4.0] },
-    badgeColor: '#10B981',
+    bounds: { min: [8.0, 0.0, -4.0], max: [15.0, 4.0, 10.0] },
   },
   {
-    id: 'jarbees_study',
-    name: '💻 ESTUDIO TECNOLÓGICO JARBEES',
+    id: 'PB_Tactical_Briefing_Room',
+    name: 'Sala Táctica y Monitoreo Biomas',
     floor: 'PB',
-    bounds: { min: [2.0, 0.0, -4.0], max: [10.0, 3.4, 4.0] },
-    badgeColor: '#06B6D4',
+    bounds: { min: [8.0, 0.0, -10.0], max: [15.0, 4.0, -4.0] },
   },
   {
-    id: 'vertical_flight_gallery',
-    name: '🚀 GALERÍA VERTICAL DE VUELO (MACH SHAFT)',
-    floor: 'PB_P1_ROOF',
-    bounds: { min: [-2.2, 0.0, -2.2], max: [2.2, 9.8, 2.2] },
-    badgeColor: '#55F0FF',
+    id: 'PB_Main_Stairwell_Hall',
+    name: 'Caja de Escalera Monumental a Mezzanine',
+    floor: 'PB',
+    bounds: { min: [-15.0, 0.0, -6.0], max: [-8.0, 4.0, 1.0] },
   },
   {
-    id: 'mezzanine_library',
-    name: '📚 MEZZANINE & BIBLIOTECA ABIERTA',
+    id: 'PB_Service_Stairwell_S1',
+    name: 'Acceso de Servicio al Lab Subterráneo',
+    floor: 'PB',
+    bounds: { min: [-15.0, 0.0, 1.0], max: [-8.0, 4.0, 10.0] },
+  },
+  {
+    id: 'PB_Kitchen_Refectory',
+    name: 'Comedor & Cocina Alpina',
+    floor: 'PB',
+    bounds: { min: [-15.0, 0.0, -10.0], max: [-8.0, 4.0, -6.0] },
+  },
+  {
+    id: 'P1_Perimeter_Catwalk',
+    name: 'Pasarela Perimetral Superior (Catwalk)',
     floor: 'P1',
-    bounds: { min: [2.0, 3.4, -10.0], max: [10.0, 6.8, 2.0] },
-    badgeColor: '#EC4899',
+    bounds: { min: [-9.5, 3.8, -8.0], max: [9.5, 8.2, 8.0] },
   },
   {
-    id: 'auren_workshop',
-    name: '⚙️ TALLER DE MANTENIMIENTO DE AUREN',
+    id: 'P1_Auren_Private_Suite',
+    name: 'Suite Residencial de Auren',
     floor: 'P1',
-    bounds: { min: [2.0, 3.4, -4.0], max: [10.0, 6.8, 4.0] },
-    badgeColor: '#8B5CF6',
+    bounds: { min: [8.0, 3.8, -1.0], max: [15.0, 8.2, 10.0] },
   },
   {
-    id: 'master_suite',
-    name: '🏔️ HABITACIÓN PRIVADA ALPINA',
+    id: 'P1_Quantum_Archive_Library',
+    name: 'Biblioteca & Archivo Cuántico',
     floor: 'P1',
-    bounds: { min: [-10.0, 3.4, -10.0], max: [-2.0, 6.8, -4.0] },
-    badgeColor: '#F43F5E',
+    bounds: { min: [8.0, 3.8, -10.0], max: [15.0, 8.2, -1.0] },
   },
   {
-    id: 'underground_laboratory',
-    name: '⚡ LABORATORIO SUBTERRÁNEO & NÚCLEO CUÁNTICO',
+    id: 'P1_Tactical_Balcony',
+    name: 'Balcón Táctico Voladizo de Despegue',
+    floor: 'P1',
+    bounds: { min: [-4.0, 3.8, 8.0], max: [4.0, 7.0, 12.0] },
+  },
+  {
+    id: 'P1_Stair_Landing_West',
+    name: 'Desembarco Superior de Escalera Monumental',
+    floor: 'P1',
+    bounds: { min: [-15.0, 3.8, -1.0], max: [-8.0, 8.2, 4.0] },
+  },
+  {
+    id: 'S1_Core_Vault',
+    name: 'Búnker del Núcleo JarBees 432Hz',
     floor: 'S1',
-    bounds: { min: [-10.0, -3.7, -10.0], max: [10.0, 0.0, 6.0] },
-    badgeColor: '#38BDF8',
+    bounds: { min: [-7.0, -3.8, -8.5], max: [7.0, 0.0, 2.0] },
   },
   {
-    id: 'alpine_rooftops',
-    name: '🦅 AZOTEA ALPINA & VENTANA DE VUELO',
-    floor: 'ROOF',
-    bounds: { min: [-11.0, 6.4, -11.0], max: [11.0, 10.0, 7.0] },
-    badgeColor: '#FBBF24',
+    id: 'S1_Server_Compute_Bay',
+    name: 'Bahía de Servidores e Infraestructura',
+    floor: 'S1',
+    bounds: { min: [7.0, -3.8, -8.5], max: [14.5, 0.0, 2.0] },
+  },
+  {
+    id: 'S1_Exo_Power_Generator',
+    name: 'Baterías Toroidales de Aurelium',
+    floor: 'S1',
+    bounds: { min: [-14.5, -3.8, -8.5], max: [-7.0, 0.0, 2.0] },
+  },
+  {
+    id: 'S1_Stairwell_Access',
+    name: 'Desembarco Escalera de Servicio S1',
+    floor: 'S1',
+    bounds: { min: [-14.5, -3.8, 2.0], max: [-8.5, 0.0, 8.5] },
   },
 ]
 
@@ -120,7 +144,7 @@ export function VillaAurenHub({
 
   const [currentRoom, setCurrentRoom] = useState<RoomBounds>(VILLA_AUREN_ROOMS[0])
 
-  // Refs para animaciones y luces dinámicas
+  // Refs para animaciones y luces dinámicas discretas
   const coreLightRef = useRef<THREE.PointLight>(null)
   const fireplaceLightRef = useRef<THREE.PointLight>(null)
   const daisEmblemRef = useRef<THREE.Mesh>(null)
@@ -144,7 +168,6 @@ export function VillaAurenHub({
   // 2. CICLO USEFRAME: EVALUACIÓN DE HABITACIÓN Y EFECTOS DINÁMICOS
   useFrame((state) => {
     const time = state.clock.getElapsedTime()
-    // Coordenadas relativas a la posición de la villa
     const px = playerPos[0] - position[0]
     const py = playerPos[1] - position[1]
     const pz = playerPos[2] - position[2]
@@ -169,107 +192,60 @@ export function VillaAurenHub({
       setCurrentRoom(found)
     }
 
-    // Pulso cuántico del Núcleo JarBees a 432 Hz en el laboratorio subterráneo
+    // Pulso cuántico del Núcleo JarBees a 432 Hz en el búnker subterráneo
     if (coreLightRef.current) {
-      coreLightRef.current.intensity = 4.0 + Math.sin(time * 4.32) * 1.5
+      coreLightRef.current.intensity = 3.5 + Math.sin(time * 4.32) * 1.2
     }
 
     // Parpadeo cálido de la chimenea en el Gran Salón
     if (fireplaceLightRef.current) {
-      fireplaceLightRef.current.intensity = 3.0 + Math.sin(time * 8.0) * 0.5 + Math.cos(time * 11.0) * 0.3
+      fireplaceLightRef.current.intensity = 2.5 + Math.sin(time * 7.5) * 0.4
     }
 
     // Rotación del emblema JarBees en el Dais de Llegada
     if (daisEmblemRef.current) {
-      daisEmblemRef.current.rotation.z = time * 0.4
+      daisEmblemRef.current.rotation.z = time * 0.35
     }
   })
 
   return (
     <group name="VillaAurenHub" position={position} rotation={rotation}>
-      {/* 1. Malla 3D procedural exportada desde Blender */}
+      {/* 1. Malla 3D procedural exportada desde Blender (Sólida, con descansos y balcones continuos) */}
       {gltf.scene && <primitive object={gltf.scene} />}
 
-      {/* 2. Dais de Salida / Llegada en el Patio Principal [0.0, 0.2, 10.5] */}
-      <group position={[0.0, 0.2, 10.5]} name="VillaAurenArrivalDais">
+      {/* 2. Dais de Salida / Llegada en el Patio Principal [0.0, 0.25, 15.0] */}
+      <group position={[0.0, 0.26, 15.0]} name="VillaAurenArrivalDais">
         {/* Anillo de Aurelium */}
-        <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[1.8, 2.0, 6]} />
-          <meshBasicMaterial color="#FFD700" transparent opacity={0.9} />
+          <meshBasicMaterial color="#FFD700" transparent opacity={0.85} />
         </mesh>
 
         {/* Emblema rotatorio JarBees */}
-        <mesh ref={daisEmblemRef} position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh ref={daisEmblemRef} position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.7, 0.9, 6]} />
-          <meshBasicMaterial color="#55F0FF" transparent opacity={0.9} />
+          <meshBasicMaterial color="#55F0FF" transparent opacity={0.85} />
         </mesh>
-
-        {/* Rótulo AR Holográfico flotante de bienvenida */}
-        <Html position={[0, 2.5, 0]} center distanceFactor={22}>
-          <div
-            style={{
-              padding: '8px 18px',
-              background: 'rgba(10, 16, 26, 0.92)',
-              border: '2px solid rgba(85, 240, 255, 0.85)',
-              borderRadius: '10px',
-              boxShadow: '0 0 25px rgba(85, 240, 255, 0.45)',
-              color: '#F8FAFC',
-              fontFamily: 'monospace',
-              fontSize: '11px',
-              textAlign: 'center',
-              pointerEvents: 'none',
-              whiteSpace: 'nowrap',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-            }}
-          >
-            <div style={{ color: '#55F0FF', fontWeight: 'bold', fontSize: '13px' }}>
-              🏔️ VILLA AUREN · ALPIN RESIDENCE
-            </div>
-            <div style={{ color: '#E2E8F0', marginTop: '2px', fontSize: '10px' }}>
-              HABITACIÓN: <span style={{ color: currentRoom.badgeColor || '#38BDF8', fontWeight: 'bold' }}>{currentRoom.name}</span>
-            </div>
-            <div style={{ color: '#94A3B8', marginTop: '1px', fontSize: '9px' }}>
-              NIVEL: {currentRoom.floor} · PROCEDURAL BLENDER 5.2 (1 BU = 1M)
-            </div>
-          </div>
-        </Html>
       </group>
 
-      {/* 3. Luces dinámicas interiores */}
-      {/* Luz cálida en Chimenea del Gran Salón [-8.2, 1.2, -1.0] */}
+      {/* 3. Luces dinámicas interiores discretas */}
+      {/* Luz cálida en Chimenea del Gran Atrio [0.0, 1.5, -9.0] */}
       <pointLight
         ref={fireplaceLightRef}
-        position={[-8.2, 1.2, -1.0]}
+        position={[0.0, 1.5, -9.0]}
         color="#F59E0B"
-        intensity={3.0}
-        distance={14}
+        intensity={2.8}
+        distance={18}
         castShadow
       />
 
-      {/* Luz cian cuántica en el Núcleo JarBees subterráneo [0.0, -2.1, -7.5] */}
+      {/* Luz cian cuántica en el Núcleo JarBees subterráneo [0.0, -2.0, -3.0] */}
       <pointLight
         ref={coreLightRef}
-        position={[0.0, -2.1, -7.5]}
-        color="#55F0FF"
-        intensity={4.5}
-        distance={18}
-      />
-
-      {/* Luz dorada de recarga en el taller de Auren [6.5, 4.5, 1.0] */}
-      <pointLight
-        position={[6.5, 4.5, 1.0]}
-        color="#FFD700"
-        intensity={2.2}
-        distance={10}
-      />
-
-      {/* Haz vertical de baliza en la galería de vuelo [0.0, 5.0, 0.0] */}
-      <pointLight
-        position={[0.0, 5.0, 0.0]}
-        color="#55F0FF"
-        intensity={2.0}
-        distance={12}
+        position={[0.0, -2.0, -3.0]}
+        color="#00F0FF"
+        intensity={3.5}
+        distance={15}
       />
     </group>
   )

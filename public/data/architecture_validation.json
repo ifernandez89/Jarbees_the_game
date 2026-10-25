@@ -1,0 +1,393 @@
+{
+  "buildingId": "villa_auren_assault_scale",
+  "version": "2.1.0",
+  "status": "PASSED_GEOMETRY_VERIFIED",
+  "criticalFailures": 0,
+  "warnings": 0,
+  "testsPassed": 26,
+  "totalTests": 26,
+  "details": [
+    {
+      "test": "SHARED_BOUNDARY_door_courtyard_to_vestibule",
+      "status": "PASS",
+      "message": "Portal 'door_courtyard_to_vestibule' connects exterior boundary to interior entrance vestibule.",
+      "critical": true
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_vestibule_to_atrium",
+      "status": "PASS",
+      "message": "Door 'door_vestibule_to_atrium' verified on shared wall between PB_Hangar_Portico_Entrance and PB_Grand_Hangar_Atrium at pos [0.0, 6.0].",
+      "critical": true,
+      "data": {
+        "room1": "PB_Hangar_Portico_Entrance",
+        "room2": "PB_Grand_Hangar_Atrium",
+        "doorPos": [
+          0.0,
+          6.0,
+          0.0
+        ],
+        "sharesX": false,
+        "sharesY": true
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_atrium_to_workshop",
+      "status": "PASS",
+      "message": "Door 'door_atrium_to_workshop' verified on shared wall between PB_Grand_Hangar_Atrium and PB_Nexo_Armor_Workshop at pos [7.5, 2.0].",
+      "critical": true,
+      "data": {
+        "room1": "PB_Grand_Hangar_Atrium",
+        "room2": "PB_Nexo_Armor_Workshop",
+        "doorPos": [
+          7.5,
+          2.0,
+          0.0
+        ],
+        "sharesX": true,
+        "sharesY": false
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_workshop_to_briefing",
+      "status": "PASS",
+      "message": "Door 'door_workshop_to_briefing' verified on shared wall between PB_Nexo_Armor_Workshop and PB_Tactical_Briefing_Room at pos [11.0, -2.0].",
+      "critical": true,
+      "data": {
+        "room1": "PB_Nexo_Armor_Workshop",
+        "room2": "PB_Tactical_Briefing_Room",
+        "doorPos": [
+          11.0,
+          -2.0,
+          0.0
+        ],
+        "sharesX": false,
+        "sharesY": true
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_atrium_to_briefing",
+      "status": "PASS",
+      "message": "Door 'door_atrium_to_briefing' verified on shared wall between PB_Grand_Hangar_Atrium and PB_Tactical_Briefing_Room at pos [7.5, -4.0].",
+      "critical": true,
+      "data": {
+        "room1": "PB_Grand_Hangar_Atrium",
+        "room2": "PB_Tactical_Briefing_Room",
+        "doorPos": [
+          7.5,
+          -4.0,
+          0.0
+        ],
+        "sharesX": true,
+        "sharesY": false
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_atrium_to_stairwell",
+      "status": "PASS",
+      "message": "Door 'door_atrium_to_stairwell' verified on shared wall between PB_Grand_Hangar_Atrium and PB_Main_Stairwell_Hall at pos [-7.5, -2.5].",
+      "critical": true,
+      "data": {
+        "room1": "PB_Grand_Hangar_Atrium",
+        "room2": "PB_Main_Stairwell_Hall",
+        "doorPos": [
+          -7.5,
+          -2.5,
+          0.0
+        ],
+        "sharesX": true,
+        "sharesY": false
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_atrium_to_service_stair",
+      "status": "PASS",
+      "message": "Door 'door_atrium_to_service_stair' verified on shared wall between PB_Grand_Hangar_Atrium and PB_Service_Stairwell_S1 at pos [-7.5, 3.5].",
+      "critical": true,
+      "data": {
+        "room1": "PB_Grand_Hangar_Atrium",
+        "room2": "PB_Service_Stairwell_S1",
+        "doorPos": [
+          -7.5,
+          3.5,
+          0.0
+        ],
+        "sharesX": true,
+        "sharesY": false
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_stairwell_to_kitchen",
+      "status": "PASS",
+      "message": "Door 'door_stairwell_to_kitchen' verified on shared wall between PB_Main_Stairwell_Hall and PB_Kitchen_Refectory at pos [-11.0, -6.0].",
+      "critical": true,
+      "data": {
+        "room1": "PB_Main_Stairwell_Hall",
+        "room2": "PB_Kitchen_Refectory",
+        "doorPos": [
+          -11.0,
+          -6.0,
+          0.0
+        ],
+        "sharesX": false,
+        "sharesY": true
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_s1_stair_to_vault",
+      "status": "PASS",
+      "message": "Door 'door_s1_stair_to_vault' verified on shared wall between S1_Stairwell_Access and S1_Core_Vault at pos [-7.0, 1.0].",
+      "critical": true,
+      "data": {
+        "room1": "S1_Stairwell_Access",
+        "room2": "S1_Core_Vault",
+        "doorPos": [
+          -7.0,
+          1.0,
+          -3.6
+        ],
+        "sharesX": true,
+        "sharesY": false
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_s1_vault_to_servers",
+      "status": "PASS",
+      "message": "Door 'door_s1_vault_to_servers' verified on shared wall between S1_Core_Vault and S1_Server_Compute_Bay at pos [7.0, -3.0].",
+      "critical": true,
+      "data": {
+        "room1": "S1_Core_Vault",
+        "room2": "S1_Server_Compute_Bay",
+        "doorPos": [
+          7.0,
+          -3.0,
+          -3.6
+        ],
+        "sharesX": true,
+        "sharesY": false
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_s1_vault_to_power",
+      "status": "PASS",
+      "message": "Door 'door_s1_vault_to_power' verified on shared wall between S1_Core_Vault and S1_Exo_Power_Generator at pos [-7.0, -4.0].",
+      "critical": true,
+      "data": {
+        "room1": "S1_Core_Vault",
+        "room2": "S1_Exo_Power_Generator",
+        "doorPos": [
+          -7.0,
+          -4.0,
+          -3.6
+        ],
+        "sharesX": true,
+        "sharesY": false
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_p1_landing_to_catwalk",
+      "status": "PASS",
+      "message": "Door 'door_p1_landing_to_catwalk' verified on shared wall between P1_Stair_Landing_West and P1_Catwalk_West at pos [-9.5, 1.5].",
+      "critical": true,
+      "data": {
+        "room1": "P1_Stair_Landing_West",
+        "room2": "P1_Catwalk_West",
+        "doorPos": [
+          -9.5,
+          1.5,
+          4.0
+        ],
+        "sharesX": true,
+        "sharesY": false
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_p1_catwalk_w_to_s",
+      "status": "PASS",
+      "message": "Door 'door_p1_catwalk_w_to_s' verified on shared wall between P1_Catwalk_West and P1_Catwalk_South at pos [-8.5, 5.5].",
+      "critical": true,
+      "data": {
+        "room1": "P1_Catwalk_West",
+        "room2": "P1_Catwalk_South",
+        "doorPos": [
+          -8.5,
+          5.5,
+          4.0
+        ],
+        "sharesX": false,
+        "sharesY": true
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_p1_catwalk_w_to_n",
+      "status": "PASS",
+      "message": "Door 'door_p1_catwalk_w_to_n' verified on shared wall between P1_Catwalk_West and P1_Catwalk_North at pos [-8.5, -5.5].",
+      "critical": true,
+      "data": {
+        "room1": "P1_Catwalk_West",
+        "room2": "P1_Catwalk_North",
+        "doorPos": [
+          -8.5,
+          -5.5,
+          4.0
+        ],
+        "sharesX": false,
+        "sharesY": true
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_p1_catwalk_e_to_s",
+      "status": "PASS",
+      "message": "Door 'door_p1_catwalk_e_to_s' verified on shared wall between P1_Catwalk_East and P1_Catwalk_South at pos [8.5, 5.5].",
+      "critical": true,
+      "data": {
+        "room1": "P1_Catwalk_East",
+        "room2": "P1_Catwalk_South",
+        "doorPos": [
+          8.5,
+          5.5,
+          4.0
+        ],
+        "sharesX": false,
+        "sharesY": true
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_p1_catwalk_e_to_n",
+      "status": "PASS",
+      "message": "Door 'door_p1_catwalk_e_to_n' verified on shared wall between P1_Catwalk_East and P1_Catwalk_North at pos [8.5, -5.5].",
+      "critical": true,
+      "data": {
+        "room1": "P1_Catwalk_East",
+        "room2": "P1_Catwalk_North",
+        "doorPos": [
+          8.5,
+          -5.5,
+          4.0
+        ],
+        "sharesX": false,
+        "sharesY": true
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_p1_catwalk_to_suite",
+      "status": "PASS",
+      "message": "Door 'door_p1_catwalk_to_suite' verified on shared wall between P1_Catwalk_East and P1_Auren_Private_Suite at pos [9.5, 3.5].",
+      "critical": true,
+      "data": {
+        "room1": "P1_Catwalk_East",
+        "room2": "P1_Auren_Private_Suite",
+        "doorPos": [
+          9.5,
+          3.5,
+          4.0
+        ],
+        "sharesX": true,
+        "sharesY": false
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_p1_catwalk_to_archive",
+      "status": "PASS",
+      "message": "Door 'door_p1_catwalk_to_archive' verified on shared wall between P1_Catwalk_East and P1_Quantum_Archive_Library at pos [9.5, -5.0].",
+      "critical": true,
+      "data": {
+        "room1": "P1_Catwalk_East",
+        "room2": "P1_Quantum_Archive_Library",
+        "doorPos": [
+          9.5,
+          -5.0,
+          4.0
+        ],
+        "sharesX": true,
+        "sharesY": false
+      }
+    },
+    {
+      "test": "SHARED_BOUNDARY_door_p1_catwalk_to_balcony",
+      "status": "PASS",
+      "message": "Door 'door_p1_catwalk_to_balcony' verified on shared wall between P1_Catwalk_South and P1_Tactical_Balcony at pos [0.0, 7.5].",
+      "critical": true,
+      "data": {
+        "room1": "P1_Catwalk_South",
+        "room2": "P1_Tactical_Balcony",
+        "doorPos": [
+          0.0,
+          7.5,
+          4.0
+        ],
+        "sharesX": false,
+        "sharesY": true
+      }
+    },
+    {
+      "test": "STAIR_MATH_PRECISION_stair_s1_to_pb",
+      "status": "PASS",
+      "message": "Stair 'stair_s1_to_pb' exact: 18 steps * 0.278m tread = 5.00m (span 5.00m), 18 steps * 0.200m riser = 3.60m (span 3.60m).",
+      "critical": true,
+      "data": {
+        "count": 18,
+        "tread": 0.278,
+        "riser": 0.2,
+        "actualRun": 5.0,
+        "actualRise": 3.6
+      }
+    },
+    {
+      "test": "STAIR_MATH_PRECISION_stair_pb_to_p1",
+      "status": "PASS",
+      "message": "Stair 'stair_pb_to_p1' exact: 20 steps * 0.300m tread = 6.00m (span 6.00m), 20 steps * 0.200m riser = 4.00m (span 4.00m).",
+      "critical": true,
+      "data": {
+        "count": 20,
+        "tread": 0.3,
+        "riser": 0.2,
+        "actualRun": 6.0,
+        "actualRise": 4.0
+      }
+    },
+    {
+      "test": "CATWALK_RING_SEGMENTATION",
+      "status": "PASS",
+      "message": "P1 Catwalk is explicitly decomposed into 4 perimeter ring corridors (North, South, East, West).",
+      "critical": true
+    },
+    {
+      "test": "ATRIUM_CENTRAL_OPEN_VOID",
+      "status": "PASS",
+      "message": "Grand Atrium void (15m x 11m) explicitly reserved with 0 floor collision in center of P1.",
+      "critical": true
+    },
+    {
+      "test": "BALCONY_ZERO_GAP_TRANSITION",
+      "status": "PASS",
+      "message": "Balcony floor slab abuts South Catwalk at Y=7.5m with 0.00m gap. Seamless walkthrough guaranteed!",
+      "critical": true,
+      "data": {
+        "catwalkMaxY": 7.5,
+        "balconyMinY": 7.5,
+        "gap": 0.0
+      }
+    },
+    {
+      "test": "ROOF_SLOPE_HEADROOM",
+      "status": "PASS",
+      "message": "Lowest roof clearance on P1 is 2.87m (in P1_Auren_Private_Suite under eaves). Minimum required 2.20m, Auren height 1.85m.",
+      "critical": true,
+      "data": {
+        "minHeadroom": 2.866666666666667,
+        "criticalRoom": "P1_Auren_Private_Suite",
+        "aurenHeight": 1.85
+      }
+    },
+    {
+      "test": "FULL_TOPOLOGY_WALKABILITY",
+      "status": "PASS",
+      "message": "Auren can navigate seamlessly to 100% of rooms (19 spaces across S1, PB, P1, and Balcony).",
+      "critical": true,
+      "data": {
+        "reachable": 20,
+        "unvisited": []
+      }
+    }
+  ]
+}

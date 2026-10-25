@@ -1,0 +1,493 @@
+{
+  "$schema": "./schema/building_plan.schema.json",
+  "buildingId": "villa_auren_assault_scale",
+  "version": "2.1.0",
+  "name": "Villa Auren · Grand Alpine Hangar (Assault Scale)",
+  "description": "Architecturally validated, brush-based tactical residence inspired by CS 1.6 Assault warehouse scale and Château aesthetics. Single source of truth with verified shared boundaries, continuous catwalk ring, and zero-gap transitions.",
+  "author": "Auren WorldLab & JarBees Engineering",
+  "unit": "meter",
+  "dimensions": {
+    "site": {
+      "widthX": 48.0,
+      "depthY": 42.0
+    },
+    "building": {
+      "widthX": 30.0,
+      "depthY": 20.0,
+      "heightZ": 8.8
+    },
+    "character": {
+      "name": "Auren (NEXO-01 Suit)",
+      "height": 1.85,
+      "radius": 0.4,
+      "stepMaxClimb": 0.25,
+      "jumpClearance": 2.2
+    }
+  },
+  "siteExterior": {
+    "courtyard": {
+      "centerX": 0.0,
+      "centerY": 14.0,
+      "widthX": 26.0,
+      "depthY": 12.0,
+      "material": "pbr_stone_pavers"
+    },
+    "arrivalDais": {
+      "centerX": 0.0,
+      "centerY": 15.0,
+      "elevation": 0.25,
+      "radius": 3.0,
+      "material": "pbr_aurelium_gold_trim"
+    }
+  },
+  "levels": [
+    {
+      "id": "S1",
+      "name": "Subsuelo · Laboratorio Cuántico NEXO",
+      "elevation": -3.6,
+      "ceilingHeight": 3.3,
+      "slabThickness": 0.3,
+      "rooms": [
+        {
+          "id": "S1_Core_Vault",
+          "name": "Cámara del Núcleo JarBees 432Hz",
+          "bounds": { "minX": -7.0, "maxX": 7.0, "minY": -8.0, "maxY": 2.0 },
+          "floorMaterial": "pbr_polished_concrete",
+          "wallMaterial": "pbr_heavy_bunker_stone",
+          "isPrimarySpawn": false,
+          "features": ["quantum_core_pedestal", "ambient_cyan_pulse"]
+        },
+        {
+          "id": "S1_Server_Compute_Bay",
+          "name": "Bahía de Servidores e IA",
+          "bounds": { "minX": 7.0, "maxX": 14.0, "minY": -8.0, "maxY": 2.0 },
+          "floorMaterial": "pbr_server_tiles",
+          "wallMaterial": "pbr_heavy_bunker_stone",
+          "features": ["quantum_server_racks", "cooling_channels"]
+        },
+        {
+          "id": "S1_Exo_Power_Generator",
+          "name": "Baterías Toroidales de Aurelium",
+          "bounds": { "minX": -14.0, "maxX": -7.0, "minY": -8.0, "maxY": 0.0 },
+          "floorMaterial": "pbr_server_tiles",
+          "wallMaterial": "pbr_heavy_bunker_stone",
+          "features": ["aurelium_power_coils"]
+        },
+        {
+          "id": "S1_Stairwell_Access",
+          "name": "Desembarco y Acceso Escalera S1",
+          "bounds": { "minX": -14.0, "maxX": -7.0, "minY": 0.0, "maxY": 8.5 },
+          "floorMaterial": "pbr_polished_concrete",
+          "wallMaterial": "pbr_heavy_bunker_stone",
+          "features": ["reinforced_blast_doorway"]
+        }
+      ],
+      "stairs": [
+        {
+          "id": "stair_s1_to_pb",
+          "name": "Escalera Técnica S1 -> PB",
+          "startLevel": "S1",
+          "endLevel": "PB",
+          "startPos": [-11.0, 7.5, -3.6],
+          "endPos": [-11.0, 2.5, 0.0],
+          "width": 1.4,
+          "stepCount": 18,
+          "riserHeight": 0.20,
+          "treadDepth": 0.278,
+          "hasHandrails": true,
+          "requiredHeadroom": 2.30
+        }
+      ],
+      "slabVoids": []
+    },
+    {
+      "id": "PB",
+      "name": "Planta Baja · Gran Hangar & Residencia Alpina",
+      "elevation": 0.0,
+      "ceilingHeight": 4.0,
+      "slabThickness": 0.3,
+      "rooms": [
+        {
+          "id": "PB_Grand_Hangar_Atrium",
+          "name": "Gran Atrio Central (Escala Assault)",
+          "bounds": { "minX": -7.5, "maxX": 7.5, "minY": -6.0, "maxY": 6.0 },
+          "isDoubleHeight": true,
+          "doubleHeightClearance": 7.8,
+          "floorMaterial": "pbr_alpine_stone_flags",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "features": ["monumental_fireplace_north", "timber_steel_trusses_overhead"]
+        },
+        {
+          "id": "PB_Hangar_Portico_Entrance",
+          "name": "Vestíbulo y Portón de Acceso Frontal",
+          "bounds": { "minX": -4.0, "maxX": 4.0, "minY": 6.0, "maxY": 9.5 },
+          "floorMaterial": "pbr_stone_pavers",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "isPrimarySpawn": true,
+          "features": ["double_wide_hangar_portal", "tactical_airlock"]
+        },
+        {
+          "id": "PB_Nexo_Armor_Workshop",
+          "name": "Taller Mecánico & Armería NEXO-01",
+          "bounds": { "minX": 7.5, "maxX": 14.5, "minY": -2.0, "maxY": 8.0 },
+          "floorMaterial": "pbr_heavy_timber_planks",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "features": ["exo_docking_clamps", "tool_benches", "reinforced_side_door"]
+        },
+        {
+          "id": "PB_Tactical_Briefing_Room",
+          "name": "Sala Táctica y Monitoreo Biomas",
+          "bounds": { "minX": 7.5, "maxX": 14.5, "minY": -9.5, "maxY": -2.0 },
+          "floorMaterial": "pbr_heavy_timber_planks",
+          "wallMaterial": "pbr_wood_paneling",
+          "features": ["tactical_holotank_table", "communications_array"]
+        },
+        {
+          "id": "PB_Main_Stairwell_Hall",
+          "name": "Caja de Escalera Monumental a Mezzanine",
+          "bounds": { "minX": -14.5, "maxX": -7.5, "minY": -6.0, "maxY": 1.0 },
+          "floorMaterial": "pbr_alpine_stone_flags",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "features": ["granite_steps", "ornate_wrought_iron_railings"]
+        },
+        {
+          "id": "PB_Service_Stairwell_S1",
+          "name": "Acceso de Servicio al Lab Subterráneo",
+          "bounds": { "minX": -14.5, "maxX": -7.5, "minY": 1.0, "maxY": 8.5 },
+          "floorMaterial": "pbr_alpine_stone_flags",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "features": ["reinforced_vault_door"]
+        },
+        {
+          "id": "PB_Kitchen_Refectory",
+          "name": "Comedor & Cocina Alpina",
+          "bounds": { "minX": -14.5, "maxX": -7.5, "minY": -9.5, "maxY": -6.0 },
+          "floorMaterial": "pbr_rustic_ceramic_tiles",
+          "wallMaterial": "pbr_wood_paneling",
+          "features": ["timber_dining_table", "hearth_counter"]
+        }
+      ],
+      "stairs": [
+        {
+          "id": "stair_pb_to_p1",
+          "name": "Escalera Monumental PB -> P1 Catwalk",
+          "startLevel": "PB",
+          "endLevel": "P1",
+          "startPos": [-11.5, -5.5, 0.0],
+          "endPos": [-11.5, 0.5, 4.0],
+          "width": 1.5,
+          "stepCount": 20,
+          "riserHeight": 0.20,
+          "treadDepth": 0.30,
+          "hasHandrails": true,
+          "requiredHeadroom": 2.40
+        }
+      ],
+      "slabVoids": [
+        {
+          "id": "void_pb_slab_service_stair",
+          "name": "Hueco en Losa PB para Escalera a S1",
+          "bounds": { "minX": -12.5, "maxX": -9.5, "minY": 2.0, "maxY": 8.0 },
+          "reason": "Permite tránsito continuo y despeje vertical hacia el subsuelo S1 sin colisión de forjado"
+        }
+      ]
+    },
+    {
+      "id": "P1",
+      "name": "Planta Alta · Catwalks Perimetrales & Suite Auren",
+      "elevation": 4.0,
+      "ceilingHeight": 3.8,
+      "slabThickness": 0.3,
+      "rooms": [
+        {
+          "id": "P1_Catwalk_South",
+          "name": "Pasarela Catwalk Sur (Conexión Balcón)",
+          "bounds": { "minX": -9.5, "maxX": 9.5, "minY": 5.5, "maxY": 7.5 },
+          "floorMaterial": "pbr_steel_mesh_timber_walkway",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "isMezzanineGallery": true,
+          "features": ["steel_industrial_guardrail_1.1m", "overlook_to_grand_atrium"]
+        },
+        {
+          "id": "P1_Catwalk_North",
+          "name": "Pasarela Catwalk Norte (Mirador Chimenea)",
+          "bounds": { "minX": -9.5, "maxX": 9.5, "minY": -7.5, "maxY": -5.5 },
+          "floorMaterial": "pbr_steel_mesh_timber_walkway",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "isMezzanineGallery": true,
+          "features": ["steel_industrial_guardrail_1.1m"]
+        },
+        {
+          "id": "P1_Catwalk_West",
+          "name": "Pasarela Catwalk Oeste (Conexión Escalera)",
+          "bounds": { "minX": -9.5, "maxX": -7.5, "minY": -5.5, "maxY": 5.5 },
+          "floorMaterial": "pbr_steel_mesh_timber_walkway",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "isMezzanineGallery": true,
+          "features": ["steel_industrial_guardrail_1.1m"]
+        },
+        {
+          "id": "P1_Catwalk_East",
+          "name": "Pasarela Catwalk Este (Conexión Suite/Archivo)",
+          "bounds": { "minX": 7.5, "maxX": 9.5, "minY": -5.5, "maxY": 5.5 },
+          "floorMaterial": "pbr_steel_mesh_timber_walkway",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "isMezzanineGallery": true,
+          "features": ["steel_industrial_guardrail_1.1m"]
+        },
+        {
+          "id": "P1_Auren_Private_Suite",
+          "name": "Suite Residencial de Auren",
+          "bounds": { "minX": 9.5, "maxX": 14.5, "minY": -1.0, "maxY": 8.0 },
+          "floorMaterial": "pbr_heavy_timber_planks",
+          "wallMaterial": "pbr_chateau_plaster_wood",
+          "features": ["auren_stasis_bed", "panoramic_glass_wall"]
+        },
+        {
+          "id": "P1_Quantum_Archive_Library",
+          "name": "Biblioteca & Archivo JarBees",
+          "bounds": { "minX": 9.5, "maxX": 14.5, "minY": -9.5, "maxY": -1.0 },
+          "floorMaterial": "pbr_heavy_timber_planks",
+          "wallMaterial": "pbr_oak_bookshelves",
+          "features": ["manuscript_lecterns", "holographic_terminal"]
+        },
+        {
+          "id": "P1_Tactical_Balcony",
+          "name": "Balcón Táctico Voladizo de Despegue",
+          "bounds": { "minX": -4.0, "maxX": 4.0, "minY": 7.5, "maxY": 11.5 },
+          "floorMaterial": "pbr_stone_pavers",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "features": ["cantilevered_stone_corbels", "launch_balustrade", "infinite_world_view"]
+        },
+        {
+          "id": "P1_Stair_Landing_West",
+          "name": "Desembarco Superior de Escalera Monumental",
+          "bounds": { "minX": -14.5, "maxX": -9.5, "minY": -1.0, "maxY": 4.0 },
+          "floorMaterial": "pbr_heavy_timber_planks",
+          "wallMaterial": "pbr_carved_chateau_stone",
+          "features": ["direct_connection_to_catwalk"]
+        }
+      ],
+      "stairs": [],
+      "slabVoids": [
+        {
+          "id": "void_p1_slab_grand_atrium",
+          "name": "Gran Vano Central Doble Altura (Atrio Assault)",
+          "bounds": { "minX": -7.5, "maxX": 7.5, "minY": -5.5, "maxY": 5.5 },
+          "reason": "Apertura monumental de 15m x 11m sobre el Gran Hangar para vuelo, visibilidad táctica y luz cenital"
+        },
+        {
+          "id": "void_p1_slab_main_stairwell",
+          "name": "Hueco en Losa P1 para Escalera Monumental",
+          "bounds": { "minX": -13.0, "maxX": -10.0, "minY": -6.0, "maxY": 1.0 },
+          "reason": "Garantiza un despeje vertical mínimo de 2.40m sobre cada uno de los 20 peldaños ascendentes"
+        }
+      ]
+    }
+  ],
+  "openings": [
+    {
+      "id": "door_courtyard_to_vestibule",
+      "name": "Portón Principal Frontal de Hangar",
+      "level": "PB",
+      "type": "hangar_portal",
+      "position": [0.0, 9.5, 0.0],
+      "width": 3.6,
+      "height": 3.2,
+      "connects": ["EXT_Courtyard", "PB_Hangar_Portico_Entrance"]
+    },
+    {
+      "id": "door_vestibule_to_atrium",
+      "name": "Acceso Vestíbulo a Gran Atrio",
+      "level": "PB",
+      "type": "double_door",
+      "position": [0.0, 6.0, 0.0],
+      "width": 2.2,
+      "height": 2.6,
+      "connects": ["PB_Hangar_Portico_Entrance", "PB_Grand_Hangar_Atrium"]
+    },
+    {
+      "id": "door_atrium_to_workshop",
+      "name": "Puerta Corrediza Reforzada a Taller NEXO",
+      "level": "PB",
+      "type": "heavy_sliding_door",
+      "position": [7.5, 2.0, 0.0],
+      "width": 2.0,
+      "height": 2.5,
+      "connects": ["PB_Grand_Hangar_Atrium", "PB_Nexo_Armor_Workshop"]
+    },
+    {
+      "id": "door_workshop_to_briefing",
+      "name": "Paso Taller a Sala Táctica",
+      "level": "PB",
+      "type": "single_door",
+      "position": [11.0, -2.0, 0.0],
+      "width": 1.2,
+      "height": 2.3,
+      "connects": ["PB_Nexo_Armor_Workshop", "PB_Tactical_Briefing_Room"]
+    },
+    {
+      "id": "door_atrium_to_briefing",
+      "name": "Acceso Gran Atrio a Sala Táctica",
+      "level": "PB",
+      "type": "single_door",
+      "position": [7.5, -4.0, 0.0],
+      "width": 1.3,
+      "height": 2.4,
+      "connects": ["PB_Grand_Hangar_Atrium", "PB_Tactical_Briefing_Room"]
+    },
+    {
+      "id": "door_atrium_to_stairwell",
+      "name": "Arco Abierto Gran Atrio a Escalera Monumental",
+      "level": "PB",
+      "type": "open_archway",
+      "position": [-7.5, -2.5, 0.0],
+      "width": 2.0,
+      "height": 3.0,
+      "connects": ["PB_Grand_Hangar_Atrium", "PB_Main_Stairwell_Hall"]
+    },
+    {
+      "id": "door_atrium_to_service_stair",
+      "name": "Puerta Acorazada a Escalera Subsuelo S1",
+      "level": "PB",
+      "type": "vault_door",
+      "position": [-7.5, 3.5, 0.0],
+      "width": 1.3,
+      "height": 2.3,
+      "connects": ["PB_Grand_Hangar_Atrium", "PB_Service_Stairwell_S1"]
+    },
+    {
+      "id": "door_stairwell_to_kitchen",
+      "name": "Paso a Comedor y Cocina Alpina",
+      "level": "PB",
+      "type": "single_door",
+      "position": [-11.0, -6.0, 0.0],
+      "width": 1.2,
+      "height": 2.3,
+      "connects": ["PB_Main_Stairwell_Hall", "PB_Kitchen_Refectory"]
+    },
+    {
+      "id": "door_s1_stair_to_vault",
+      "name": "Portón Acorazado S1 a Búnker del Núcleo",
+      "level": "S1",
+      "type": "reinforced_vault",
+      "position": [-7.0, 1.0, -3.6],
+      "width": 1.4,
+      "height": 2.3,
+      "connects": ["S1_Stairwell_Access", "S1_Core_Vault"]
+    },
+    {
+      "id": "door_s1_vault_to_servers",
+      "name": "Paso de Búnker a Servidores",
+      "level": "S1",
+      "type": "data_portal",
+      "position": [7.0, -3.0, -3.6],
+      "width": 1.3,
+      "height": 2.3,
+      "connects": ["S1_Core_Vault", "S1_Server_Compute_Bay"]
+    },
+    {
+      "id": "door_s1_vault_to_power",
+      "name": "Paso de Búnker a Baterías Aurelium",
+      "level": "S1",
+      "type": "power_portal",
+      "position": [-7.0, -4.0, -3.6],
+      "width": 1.3,
+      "height": 2.3,
+      "connects": ["S1_Core_Vault", "S1_Exo_Power_Generator"]
+    },
+    {
+      "id": "door_p1_landing_to_catwalk",
+      "name": "Conexión Desembarco P1 a Pasarela Catwalk Oeste",
+      "level": "P1",
+      "type": "open_gallery",
+      "position": [-9.5, 1.5, 4.0],
+      "width": 1.8,
+      "height": 2.8,
+      "connects": ["P1_Stair_Landing_West", "P1_Catwalk_West"]
+    },
+    {
+      "id": "door_p1_catwalk_w_to_s",
+      "name": "Enlace Pasarela Oeste a Pasarela Sur",
+      "level": "P1",
+      "type": "open_corner",
+      "position": [-8.5, 5.5, 4.0],
+      "width": 2.0,
+      "height": 3.0,
+      "connects": ["P1_Catwalk_West", "P1_Catwalk_South"]
+    },
+    {
+      "id": "door_p1_catwalk_w_to_n",
+      "name": "Enlace Pasarela Oeste a Pasarela Norte",
+      "level": "P1",
+      "type": "open_corner",
+      "position": [-8.5, -5.5, 4.0],
+      "width": 2.0,
+      "height": 3.0,
+      "connects": ["P1_Catwalk_West", "P1_Catwalk_North"]
+    },
+    {
+      "id": "door_p1_catwalk_e_to_s",
+      "name": "Enlace Pasarela Este a Pasarela Sur",
+      "level": "P1",
+      "type": "open_corner",
+      "position": [8.5, 5.5, 4.0],
+      "width": 2.0,
+      "height": 3.0,
+      "connects": ["P1_Catwalk_East", "P1_Catwalk_South"]
+    },
+    {
+      "id": "door_p1_catwalk_e_to_n",
+      "name": "Enlace Pasarela Este a Pasarela Norte",
+      "level": "P1",
+      "type": "open_corner",
+      "position": [8.5, -5.5, 4.0],
+      "width": 2.0,
+      "height": 3.0,
+      "connects": ["P1_Catwalk_East", "P1_Catwalk_North"]
+    },
+    {
+      "id": "door_p1_catwalk_to_suite",
+      "name": "Puerta de Suite Privada Auren",
+      "level": "P1",
+      "type": "timber_door",
+      "position": [9.5, 3.5, 4.0],
+      "width": 1.2,
+      "height": 2.3,
+      "connects": ["P1_Catwalk_East", "P1_Auren_Private_Suite"]
+    },
+    {
+      "id": "door_p1_catwalk_to_archive",
+      "name": "Puerta a Biblioteca Cuántica",
+      "level": "P1",
+      "type": "timber_door",
+      "position": [9.5, -5.0, 4.0],
+      "width": 1.2,
+      "height": 2.3,
+      "connects": ["P1_Catwalk_East", "P1_Quantum_Archive_Library"]
+    },
+    {
+      "id": "door_p1_catwalk_to_balcony",
+      "name": "Ventanales Franceses a Balcón Táctico",
+      "level": "P1",
+      "type": "french_double_doors",
+      "position": [0.0, 7.5, 4.0],
+      "width": 2.4,
+      "height": 2.6,
+      "connects": ["P1_Catwalk_South", "P1_Tactical_Balcony"]
+    }
+  ],
+  "roofSystem": {
+    "type": "alpine_gable_with_industrial_trusses",
+    "ridgeElevation": 8.8,
+    "eavesElevation": 6.8,
+    "formula": "Z_roof(x) = 8.8 - (2.0 / 15.0) * abs(x)",
+    "ejectionVentHatch": {
+      "centerX": 0.0,
+      "centerY": 0.0,
+      "widthX": 4.0,
+      "depthY": 4.0,
+      "description": "Claraboya motorizada superior inspirada en los ductos de techo de Assault para despegue vertical a velocidad Mach hacia los biomas"
+    }
+  }
+}

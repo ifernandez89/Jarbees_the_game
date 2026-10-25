@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900">
+<defs>
+<pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+<path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1f2937" stroke-width="0.8" />
+</pattern>
+<style>
+
+        text { font-family: 'Consolas', 'Segoe UI', monospace; }
+        .title { fill: #00f0ff; font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+        .subtitle { fill: #94a3b8; font-size: 13px; }
+        .room-label { fill: #ffffff; font-size: 12px; font-weight: bold; text-anchor: middle; }
+        .dim-label { fill: #38bdf8; font-size: 10px; text-anchor: middle; }
+        .stair-label { fill: #fbbf24; font-size: 11px; font-weight: bold; }
+        .void-label { fill: #f43f5e; font-size: 11px; font-weight: bold; }
+    
+</style>
+</defs>
+<rect width="1200" height="900" fill="#0b0f19" />
+<rect width="1200" height="900" fill="url(#grid)" />
+<text x="50" y="45" class="title">VILLA AUREN — SUBSUELO · LABORATORIO CUÁNTICO NEXO (Elev: -3.6m)</text>
+<text x="50" y="68" class="subtitle">Escala Galpón CS Assault · Altura Libre Techo: 3.3m · Fuente: villa_auren.plan.json</text>
+<rect x="195.625" y="265.0" width="693.75" height="462.5" fill="none" stroke="#334155" stroke-dasharray="6,4" stroke-width="1.5" />
+<text x="205.625" y="257.0" fill="#64748b" font-size="10">LÍMITE PERIMETRAL EDIFICIO (30.0m × 20.0m)</text>
+<rect x="380.625" y="450.0" width="323.75" height="231.25" fill="#042f2e" stroke="#14b8a6" stroke-width="2.5" />
+<text x="542.5" y="557.625" class="room-label">Cámara del Núcleo JarBees 432Hz</text>
+<text x="542.5" y="577.625" class="dim-label">14.0m × 10.0m</text>
+<rect x="704.375" y="450.0" width="161.875" height="231.25" fill="#131b2e" stroke="#0284c7" stroke-width="2.5" />
+<text x="785.3125" y="557.625" class="room-label">Bahía de Servidores e IA</text>
+<text x="785.3125" y="577.625" class="dim-label">7.0m × 10.0m</text>
+<rect x="218.75" y="496.25" width="161.875" height="185.0" fill="#131b2e" stroke="#0284c7" stroke-width="2.5" />
+<text x="299.6875" y="580.75" class="room-label">Baterías Toroidales de Aurelium</text>
+<text x="299.6875" y="600.75" class="dim-label">7.0m × 8.0m</text>
+<rect x="218.75" y="299.6875" width="161.875" height="196.5625" fill="#131b2e" stroke="#0284c7" stroke-width="2.5" />
+<text x="299.6875" y="389.96875" class="room-label">Desembarco y Acceso Escalera S1</text>
+<text x="299.6875" y="409.96875" class="dim-label">7.0m × 8.5m</text>
+<rect x="271.9375" y="322.8125" width="32.375" height="115.625" fill="#78350f" fill-opacity="0.4" stroke="#f59e0b" stroke-width="2" />
+<line x1="271.9375" y1="329.2361111111111" x2="304.3125" y2="329.2361111111111" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="335.65972222222223" x2="304.3125" y2="335.65972222222223" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="342.0833333333333" x2="304.3125" y2="342.0833333333333" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="348.50694444444446" x2="304.3125" y2="348.50694444444446" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="354.93055555555554" x2="304.3125" y2="354.93055555555554" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="361.3541666666667" x2="304.3125" y2="361.3541666666667" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="367.77777777777777" x2="304.3125" y2="367.77777777777777" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="374.2013888888889" x2="304.3125" y2="374.2013888888889" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="380.625" x2="304.3125" y2="380.625" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="387.0486111111111" x2="304.3125" y2="387.0486111111111" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="393.47222222222223" x2="304.3125" y2="393.47222222222223" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="399.8958333333333" x2="304.3125" y2="399.8958333333333" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="406.31944444444446" x2="304.3125" y2="406.31944444444446" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="412.74305555555554" x2="304.3125" y2="412.74305555555554" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="419.16666666666663" x2="304.3125" y2="419.16666666666663" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="425.59027777777777" x2="304.3125" y2="425.59027777777777" stroke="#fbbf24" stroke-width="1" />
+<line x1="271.9375" y1="432.0138888888889" x2="304.3125" y2="432.0138888888889" stroke="#fbbf24" stroke-width="1" />
+<text x="288.125" y="380.625" class="stair-label" text-anchor="middle">SUBE -> PB</text>
+<rect x="364.4375" y="469.125" width="32.375" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="380.625" y="465.125" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Portón Acorazado S1 a Búnker del Núcleo</text>
+<rect x="689.34375" y="561.625" width="30.0625" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="704.375" y="557.625" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Paso de Búnker a Servidores</text>
+<rect x="365.59375" y="584.75" width="30.0625" height="8" rx="3" fill="#22c55e" stroke="#16a34a" stroke-width="1.5" />
+<text x="380.625" y="580.75" fill="#86efac" font-size="9" font-weight="bold" text-anchor="middle">Paso de Búnker a Baterías Aurelium</text>
+<g transform="translate(1120, 80)">
+<polygon points="0,-25 10,15 0,8 -10,15" fill="#ef4444" stroke="#ffffff" stroke-width="1" />
+<text x="0" y="-32" fill="#ef4444" font-size="12" font-weight="bold" text-anchor="middle">N</text>
+</g>
+<g transform="translate(980, 860)">
+<rect x="0" y="0" width="115.625" height="6" fill="#38bdf8" />
+<text x="57.8125" y="-8" fill="#38bdf8" font-size="11" font-weight="bold" text-anchor="middle">5.0 METROS</text>
+</g>
+</svg>
