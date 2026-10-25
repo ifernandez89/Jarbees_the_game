@@ -547,60 +547,15 @@ export class ChunkManager {
   }
 
   private sharedMaterial: THREE.MeshStandardMaterial | null = null
-  private static polarNormalMap: THREE.CanvasTexture | null = null
-
-  private static getPolarNormalMap(): THREE.CanvasTexture | null {
-    if (!ChunkManager.polarNormalMap && typeof document !== 'undefined') {
-      try {
-        const size = 128
-        const canvas = document.createElement('canvas')
-        canvas.width = size
-        canvas.height = size
-        const ctx = canvas.getContext('2d')
-        if (ctx) {
-          const imgData = ctx.createImageData(size, size)
-          const d = imgData.data
-          for (let y = 0; y < size; y++) {
-            for (let x = 0; x < size; x++) {
-              const u = x / size
-              const v = y / size
-              // Ondulaciones eólicas de sastrugi polar (-45°)
-              const wave1 = Math.sin((u * 0.7 + v * 0.7) * Math.PI * 12.0)
-              const wave2 = Math.sin((u * 0.9 - v * 0.3) * Math.PI * 24.0) * 0.35
-              const grain = (Math.random() - 0.5) * 0.12
-              const nx = wave1 * 0.35 + wave2 * 0.2 + grain
-              const ny = wave1 * 0.35 - wave2 * 0.1 + grain
-              const idx = (y * size + x) * 4
-              d[idx] = Math.min(255, Math.max(0, Math.floor((nx * 0.5 + 0.5) * 255)))
-              d[idx + 1] = Math.min(255, Math.max(0, Math.floor((ny * 0.5 + 0.5) * 255)))
-              d[idx + 2] = 240
-              d[idx + 3] = 255
-            }
-          }
-          ctx.putImageData(imgData, 0, 0)
-          const tex = new THREE.CanvasTexture(canvas)
-          tex.wrapS = THREE.RepeatWrapping
-          tex.wrapT = THREE.RepeatWrapping
-          tex.repeat.set(16, 16)
-          ChunkManager.polarNormalMap = tex
-        }
-      } catch {
-        // Fallback silente si canvas no está disponible
-      }
-    }
-    return ChunkManager.polarNormalMap
-  }
 
   private getMaterial(): THREE.MeshStandardMaterial {
     if (!this.sharedMaterial) {
-      const normalMap = ChunkManager.getPolarNormalMap()
       this.sharedMaterial = new THREE.MeshStandardMaterial({
         color: this.config.color,
         vertexColors: true,
-        roughness: 0.68,
+        roughness: 0.65,
         metalness: 0.10,
         flatShading: false,
-        ...(normalMap ? { normalMap, normalScale: new THREE.Vector2(0.4, 0.4) } : {}),
       })
     }
     return this.sharedMaterial

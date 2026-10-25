@@ -1,6 +1,44 @@
 # 📝 CHANGELOG - JarBees: The Game
 
-## [0.8.42] - 2026-10-25
+## [0.8.43] - 2026-10-25
+
+### 🦾 Salón de Armaduras (Hall of Armors) en el Taller de Villa Auren
+- **Pipeline de Conversión Source Engine a WebGL ([scripts/build_hall_of_armors.py](file:///c:/Projects/Jarbees_the_game/scripts/build_hall_of_armors.py))**:
+  - Conversión automatizada de los modelos y materiales de la armería Iron Man (`vad36`) desde los packs de Source Engine:
+    * Extracción binaria de geometría métrica 1:1 desde `VVD` (Valve Vertex Data v4) y buffers de indexación de triángulos desde `VTX` (LOD0).
+    * Decodificador nativo DXT1/BC1 para desempaquetar texturas `VTF` difusas, mapas normales (`_n`) y máscaras emisivas de reactor y visor (`_i`).
+    * Compilación con Blender 5.2 a glTF 2.0 (`.glb`) con materiales PBR metálicos calibrados (Metálico `0.85`, Rugosidad `0.28`).
+  - Creación de 5 armaduras de combate legendarias en `public/models/`:
+    * **Mark VII**: Vanguardia pesada con micro-misiles (`armor_mark7.glb`, 2.99 MB).
+    * **Heartbreaker (Mark XVII)**: Artillería de pecho y RT reforzado (`armor_heartbreaker.glb`, 1.97 MB).
+    * **Silver Centurion (Mark XXXIII)**: Armadura polar de combate con hojas de plasma y Uni-Beam criogénico (`armor_silver_centurion.glb`, 1.84 MB).
+    * **Mark 42**: Acoplamiento prehensil autónomo y balance aerodinámico (`armor_mark42.glb`, 1.81 MB).
+    * **War Machine Mk II**: Chasis militar artillado en gris titanio (`armor_war_machine.glb`, 2.98 MB).
+- **Despliegue Arquitectónico del Salón ([components/HallOfArmors.tsx](file:///c:/Projects/Jarbees_the_game/components/HallOfArmors.tsx))**:
+  - Montado en el *Taller Mecánico & Armería NEXO-01* (`PB_Nexo_Armor_Workshop`) de [components/VillaAurenHub.tsx](file:///c:/Projects/Jarbees_the_game/components/VillaAurenHub.tsx) a lo largo del muro este (`X: 13.4`, `Z: -2.2` a `8.2`).
+  - **5 Pods Tecnológicos de Exposición Individual**:
+    * Pedestal octogonal de titanio oscuro con anillo de energía pulsante e iluminación rasante de suelo (Uplight).
+    * Arco de soporte pórtico (Gantry Bay) con dintel superior y foco cenital direccionado al casco (Downlight).
+    * Haz de escaneo biométrico holográfico animado que barre verticalmente la armadura.
+    * Placas holográficas 3D y fichas tácticas AR expandibles con telemetría técnica (Reactor, Rol, Régimen Mach y Estado de carga).
+### 🌐 Filtro de Entornos (Local vs GitHub Pages) & Blindaje de UI
+- **Detector de Entorno Seguro ([utils/environment.ts](file:///c:/Projects/Jarbees_the_game/utils/environment.ts))**:
+  - Función `isLocalEnvironment()` y hook `useIsLocal()` con soporte anti-mismatch para hidratación SSR en Next.js.
+  - Detecta ejecuciones en desarrollo local (`localhost`, `127.0.0.1`, `0.0.0.0`, `.local`) frente a despliegues en GitHub Pages (`ifernandez89.github.io`).
+- **Ocultamiento de Controles Inactivos en Pages ([components/GameHUD.tsx](file:///c:/Projects/Jarbees_the_game/components/GameHUD.tsx))**:
+  - El botón de alternancia de escenarios `[🏰 Mansión Auren [Y]]` / `[🎮 Arena [M]]` y la cuadrícula táctica de selección de mapas satélite de CS 1.6 / L4D ahora **sólo se muestran cuando se corre en entorno local**.
+  - En GitHub Pages se ocultan por completo, evitando mostrar características no hospedadas y garantizando una experiencia limpia y centrada en el santuario infinito antártico y Villa Auren.
+- **Blindaje de Teclas Tácticas ([hooks/useGameControls.ts](file:///c:/Projects/Jarbees_the_game/hooks/useGameControls.ts))**:
+  - Teclas `KeyY` (alternar escenario) y `KeyM` (ciclar mapas satélite) condicionadas a `isLocalEnvironment()`.
+- **Portal Satélite en Hub ([components/AurenMansionHub.tsx](file:///c:/Projects/Jarbees_the_game/components/AurenMansionHub.tsx))**:
+  - Botón interactivo 3D y modal del sintonizador de mundos condicionados a `isLocal`.
+
+### 💡 Calibración de Iluminación de Auren & Corrección de Flickering
+- **Eliminación de Luces de Estudio en Exoesqueleto ([components/BeePlayer.tsx](file:///c:/Projects/Jarbees_the_game/components/BeePlayer.tsx))**:
+  - Retiradas 5 luces puntuales internas montadas en `IronManPlayerModel` (frente, pecho, espalda, pies) que saturaban el presupuesto máximo de 4 luces dinámicas por malla de Three.js y provocaban sobreexposición y parpadeo intermitente al moverse dentro de Villa Auren.
+  - La iluminación de Auren ahora comparte de forma natural y sutil la luz ambiental global y los puntos de luz cálidos de la arquitectura.
+- **Eliminación de Artefactos de Cebra en Terreno Polar ([systems/ChunkManager.ts](file:///c:/Projects/Jarbees_the_game/systems/ChunkManager.ts))**:
+  - Eliminado el mapa de normales procedural corrugado por ondas sinusoidales que generaba líneas diagonales estriadas sobre las colinas nevadas distantes.
 
 ### 🧟 Left 4 Dead (Source Engine VBSP v20) — Ingestión, Análisis y Piloto Jugable
 - **Servicio `SourceWorldAnalyzer` ([scripts/source_world_analyzer.py](file:///c:/Projects/Jarbees_the_game/scripts/source_world_analyzer.py))**:

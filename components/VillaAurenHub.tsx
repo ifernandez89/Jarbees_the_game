@@ -7,6 +7,7 @@ import { useSecureGLTF } from '@/utils/useSecureGLTF'
 import { getAssetPath } from '@/utils/assetPath'
 import { setGroundCollider } from '@/systems/GroundCollisionManager'
 import { useGameStore } from '@/store/gameStore'
+import { HallOfArmors } from './HallOfArmors'
 import type { GLTF } from 'three-stdlib'
 
 type GLTFResult = GLTF & {
@@ -260,6 +261,9 @@ export function VillaAurenHub({
         intensity={3.5}
         distance={15}
       />
+
+      {/* 4. Hall of Armors en el Taller Mecánico & Armería NEXO-01 */}
+      <HallOfArmors />
     </group>
   )
 }

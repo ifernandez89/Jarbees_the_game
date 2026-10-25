@@ -855,15 +855,6 @@ function IronManPlayerModel({ modelPath = '/models/jarbees_suit.jb3d' }: { model
         document.body.style.cursor = 'default'
       }}
     >
-      {/* =====================================================================
-          ILUMINACIÓN DE ESTUDIO DEDICADA: Resalta la armadura en Plata Forjada
-          y el relieve de la pechera de ángel desde cualquier ángulo (frontal y posterior)
-          ===================================================================== */}
-      <pointLight position={[0, 1.2, 2.5]} intensity={2.6} color="#ffffff" distance={8} />
-      <pointLight position={[0, 1.2, -2.5]} intensity={2.2} color="#ffffff" distance={8} />
-      <pointLight position={[0, -0.4, 0]} intensity={1.6} color="#55F0FF" distance={5} />
-      <directionalLight position={[-2, 1.5, 1]} intensity={1.6} color="#E2E8F0" />
-      <ambientLight intensity={0.5} color="#EDF2F7" />
 
 
       {/* =====================================================================

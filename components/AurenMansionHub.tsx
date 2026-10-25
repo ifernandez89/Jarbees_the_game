@@ -8,6 +8,7 @@ import { useSecureGLTF } from '@/utils/useSecureGLTF'
 import { getAssetPath } from '@/utils/assetPath'
 import { setGroundCollider } from '@/systems/GroundCollisionManager'
 import { useGameStore, CS_MAPS, type CSMapId } from '@/store/gameStore'
+import { useIsLocal } from '@/utils/environment'
 import type { GLTF } from 'three-stdlib'
 
 type GLTFResult = GLTF & {
@@ -76,6 +77,7 @@ const CHATEAU_MANSION_ROOMS: RoomBounds[] = [
 ]
 
 export function AurenMansionHub() {
+  const isLocal = useIsLocal()
   const gltf = useSecureGLTF(getAssetPath('/models/de_chateau.glb')) as GLTFResult
   const playerPos = useGameStore((state) => state.position)
   const setCsMap = useGameStore((state) => state.setCsMap)
@@ -319,27 +321,29 @@ export function AurenMansionHub() {
         </mesh>
         <pointLight color="#38BDF8" intensity={2.5} distance={8} />
 
-        {/* Botón interactivo 3D para desplegar selector de mapas */}
-        <Html position={[0, 2.2, 0]} center distanceFactor={14}>
-          <button
-            onClick={() => setShowPortalModal(!showPortalModal)}
-            style={{
-              background: '#0284C7',
-              border: '2px solid #BAE6FD',
-              borderRadius: '8px',
-              color: '#FFFFFF',
-              fontFamily: 'monospace',
-              fontSize: '11px',
-              fontWeight: 800,
-              padding: '6px 12px',
-              cursor: 'pointer',
-              boxShadow: '0 0 16px rgba(56, 189, 248, 0.8)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            🌌 PORTAL DE MUNDOS CS 1.6
-          </button>
-        </Html>
+        {/* Botón interactivo 3D para desplegar selector de mapas (Sólo local) */}
+        {isLocal && (
+          <Html position={[0, 2.2, 0]} center distanceFactor={14}>
+            <button
+              onClick={() => setShowPortalModal(!showPortalModal)}
+              style={{
+                background: '#0284C7',
+                border: '2px solid #BAE6FD',
+                borderRadius: '8px',
+                color: '#FFFFFF',
+                fontFamily: 'monospace',
+                fontSize: '11px',
+                fontWeight: 800,
+                padding: '6px 12px',
+                cursor: 'pointer',
+                boxShadow: '0 0 16px rgba(56, 189, 248, 0.8)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              🌌 PORTAL DE MUNDOS CS 1.6
+            </button>
+          </Html>
+        )}
       </group>
 
       {/* ========================================================================= */}
@@ -390,7 +394,7 @@ export function AurenMansionHub() {
       {/* ========================================================================= */}
       {/* 6. MODAL INTERACTIVO DEL SINTONIZADOR DE MUNDOS SATÉLITES                 */}
       {/* ========================================================================= */}
-      {showPortalModal && (
+      {isLocal && showPortalModal && (
         <Html center>
           <div
             style={{

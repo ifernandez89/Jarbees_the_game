@@ -4,8 +4,10 @@ import { useGameStore, CS_MAPS, type CSMapId } from '@/store/gameStore'
 import { useEffect, useState } from 'react'
 import { useDayNightCycle } from '@/hooks/useDayNightCycle'
 import { CHARACTER_PROFILES } from '@/types/characters'
+import { useIsLocal } from '@/utils/environment'
 
 export function GameHUD() {
+  const isLocal = useIsLocal()
   const isPaused = useGameStore((state) => state.isPaused)
   const velocity = useGameStore((state) => state.velocity)
   const distanceTraveled = useGameStore((state) => state.distanceTraveled)
@@ -158,132 +160,136 @@ export function GameHUD() {
           <span style={{ opacity: 0.6 }}>[B]</span>
         </button>
 
-        {/* Selector de Escenario: Santuario Keops vs Mapas Clásicos / Comunidad */}
-        <button
-          onClick={() => toggleWorldScenario()}
-          className="hud-audio-btn"
-          style={{
-            marginTop: 4,
-            background: activeWorldScenario === 'cs_assault' ? 'rgba(249, 115, 22, 0.25)' : 'rgba(234, 179, 8, 0.2)',
-            border: `1px solid ${activeWorldScenario === 'cs_assault' ? '#F97316' : '#EAB308'}`,
-            color: activeWorldScenario === 'cs_assault' ? '#FDBA74' : '#FEF08A',
-            fontWeight: 'bold',
-          }}
-          title="Alternar entre La Mansión Auren y los mapas satélite de CS [Y]"
-        >
-          <span>
-            {activeWorldScenario === 'cs_assault'
-              ? `🎮 ${CS_MAPS[activeCsMap]?.name || 'Arena'} [M]`
-              : '🏰 Mansión Auren [Y]'}
-          </span>
-          <span style={{ opacity: 0.7 }}>[Y]</span>
-        </button>
+        {/* Selector de Escenario: Santuario Keops vs Mapas Clásicos / Comunidad (Sólo habilitado en entorno local) */}
+        {isLocal && (
+          <>
+            <button
+              onClick={() => toggleWorldScenario()}
+              className="hud-audio-btn"
+              style={{
+                marginTop: 4,
+                background: activeWorldScenario === 'cs_assault' ? 'rgba(249, 115, 22, 0.25)' : 'rgba(234, 179, 8, 0.2)',
+                border: `1px solid ${activeWorldScenario === 'cs_assault' ? '#F97316' : '#EAB308'}`,
+                color: activeWorldScenario === 'cs_assault' ? '#FDBA74' : '#FEF08A',
+                fontWeight: 'bold',
+              }}
+              title="Alternar entre La Mansión Auren y los mapas satélite de CS [Y]"
+            >
+              <span>
+                {activeWorldScenario === 'cs_assault'
+                  ? `🎮 ${CS_MAPS[activeCsMap]?.name || 'Arena'} [M]`
+                  : '🏰 Mansión Auren [Y]'}
+              </span>
+              <span style={{ opacity: 0.7 }}>[Y]</span>
+            </button>
 
-        {/* Botones tácticos directos de mapas */}
-        {activeWorldScenario === 'cs_assault' && (
-          <div
-            style={{
-              marginTop: 6,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-              pointerEvents: 'auto',
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            {/* Sección Comunidad (Open Source - Apta para Pages) */}
-            <div style={{ fontSize: '0.62rem', color: '#38BDF8', fontWeight: 'bold', letterSpacing: '0.04em' }}>
-              🌐 COMUNIDAD (OPEN SOURCE / PAGES)
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
-              {Object.values(CS_MAPS).filter((m) => m.isCommunity).map((m) => {
-                const isSelected = m.id === activeCsMap
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setCsMap(m.id)
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    style={{
-                      pointerEvents: 'auto',
-                      background: isSelected ? 'rgba(56, 189, 248, 0.35)' : 'rgba(15, 23, 42, 0.85)',
-                      border: isSelected ? '1.5px solid #38BDF8' : '1px solid rgba(56, 189, 248, 0.22)',
-                      borderRadius: 4,
-                      color: isSelected ? '#FFFFFF' : '#BAE6FD',
-                      padding: '4px 3px',
-                      fontSize: '0.67rem',
-                      fontFamily: 'monospace, sans-serif',
-                      fontWeight: isSelected ? 'bold' : 'normal',
-                      cursor: 'pointer',
-                      textAlign: 'center',
-                      boxShadow: isSelected ? '0 0 10px rgba(56, 189, 248, 0.65)' : 'none',
-                      transition: 'all 0.12s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 2,
-                    }}
-                    title={`Cargar ${m.label} (Apto para GitHub Pages)`}
-                  >
-                    <span>
-                      {m.label.split(' ')[0]} {m.name}
-                    </span>
-                    {isSelected && <span style={{ color: '#38BDF8', fontSize: '0.65rem' }}>●</span>}
-                  </button>
-                )
-              })}
-            </div>
+            {/* Botones tácticos directos de mapas */}
+            {activeWorldScenario === 'cs_assault' && (
+              <div
+                style={{
+                  marginTop: 6,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  pointerEvents: 'auto',
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                {/* Sección Comunidad (Open Source - Apta para Pages) */}
+                <div style={{ fontSize: '0.62rem', color: '#38BDF8', fontWeight: 'bold', letterSpacing: '0.04em' }}>
+                  🌐 COMUNIDAD (OPEN SOURCE / PAGES)
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+                  {Object.values(CS_MAPS).filter((m) => m.isCommunity).map((m) => {
+                    const isSelected = m.id === activeCsMap
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setCsMap(m.id)
+                        }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        style={{
+                          pointerEvents: 'auto',
+                          background: isSelected ? 'rgba(56, 189, 248, 0.35)' : 'rgba(15, 23, 42, 0.85)',
+                          border: isSelected ? '1.5px solid #38BDF8' : '1px solid rgba(56, 189, 248, 0.22)',
+                          borderRadius: 4,
+                          color: isSelected ? '#FFFFFF' : '#BAE6FD',
+                          padding: '4px 3px',
+                          fontSize: '0.67rem',
+                          fontFamily: 'monospace, sans-serif',
+                          fontWeight: isSelected ? 'bold' : 'normal',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          boxShadow: isSelected ? '0 0 10px rgba(56, 189, 248, 0.65)' : 'none',
+                          transition: 'all 0.12s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 2,
+                        }}
+                        title={`Cargar ${m.label} (Apto para GitHub Pages)`}
+                      >
+                        <span>
+                          {m.label.split(' ')[0]} {m.name}
+                        </span>
+                        {isSelected && <span style={{ color: '#38BDF8', fontSize: '0.65rem' }}>●</span>}
+                      </button>
+                    )
+                  })}
+                </div>
 
-            {/* Sección Clásicos CS 1.6 (Local) */}
-            <div style={{ fontSize: '0.62rem', color: '#F97316', fontWeight: 'bold', letterSpacing: '0.04em', marginTop: 2 }}>
-              🏢 CLÁSICOS CS 1.6 (LOCAL)
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
-              {Object.values(CS_MAPS).filter((m) => !m.isCommunity).map((m) => {
-                const isSelected = m.id === activeCsMap
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setCsMap(m.id)
-                    }}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    style={{
-                      pointerEvents: 'auto',
-                      background: isSelected ? 'rgba(249, 115, 22, 0.35)' : 'rgba(15, 23, 42, 0.85)',
-                      border: isSelected ? '1.5px solid #F97316' : '1px solid rgba(255, 255, 255, 0.15)',
-                      borderRadius: 4,
-                      color: isSelected ? '#FFFFFF' : '#FED7AA',
-                      padding: '4px 3px',
-                      fontSize: '0.67rem',
-                      fontFamily: 'monospace, sans-serif',
-                      fontWeight: isSelected ? 'bold' : 'normal',
-                      cursor: 'pointer',
-                      textAlign: 'center',
-                      boxShadow: isSelected ? '0 0 10px rgba(249, 115, 22, 0.65)' : 'none',
-                      transition: 'all 0.12s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 2,
-                    }}
-                    title={`Cargar ${m.label} (Local)`}
-                  >
-                    <span>
-                      {m.label.split(' ')[0]} {m.name}
-                    </span>
-                    {isSelected && <span style={{ color: '#F97316', fontSize: '0.65rem' }}>●</span>}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+                {/* Sección Clásicos CS 1.6 (Local) */}
+                <div style={{ fontSize: '0.62rem', color: '#F97316', fontWeight: 'bold', letterSpacing: '0.04em', marginTop: 2 }}>
+                  🏢 CLÁSICOS CS 1.6 (LOCAL)
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+                  {Object.values(CS_MAPS).filter((m) => !m.isCommunity).map((m) => {
+                    const isSelected = m.id === activeCsMap
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setCsMap(m.id)
+                        }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        style={{
+                          pointerEvents: 'auto',
+                          background: isSelected ? 'rgba(249, 115, 22, 0.35)' : 'rgba(15, 23, 42, 0.85)',
+                          border: isSelected ? '1.5px solid #F97316' : '1px solid rgba(255, 255, 255, 0.15)',
+                          borderRadius: 4,
+                          color: isSelected ? '#FFFFFF' : '#FED7AA',
+                          padding: '4px 3px',
+                          fontSize: '0.67rem',
+                          fontFamily: 'monospace, sans-serif',
+                          fontWeight: isSelected ? 'bold' : 'normal',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          boxShadow: isSelected ? '0 0 10px rgba(249, 115, 22, 0.65)' : 'none',
+                          transition: 'all 0.12s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 2,
+                        }}
+                        title={`Cargar ${m.label} (Local)`}
+                      >
+                        <span>
+                          {m.label.split(' ')[0]} {m.name}
+                        </span>
+                        {isSelected && <span style={{ color: '#F97316', fontSize: '0.65rem' }}>●</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

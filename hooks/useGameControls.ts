@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useGameStore } from '@/store/gameStore'
+import { isLocalEnvironment } from '@/utils/environment'
 
 export function useGameControls() {
   const setControls = useGameStore((state) => state.setControls)
@@ -44,17 +45,21 @@ export function useGameControls() {
         return
       }
 
-      // Alternar Escenario (Santuario Keops vs Clásico CS 1.6) con Y
+      // Alternar Escenario (Santuario Keops vs Clásico CS 1.6) con Y (sólo en local)
       if (e.code === 'KeyY') {
         e.preventDefault()
-        useGameStore.getState().toggleWorldScenario()
+        if (isLocalEnvironment()) {
+          useGameStore.getState().toggleWorldScenario()
+        }
         return
       }
 
-      // Cambiar mapa de CS 1.6 con M
+      // Cambiar mapa de CS 1.6 con M (sólo en local)
       if (e.code === 'KeyM') {
         e.preventDefault()
-        useGameStore.getState().cycleCsMap()
+        if (isLocalEnvironment()) {
+          useGameStore.getState().cycleCsMap()
+        }
         return
       }
 
