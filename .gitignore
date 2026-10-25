@@ -86,6 +86,13 @@ skills-lock.json
 /public/textures/zhl_*/
 *.bsp
 *.wad
+*.nav
+
+# CS 1.6 Analysis Scripts (Local laboratory use only - access proprietary game files)
+scripts/analyze_bsp_nav_spatial.py
+scripts/convert_*.py
+scripts/inspect_*.py
+scripts/calc_spawns_*.py
 
 
 
