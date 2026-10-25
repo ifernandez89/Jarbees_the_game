@@ -101,15 +101,15 @@ export const WORLD_TARGETS: NavigationTarget[] = [
   },
   {
     id: 'blood_falls',
-    name: 'Santuario Pirámide (Casa de Auren)',
+    name: 'Villa Auren · Alpine Residence & WorldLab',
     region: 'Valle de Taylor / Blood Falls (Antártida)',
     latitude: -77.7220,
     longitude: 162.2730,
     elevation: 140,
     category: 'origin',
-    tagline: 'Hogar y Punto Cero de despliegue · Gran Pirámide a Escala Real (138.8m)',
-    description: 'Monumental santuario de nano-obsidiana con piramidión de Aurelium y portal de despliegue en el punto cero.',
-    color: '#10b981',
+    tagline: 'Hogar y Punto Cero de despliegue · Residencia Alpina & Laboratorio Cuántico',
+    description: 'Residencia alpina contemporánea de madera y piedra con laboratorio tecnológico subterráneo y galería vertical de vuelo Mach.',
+    color: '#55f0ff',
   },
 ]
 

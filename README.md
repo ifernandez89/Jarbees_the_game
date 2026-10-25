@@ -90,11 +90,25 @@ Jarbees_the_game/
 ├── store/                 # Estado global (Zustand)
 ├── systems/               # Lógica del juego
 ├── public/
-│   ├── models/            # Modelos 3D (GLB)
+│   ├── models/            # Modelos 3D (GLB, incluye villa_auren.glb)
+│   ├── data/              # Metadatos semánticos (villa_auren.world.json)
 │   ├── textures/          # Texturas
 │   └── audio/             # Música y efectos
 └── types/                 # TypeScript types
 ```
+
+---
+
+## 🏔️ Villa Auren — Alpine Research Residence & WorldLab Hub
+
+Villa Auren es un entorno 3D original generado de forma procedural y no destructiva mediante scripts de Blender (`bpy`), combinando una residencia de montaña contemporánea con un laboratorio subterráneo y un conducto de vuelo vertical para Auren.
+
+- **Generador Procedural**: [`scripts/generate_villa_auren.py`](file:///c:/Projects/Jarbees_the_game/scripts/generate_villa_auren.py)
+- **Modelo Nativo Blender**: [`villa_auren.blend`](file:///c:/Projects/Jarbees_the_game/villa_auren.blend)
+- **Modelo Optimizado Three.js**: [`public/models/villa_auren.glb`](file:///c:/Projects/Jarbees_the_game/public/models/villa_auren.glb) (`147 KB`)
+- **Manifiesto de Zonas & Spawns**: [`public/data/villa_auren.world.json`](file:///c:/Projects/Jarbees_the_game/public/data/villa_auren.world.json)
+- **Componente R3F**: [`components/VillaAurenHub.tsx`](file:///c:/Projects/Jarbees_the_game/components/VillaAurenHub.tsx)
+- **Documentación Completa**: Consulta [`docs/VILLA_AUREN.md`](file:///c:/Projects/Jarbees_the_game/docs/VILLA_AUREN.md) para especificaciones y comandos de compilación.
 
 ---
 

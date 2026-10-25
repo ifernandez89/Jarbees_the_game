@@ -1,0 +1,408 @@
+{
+  "zoneId": "villa_auren_alpine",
+  "version": "1.0.0",
+  "name": "Villa Auren · Alpine Research Residence",
+  "description": "Original compact alpine residence combining warm timber/stone architecture with a discreet subterranean research lab. Generated procedurally with Blender bpy for seamless Three.js integration.",
+  "author": "Auren WorldLab & JarBees Core",
+  "worldDimensions": {
+    "terrainMeters": [
+      32.0,
+      30.0
+    ],
+    "buildingFootprintMeters": [
+      20.0,
+      16.0
+    ],
+    "characterHeightMeters": 1.85,
+    "groundCeilingHeight": 3.2,
+    "upperCeilingHeight": 3.0,
+    "labCeilingHeight": 3.2,
+    "levels": [
+      "S1_Lab",
+      "PB_Residence",
+      "P1_Gallery",
+      "ROOF_Alpine"
+    ]
+  },
+  "spawnPoints": [
+    {
+      "id": "spawn_courtyard_dais",
+      "name": "Courtyard Dais · Main Arrival",
+      "position": [
+        0.0,
+        0.35,
+        10.5
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "isPrimary": true,
+      "description": "Hexagonal arrival dais in the stone courtyard with direct view of the alpine facade."
+    },
+    {
+      "id": "spawn_lab_core",
+      "name": "Quantum Lab Core · Subterranean Vault",
+      "position": [
+        0.0,
+        -3.25,
+        -5.0
+      ],
+      "rotation": [
+        0,
+        3.1416,
+        0
+      ],
+      "isPrimary": false,
+      "description": "Underground research facility before the illuminated JarBees Core."
+    },
+    {
+      "id": "spawn_balcony_flight",
+      "name": "Alpine Mezzanine Balcony · Mach Egress",
+      "position": [
+        0.0,
+        3.55,
+        7.0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "isPrimary": false,
+      "description": "Cantilevered upper balcony overlooking courtyard with direct runway into mountain flight."
+    }
+  ],
+  "rooms": [
+    {
+      "id": "courtyard_gardens",
+      "name": "Courtyard & Arrival Dais",
+      "floor": "EXT",
+      "bounds": {
+        "min": [
+          -16.0,
+          0.0,
+          5.5
+        ],
+        "max": [
+          16.0,
+          4.0,
+          15.0
+        ]
+      },
+      "features": [
+        "Hexagonal Dais",
+        "Stone Pavement",
+        "Perimeter Stone Walls"
+      ]
+    },
+    {
+      "id": "vestibule_entrance",
+      "name": "Entrance Vestibule & Foyer",
+      "floor": "PB",
+      "bounds": {
+        "min": [
+          -3.5,
+          0.0,
+          2.0
+        ],
+        "max": [
+          3.5,
+          3.4,
+          6.0
+        ]
+      },
+      "features": [
+        "Alpine Double Door",
+        "Stone Tiles",
+        "Coat Lockers"
+      ]
+    },
+    {
+      "id": "grand_salon",
+      "name": "Grand Salon & Fireplace Hearth",
+      "floor": "PB",
+      "bounds": {
+        "min": [
+          -10.0,
+          0.0,
+          -4.5
+        ],
+        "max": [
+          -2.0,
+          6.4,
+          2.0
+        ]
+      },
+      "features": [
+        "Stone Hearth",
+        "Double-Height Void",
+        "Timber Trusses"
+      ]
+    },
+    {
+      "id": "kitchen_dining",
+      "name": "Kitchen & Alpine Dining Wing",
+      "floor": "PB",
+      "bounds": {
+        "min": [
+          -10.0,
+          0.0,
+          -10.0
+        ],
+        "max": [
+          -2.0,
+          3.4,
+          -4.0
+        ]
+      },
+      "features": [
+        "Cedar Dining Table",
+        "Pantry",
+        "Terrace Access"
+      ]
+    },
+    {
+      "id": "jarbees_study",
+      "name": "JarBees Tech Study & Office",
+      "floor": "PB",
+      "bounds": {
+        "min": [
+          2.0,
+          0.0,
+          -4.0
+        ],
+        "max": [
+          10.0,
+          3.4,
+          4.0
+        ]
+      },
+      "features": [
+        "Terminal Desk",
+        "Schematic Wall",
+        "North Windows"
+      ]
+    },
+    {
+      "id": "vertical_flight_gallery",
+      "name": "Vertical Glazed Flight Gallery",
+      "floor": "PB_P1_ROOF",
+      "bounds": {
+        "min": [
+          -2.2,
+          0.0,
+          -2.2
+        ],
+        "max": [
+          2.2,
+          9.8,
+          2.2
+        ]
+      },
+      "features": [
+        "Vertical Mach Launch Shaft",
+        "Glass Envelope",
+        "Roof Egress Hatch"
+      ]
+    },
+    {
+      "id": "mezzanine_library",
+      "name": "Mezzanine Library & Walkway",
+      "floor": "P1",
+      "bounds": {
+        "min": [
+          2.0,
+          3.4,
+          -10.0
+        ],
+        "max": [
+          10.0,
+          6.8,
+          2.0
+        ]
+      },
+      "features": [
+        "Bookcases",
+        "Reading Lounge",
+        "Overlook Railing"
+      ]
+    },
+    {
+      "id": "auren_workshop",
+      "name": "Auren Armor Maintenance Workshop",
+      "floor": "P1",
+      "bounds": {
+        "min": [
+          2.0,
+          3.4,
+          -4.0
+        ],
+        "max": [
+          10.0,
+          6.8,
+          4.0
+        ]
+      },
+      "features": [
+        "Armor Gantry",
+        "Tool Matrix",
+        "Telemetry Screen"
+      ]
+    },
+    {
+      "id": "master_suite",
+      "name": "Private Alpine Bedroom Suite",
+      "floor": "P1",
+      "bounds": {
+        "min": [
+          -10.0,
+          3.4,
+          -10.0
+        ],
+        "max": [
+          -2.0,
+          6.8,
+          -4.0
+        ]
+      },
+      "features": [
+        "Timber Bed",
+        "Mountain Panorama Windows",
+        "Balcony Door"
+      ]
+    },
+    {
+      "id": "underground_laboratory",
+      "name": "Subterranean Research Lab & Core Vault",
+      "floor": "S1",
+      "bounds": {
+        "min": [
+          -10.0,
+          -3.7,
+          -10.0
+        ],
+        "max": [
+          10.0,
+          0.0,
+          6.0
+        ]
+      },
+      "features": [
+        "Illuminated JarBees Core (432 Hz)",
+        "Auren Fast-Charge Gantry",
+        "Server Matrix",
+        "Quantum Console"
+      ]
+    },
+    {
+      "id": "alpine_rooftops",
+      "name": "Alpine Slate Rooftops & Flight Egress",
+      "floor": "ROOF",
+      "bounds": {
+        "min": [
+          -11.0,
+          6.4,
+          -11.0
+        ],
+        "max": [
+          11.0,
+          10.0,
+          7.0
+        ]
+      },
+      "features": [
+        "Slate Gabled Roofs",
+        "Chimney Tower",
+        "Flight Aperture Hatch"
+      ]
+    }
+  ],
+  "flightCorridors": [
+    {
+      "id": "flight_atrium_shaft",
+      "name": "Atrium Vertical Flight Corridor",
+      "entryPoint": [
+        0.0,
+        0.5,
+        -0.0
+      ],
+      "exitPoint": [
+        0.0,
+        9.8,
+        -0.0
+      ],
+      "diameterMeters": 4.0,
+      "flightModesAllowed": [
+        "HOVER",
+        "SUPERSONIC_BURST"
+      ]
+    },
+    {
+      "id": "flight_balcony_launch",
+      "name": "Mezzanine Balcony Runway",
+      "launchPoint": [
+        0.0,
+        3.6,
+        7.0
+      ],
+      "vector": [
+        0,
+        0.2,
+        1.0
+      ],
+      "flightModesAllowed": [
+        "CRUISE",
+        "MACH_RUN"
+      ]
+    }
+  ],
+  "interactionPoints": [
+    {
+      "id": "door_main_entrance",
+      "type": "DOOR",
+      "position": [
+        0.0,
+        1.2,
+        5.8
+      ]
+    },
+    {
+      "id": "stair_lab_access",
+      "type": "STAIRCASE",
+      "position": [
+        0.0,
+        0.5,
+        -3.8
+      ]
+    },
+    {
+      "id": "jarbees_core_console",
+      "type": "CONSOLE",
+      "position": [
+        0.0,
+        -3.0,
+        -5.0
+      ]
+    },
+    {
+      "id": "auren_charging_pad",
+      "type": "CHARGING_DOCK",
+      "position": [
+        6.5,
+        -3.2,
+        1.0
+      ]
+    },
+    {
+      "id": "salon_fireplace",
+      "type": "FIREPLACE",
+      "position": [
+        -8.2,
+        0.3,
+        -1.0
+      ]
+    }
+  ]
+}

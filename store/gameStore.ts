@@ -291,8 +291,8 @@ export interface GameState {
 }
 
 const initialState = {
-  position: [8.08, 7.84, -54.04] as [number, number, number],
-  rotation: [0, 0, 0] as [number, number, number],
+  position: [0.0, 1.30, 10.5] as [number, number, number],
+  rotation: [0, Math.PI, 0] as [number, number, number],
   velocity: 0,
   baseSpeed: 0,
   maxSpeed: 15,
@@ -377,21 +377,23 @@ export const useGameStore = create<GameState>((set) => ({
   toggleWorldScenario: () =>
     set((state) => {
       const next = state.activeWorldScenario === 'sanctuary_infinite' ? 'cs_assault' : 'sanctuary_infinite'
-      const spawn = next === 'cs_assault' ? CS_MAPS[state.activeCsMap].spawnPosition : [8.08, 7.84, -54.04]
+      const spawn = next === 'cs_assault' ? CS_MAPS[state.activeCsMap].spawnPosition : [0.0, 1.30, 10.5]
+      const rot = next === 'cs_assault' ? [0, 0, 0] : [0, Math.PI, 0]
       return {
         activeWorldScenario: next,
         position: [...spawn] as [number, number, number],
-        rotation: [0, 0, 0],
+        rotation: [...rot] as [number, number, number],
         velocity: 0,
       }
     }),
   setWorldScenario: (activeWorldScenario) =>
     set((state) => {
-      const spawn = activeWorldScenario === 'cs_assault' ? CS_MAPS[state.activeCsMap].spawnPosition : [8.08, 7.84, -54.04]
+      const spawn = activeWorldScenario === 'cs_assault' ? CS_MAPS[state.activeCsMap].spawnPosition : [0.0, 1.30, 10.5]
+      const rot = activeWorldScenario === 'cs_assault' ? [0, 0, 0] : [0, Math.PI, 0]
       return {
         activeWorldScenario,
         position: [...spawn] as [number, number, number],
-        rotation: [0, 0, 0],
+        rotation: [...rot] as [number, number, number],
         velocity: 0,
       }
     }),

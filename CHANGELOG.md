@@ -1,5 +1,34 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.39] - 2026-10-25
+
+### 🏔️ Villa Auren — Alpine Research Residence (Fase 1: Architectural Blockout Procedural)
+
+#### 1. Generador Procedural en Blender Python ([generate_villa_auren.py](file:///c:/Projects/Jarbees_the_game/scripts/generate_villa_auren.py))
+- **Arquitectura Original Propia (No réplica de mapas protegidos)**:
+  - Diseño contemporáneo alpino que combina una residencia cálida de montaña con un laboratorio científico subterráneo y una galería vertical de vuelo Mach.
+  - Dimensiones calibradas: parcela de `32 × 30 m`, huella principal de `20 × 16 m`, altura libre de `3.2 m` en PB, `3.0 m` en P1 y `3.2 m` en S1 (Lab), dimensionado para Auren (`1.85 m`).
+  - **Organización Estricta en Colecciones**: `ENV_Terrain`, `ARCH_Structure`, `ARCH_Doors_Windows`, `ARCH_Roof`, `INT_Furniture`, `INT_Laboratory`, `EXT_Vegetation`, `COL_Colliders` (83 objetos), `NAV_Walkable` (26 superficies), `META_InteractionPoints` (9 marcadores).
+  - **Paleta de Materiales PBR de Blockout**: 12 materiales modulares con rugosidad, metalicidad y emisores (`MAT_Wood_Timber`, `MAT_Stone_Foundation`, `MAT_Glass_Glazing`, `MAT_JarBees_Cyan_Glow`, etc.).
+  - **Escaleras de Peldaños Sólidos**: Escalera doble tramo PB→P1 y escalera técnica S1→PB con huellas sólidas para detección continua de raycasting.
+  - **Galería Vertical de Vuelo (Mach Shaft)**: Chimenea acristalada diáfana de `4 × 4 m` que comunica verticalmente la planta baja, la mezzanine y la ventana de escape en el tejado alpino.
+
+#### 2. Entregables y Exportación Validada en Blender 5.2.2 LTS ([villa_auren.blend](file:///c:/Projects/Jarbees_the_game/villa_auren.blend), [villa_auren.glb](file:///c:/Projects/Jarbees_the_game/public/models/villa_auren.glb))
+- Generación y guardado automático de `villa_auren.blend` y exportación a binario glTF 2.0 `villa_auren.glb` (ultra-optimizado: `147 KB`, 83 mallas, 12 materiales).
+- Conversión de coordenadas nativa: Z-up en Blender convertida a Y-up en glTF según el estándar Three.js.
+
+#### 3. Manifiesto Semántico JSON & Componente Three.js ([villa_auren.world.json](file:///c:/Projects/Jarbees_the_game/public/data/villa_auren.world.json), [VillaAurenHub.tsx](file:///c:/Projects/Jarbees_the_game/components/VillaAurenHub.tsx))
+- **Indexación Espacial**: 11 salas y zonas definidas (`courtyard_gardens`, `vestibule_entrance`, `grand_salon`, `kitchen_dining`, `jarbees_study`, `vertical_flight_gallery`, `mezzanine_library`, `auren_workshop`, `master_suite`, `underground_laboratory`, `alpine_rooftops`).
+- **Puntos de Spawn y Vuelo**: Dais en el patio `[0.0, 0.35, 10.5]`, núcleo del laboratorio `[0.0, -3.25, -5.0]` y balcón voladizo `[0.0, 3.55, 7.0]`.
+- **Integración React Three Fiber**: Componente `VillaAurenHub.tsx` con soporte de posición configurable `position={[x, y, z]}`, colisionador milimétrico `setGroundCollider` y detección dinámica de habitaciones.
+
+#### 4. Reemplazo Oficial de la Mansión Château por Villa Auren ([GameScene.tsx](file:///c:/Projects/Jarbees_the_game/components/GameScene.tsx), [gameStore.ts](file:///c:/Projects/Jarbees_the_game/store/gameStore.ts), [NavigationService.ts](file:///c:/Projects/Jarbees_the_game/services/NavigationService.ts))
+- **Despliegue Principal en Escena**: Se sustituyó el montaje temporal de `AurenMansionHub` por `VillaAurenHub` en el origen `[0, 0, 0]` de `sanctuary_infinite`.
+- **Spawn Calibrado en el Dais de Villa Auren**: El punto de aparición inicial y retorno al mundo infinito se fijó en `[0.0, 1.30, 10.5]` con rotación `[0, Math.PI, 0]` hacia la entrada.
+- **Catálogo Mundial de Navegación (ANS)**: Se actualizó el punto cero geodésico `origin` (`blood_falls`) a "Villa Auren · Alpine Residence & WorldLab".
+
+---
+
 ## [0.8.38] - 2026-10-25
 
 ### 🏰 La Mansión Auren · Residencia de PAGES & Cuartel General de JarBees (Reemplazo Oficial de la Pirámide)
