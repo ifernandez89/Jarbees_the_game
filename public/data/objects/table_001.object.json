@@ -1,0 +1,79 @@
+{
+  "$schema": "../../schema/jarbees_object.schema.json",
+  "objectId": "jarbees_table_001",
+  "name": "Mesa de Roble Nexo (Paramétrica v1)",
+  "category": "furniture",
+  "version": "1.0.0",
+  "author": "JarBees Object Lab & Auren Engineering",
+  "description": "Mesa de comedor / taller táctico ensamblada a partir de reglas geométricas deterministas con biseles perimetrales, 4 patas conicables, faldones de refuerzo y anclas ergonómicas para Auren.",
+  "unit": "meter",
+  "dimensions": {
+    "widthX": 1.40,
+    "depthY": 0.80,
+    "heightZ": 0.75
+  },
+  "parameters": {
+    "legThickness": 0.07,
+    "legInset": 0.05,
+    "legTaper": 0.85,
+    "topThickness": 0.045,
+    "topBevelRadius": 0.015,
+    "apronHeight": 0.09,
+    "apronThickness": 0.025,
+    "cornerRadius": 0.02
+  },
+  "materials": {
+    "primary": "pbr_oak_varnished",
+    "secondary": "pbr_black_steel_brackets",
+    "hardware": "pbr_brass_bolts"
+  },
+  "validationRules": {
+    "minStabilityMargin": 0.15,
+    "minClearanceRatio": 0.80,
+    "maxWeightEstimateKg": 65.0
+  },
+  "interaction": {
+    "anchors": [
+      {
+        "id": "sit_slot_south_left",
+        "type": "chair_slot",
+        "name": "Puesto Sur A (Frente Izq)",
+        "localPos": [-0.35, -0.65, 0.0],
+        "normal": [0, 1, 0],
+        "clearanceRadius": 0.45
+      },
+      {
+        "id": "sit_slot_south_right",
+        "type": "chair_slot",
+        "name": "Puesto Sur B (Frente Der)",
+        "localPos": [0.35, -0.65, 0.0],
+        "normal": [0, 1, 0],
+        "clearanceRadius": 0.45
+      },
+      {
+        "id": "sit_slot_north_left",
+        "type": "chair_slot",
+        "name": "Puesto Norte A (Dorso Izq)",
+        "localPos": [-0.35, 0.65, 0.0],
+        "normal": [0, -1, 0],
+        "clearanceRadius": 0.45
+      },
+      {
+        "id": "sit_slot_north_right",
+        "type": "chair_slot",
+        "name": "Puesto Norte B (Dorso Der)",
+        "localPos": [0.35, 0.65, 0.0],
+        "normal": [0, -1, 0],
+        "clearanceRadius": 0.45
+      },
+      {
+        "id": "top_placement_surface",
+        "type": "item_placement",
+        "name": "Superficie de Apoyo Superior",
+        "localPos": [0.0, 0.0, 0.75],
+        "normal": [0, 0, 1],
+        "clearanceRadius": 0.70
+      }
+    ]
+  }
+}

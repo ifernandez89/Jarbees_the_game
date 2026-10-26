@@ -1,5 +1,35 @@
 # 📝 CHANGELOG - JarBees: The Game
 
+## [0.8.45] - 2026-10-26
+
+### 🔬 JarBees Object Lab — Motor Geométrico Paramétrico & Ensamble Cinético (Fase 1: Mesa MVP)
+- **Especificación Paramétrica JSON y Tipado Estricto**:
+  - Creación del contrato único de verdad en [`public/data/objects/table_001.object.json`](file:///c:/Projects/Jarbees_the_game/public/data/objects/table_001.object.json) con dimensiones métricas, espesores, biseles y anclas ergonómicas.
+  - Definición de tipos TypeScript [`types/object-lab.ts`](file:///c:/Projects/Jarbees_the_game/types/object-lab.ts) para jerarquía de piezas, restricciones cinemáticas, colisionadores huecos y reportes analíticos de validación.
+- **Validador Físico y Estructural ([systems/object-lab/GeometryValidator.ts](file:///c:/Projects/Jarbees_the_game/systems/object-lab/GeometryValidator.ts))**:
+  - Análisis analítico continuo de estabilidad: centro de gravedad vertical vs. polígono de sustentación de patas para prevenir riesgo de vuelco.
+  - Cálculo ergonómico de altura libre para las rodillas de Auren ($1.85\text{ m}$ con exo-traje NEXO-01, holgura bajo faldón $\ge 0.60\text{ m}$).
+  - Estimación volumétrica y masa en madera de roble barnizado ($720\text{ kg/m}^3$).
+- **Generador de Mallas Three.js ([systems/object-lab/ObjectGeometryBuilder.ts](file:///c:/Projects/Jarbees_the_game/systems/object-lab/ObjectGeometryBuilder.ts))**:
+  - Ensamble determinista de mallas descompuestas con cálculo de vectores unitarios de despiece (*Exploded View*).
+  - Generación de colisionadores *hulls* independientes para patas y tablero (dejando completamente libre el hueco interior inferior para tránsito de piernas, tiros y colisión limpia estilo CS/GoldSrc).
+  - Puntos de ancla semánticos con conos de orientación y radios de despeje para puestos de silla y superficie de apoyo superior.
+- **Micro-Sintetizador Sensorial Táctil ([systems/object-lab/InteractionExperienceEngine.ts](file:///c:/Projects/Jarbees_the_game/systems/object-lab/InteractionExperienceEngine.ts))**:
+  - Inspirado en la inmersión táctil de `halloween.dev` (*The Last Deploy*).
+  - Síntesis Web Audio DSP procedimental sin librerías ni archivos pesados de audio: micro-ticks sinusoidales de relé al pasar el cursor, clicks mecánicos durante el arrastre de sliders, silbido inercial en despiece, golpe sordo (*thud*) al encastrar piezas y pulsos armónicos disonantes ante advertencias de estabilidad.
+- **Estación de Trabajo Web 3D ([app/lab/page.tsx](file:///c:/Projects/Jarbees_the_game/app/lab/page.tsx) & [components/lab/ObjectLabViewer.tsx](file:///c:/Projects/Jarbees_the_game/components/lab/ObjectLabViewer.tsx))**:
+  - Visor interactivo en la nueva ruta `/lab` con soporte de OrbitControls, sombras suaves y piso infinito con grilla métrica CAD.
+  - Slider de despiece (*Exploded View*) continuo de $0\%$ a $100\%$ con animación amortiguada por inercia mecánica.
+  - Capas de inspección técnica: cotas dimensionales flotantes en 3D (ancho, profundidad y altura en centímetros), malla alámbrica (*wireframe*), colisionadores físicos y anclas Auren.
+  - Panel de telemetría con score de validación (0-100), masa calculada, volumen y descarga de JSON / comando CLI para Blender.
+- **Generador Headless Blender 5.2 ([scripts/generate_jarbees_object.py](file:///c:/Projects/Jarbees_the_game/scripts/generate_jarbees_object.py))**:
+  - Script en Python (`bpy`) verificado con el binario de Blender 5.2.2 en modo background.
+  - Generación de mallas con biseles no destructivos (Bevel Modifier), proyección UV métrica cúbica ($1\text{m} = 1\text{ UV unit}$) y colecciones organizadas `GEO_Visual`, `COL_Colliders` y `ANCHORS`.
+  - Exportación automática a `assets_source/table_001.blend` y modelo WebGL `public/models/table_001.glb`.
+- **Integración y Documentación**:
+  - Botones de acceso directo al laboratorio en la cabecera de [`app/blueprints/page.tsx`](file:///c:/Projects/Jarbees_the_game/app/blueprints/page.tsx) y en el menú de inicio en [`app/page.tsx`](file:///c:/Projects/Jarbees_the_game/app/page.tsx).
+  - Manual técnico de ingeniería en [`docs/JARBEES_OBJECT_LAB.md`](file:///c:/Projects/Jarbees_the_game/docs/JARBEES_OBJECT_LAB.md).
+
 ## [0.8.44] - 2026-10-25
 
 ### 🗺️ Rediseño Compacto y Simplificación del Panel de Mapas (HUD)

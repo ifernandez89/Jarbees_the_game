@@ -113,6 +113,24 @@ export default function BlueprintsPage() {
             {showDiagnostics ? 'Ocultar Diagnóstico' : 'Ver Validador (42 Tests)'}
           </button>
           <Link
+            href="/lab"
+            style={{
+              background: '#0f172a',
+              color: '#38bdf8',
+              border: '1px solid #0284c7',
+              fontWeight: 700,
+              textDecoration: 'none',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            🔬 Object Lab 3D
+          </Link>
+          <Link
             href="/game"
             style={{
               background: 'linear-gradient(135deg, #f59e0b, #d97706)',

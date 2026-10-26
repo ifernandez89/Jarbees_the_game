@@ -79,6 +79,13 @@ export default function HomePage() {
             ▶ Jugar Ahora
           </button>
 
+          <button
+            onClick={() => router.push('/lab')}
+            className="btn-lab"
+          >
+            🔬 Object Lab 3D
+          </button>
+
           {canInstall && (
             <button
               onClick={handleInstallClick}
@@ -184,6 +191,26 @@ export default function HomePage() {
         .btn-play:hover {
           transform: translateY(-2px);
           box-shadow: 0 6px 24px rgba(255, 215, 0, 0.65);
+        }
+
+        .btn-lab {
+          padding: 15px 32px;
+          font-size: 1.1rem;
+          font-weight: bold;
+          color: #38bdf8;
+          background: rgba(56, 189, 248, 0.12);
+          border: 2px solid #0284c7;
+          border-radius: 50px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          touch-action: manipulation;
+          box-shadow: 0 4px 18px rgba(2, 132, 199, 0.25);
+        }
+
+        .btn-lab:hover {
+          background: rgba(56, 189, 248, 0.25);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 24px rgba(2, 132, 199, 0.5);
         }
 
         .btn-install {
